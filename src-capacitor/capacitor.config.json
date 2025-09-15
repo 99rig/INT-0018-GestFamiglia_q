@@ -1,0 +1,50 @@
+{
+  "appId": "com.mumble.appbase",
+  "appName": "Mumble App",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "backgroundColor": "#E5E9DF",
+  "ios": {
+    "backgroundColor": "#E5E9DF",
+    "contentInset": "automatic",
+    "preferredContentMode": "mobile",
+    "allowsLinkPreview": true,
+    "scheme": "App",
+    "overrideUserAgent": "MumbleApp/1.0"
+  },
+  "android": {
+    "backgroundColor": "#E5E9DF",
+    "allowMixedContent": false,
+    "webContentsDebuggingEnabled": false,
+    "minWebViewVersion": 60,
+    "flavor": "main"
+  },
+  "server": {
+    "iosScheme": "capacitor",
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "Camera": {
+      "presentationStyle": "fullscreen",
+      "allowEdit": true,
+      "resultType": "uri"
+    },
+    "PushNotifications": {
+      "presentationStyle": "badge|sound|alert"
+    },
+    "SplashScreen": {
+      "launchAutoHide": true,
+      "backgroundColor": "#E5E9DF",
+      "showSpinner": false,
+      "androidSpinnerStyle": "large",
+      "iosSpinnerStyle": "small",
+      "spinnerColor": "#999999",
+      "splashFullScreen": true,
+      "splashImmersive": true
+    },
+    "StatusBar": {
+      "style": "default",
+      "backgroundColor": "#3A3F4A"
+    }
+  }
+}

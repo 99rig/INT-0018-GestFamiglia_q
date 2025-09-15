@@ -1,1 +1,64 @@
 // app global css in SCSS form
+
+// Import Mumble variables
+@import './variables.scss';
+
+// Global Mumble styling
+body {
+  font-family: 'Roboto', '-apple-system', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+// Custom Mumble app styles
+.mumble-page-container {
+  background-color: $mumble-bg-light;
+  min-height: 100vh;
+}
+
+.mumble-card {
+  background: white;
+  border: 1px solid rgba($mumble-accent, 0.2);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba($mumble-primary, 0.1);
+  
+  &:hover {
+    box-shadow: 0 4px 16px rgba($mumble-primary, 0.15);
+    transition: box-shadow 0.3s ease;
+  }
+}
+
+.mumble-btn-primary {
+  background-color: $mumble-primary !important;
+  color: white !important;
+  
+  &:hover {
+    background-color: $mumble-primary-hover !important;
+  }
+}
+
+.mumble-btn-secondary {
+  background-color: $mumble-secondary !important;
+  color: white !important;
+  
+  &:hover {
+    background-color: $mumble-secondary-hover !important;
+  }
+}
+
+.mumble-btn-accent {
+  background-color: $mumble-accent !important;
+  color: white !important;
+  
+  &:hover {
+    background-color: $mumble-accent-hover !important;
+  }
+}
+
+// Header styling
+.mumble-header {
+  background: linear-gradient(135deg, #{$mumble-primary} 0%, #{$mumble-secondary} 100%) !important;
+}
+
+// Custom text colors
+.text-mumble-primary { color: $mumble-primary !important; }
+.text-mumble-secondary { color: $mumble-secondary !important; }
+.text-mumble-accent { color: $mumble-accent !important; }

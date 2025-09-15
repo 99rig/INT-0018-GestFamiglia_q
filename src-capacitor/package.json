@@ -1,0 +1,12 @@
+{
+  "name": "app-base",
+  "version": "0.0.1",
+  "description": "A Mumble Project",
+  "author": "99rig <unblockchain@gmail.com>",
+  "private": true,
+  "dependencies": {
+    "@capacitor/app": "^7.0.0",
+    "@capacitor/cli": "^7.0.0",
+    "@capacitor/core": "^7.0.0"
+  }
+}

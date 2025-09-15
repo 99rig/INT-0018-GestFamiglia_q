@@ -1,0 +1,67 @@
+// 🎨 MUMBLE COLORS PALETTE
+// Palette colori ufficiale Mumble Projects
+
+// Variabili colori Mumble
+$mumble-dark-blue: #3A3F4A;      // Blu scuro principale
+$mumble-dark-grey: #29252C;      // Grigio scuro
+$mumble-light-purple: #A096A3;   // Viola chiaro
+$mumble-cream: #E5E9DF;          // Crema
+$mumble-beige: #DCC0AB;          // Beige
+
+// Alias per facilità di utilizzo
+$mumble-primary: $mumble-dark-blue;
+$mumble-secondary: $mumble-dark-grey;
+$mumble-accent: $mumble-light-purple;
+$mumble-light: $mumble-cream;
+$mumble-warm: $mumble-beige;
+
+// Variazioni per stati hover/focus
+$mumble-primary-hover: lighten($mumble-primary, 10%);
+$mumble-secondary-hover: lighten($mumble-secondary, 15%);
+$mumble-accent-hover: lighten($mumble-accent, 8%);
+
+// Override delle variabili Quasar
+$primary: $mumble-primary;
+$secondary: $mumble-secondary;
+$accent: $mumble-accent;
+$positive: $mumble-accent;
+$negative: #c62828;
+$info: $mumble-accent;
+$warning: #ff8f00;
+
+// Backgrounds
+$mumble-bg-light: $mumble-cream;
+$mumble-bg-warm: $mumble-beige;
+$mumble-bg-dark: $mumble-dark-grey;
+$mumble-bg-primary: $mumble-primary;
+
+// Text colors
+$mumble-text-dark: $mumble-dark-grey;
+$mumble-text-light: $mumble-cream;
+$mumble-text-muted: $mumble-light-purple;
+
+// Utilities classes
+.mumble-primary { color: $mumble-primary !important; }
+.mumble-secondary { color: $mumble-secondary !important; }
+.mumble-accent { color: $mumble-accent !important; }
+.mumble-light { color: $mumble-light !important; }
+.mumble-warm { color: $mumble-warm !important; }
+
+.mumble-bg-primary { background-color: $mumble-primary !important; }
+.mumble-bg-secondary { background-color: $mumble-secondary !important; }
+.mumble-bg-accent { background-color: $mumble-accent !important; }
+.mumble-bg-light { background-color: $mumble-light !important; }
+.mumble-bg-warm { background-color: $mumble-warm !important; }
+
+// Gradient utilities
+.mumble-gradient-primary {
+  background: linear-gradient(135deg, #{$mumble-primary} 0%, #{$mumble-secondary} 100%) !important;
+}
+
+.mumble-gradient-warm {
+  background: linear-gradient(135deg, #{$mumble-warm} 0%, #{$mumble-light} 100%) !important;
+}
+
+.mumble-gradient-accent {
+  background: linear-gradient(135deg, #{$mumble-accent} 0%, #{$mumble-light} 100%) !important;
+}
