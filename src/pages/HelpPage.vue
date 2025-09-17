@@ -47,40 +47,40 @@
             <div class="col-12 col-sm-6 col-md-4">
               <div class="mumble-bg-primary q-pa-md rounded" style="color: white;">
                 <div class="text-weight-bold">Primary</div>
-                <div class="text-caption">#3A3F4A</div>
-                <div class="text-caption">Dark Blue</div>
+                <div class="text-caption">#ab5b38</div>
+                <div class="text-caption">Warm Brown</div>
               </div>
             </div>
             
             <div class="col-12 col-sm-6 col-md-4">
               <div class="mumble-bg-secondary q-pa-md rounded" style="color: white;">
                 <div class="text-weight-bold">Secondary</div>
-                <div class="text-caption">#29252C</div>
-                <div class="text-caption">Dark Grey</div>
+                <div class="text-caption">#837e49</div>
+                <div class="text-caption">Warm Olive</div>
               </div>
             </div>
             
             <div class="col-12 col-sm-6 col-md-4">
               <div class="mumble-bg-accent q-pa-md rounded" style="color: white;">
                 <div class="text-weight-bold">Accent</div>
-                <div class="text-caption">#A096A3</div>
-                <div class="text-caption">Light Purple</div>
+                <div class="text-caption">#baa67c</div>
+                <div class="text-caption">Light Gold</div>
               </div>
             </div>
             
             <div class="col-12 col-sm-6 col-md-4">
-              <div class="mumble-bg-light q-pa-md rounded border" style="color: #3A3F4A;">
+              <div class="mumble-bg-light q-pa-md rounded border" style="color: var(--mcf-primary);">
                 <div class="text-weight-bold">Light</div>
-                <div class="text-caption">#E5E9DF</div>
-                <div class="text-caption">Cream</div>
+                <div class="text-caption">#c9bba2</div>
+                <div class="text-caption">Light Beige</div>
               </div>
             </div>
             
             <div class="col-12 col-sm-6 col-md-4">
-              <div class="mumble-bg-warm q-pa-md rounded" style="color: #3A3F4A;">
+              <div class="mumble-bg-warm q-pa-md rounded" style="color: var(--mcf-primary);">
                 <div class="text-weight-bold">Warm</div>
-                <div class="text-caption">#DCC0AB</div>
-                <div class="text-caption">Beige</div>
+                <div class="text-caption">#aba190</div>
+                <div class="text-caption">Warm Beige</div>
               </div>
             </div>
           </div>
@@ -169,7 +169,7 @@ code {
 }
 
 .border {
-  border: 1px solid #A096A3;
+  border: 1px solid var(--mcf-accent);
 }
 
 .rounded {

@@ -1,69 +1,189 @@
-// app global css in SCSS form
+// === MCF MODERN APP STYLES ===
+// Contemporary design system for family expense management
 
-// Import MCF variables
+// Import MCF design system
 @import './variables.scss';
 
-// Global My Crazy Family App styling
+// === TYPOGRAPHY SYSTEM ===
 body {
-  font-family: 'Roboto', '-apple-system', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  background-color: $mcf-light; // Beige chiaro come background principale
+  font-family: 'Inter', 'SF Pro Display', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  background-color: $mcf-bg-primary;
+  color: $mcf-text-primary;
+  line-height: 1.6;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+// === PAGE LAYOUT ===
 .q-page {
-  background-color: $mcf-light; // Assicura background consistente su tutte le pagine
+  background-color: $mcf-bg-primary;
 }
 
-// Custom MCF app styles
 .mcf-page-container {
-  background-color: $mcf-bg-light;
+  background-color: $mcf-bg-primary;
   min-height: 100vh;
+  padding: $mcf-space-lg;
 }
 
+// === MODERN CARD SYSTEM ===
 .mcf-card {
-  background: white;
-  border: 1px solid rgba($mcf-accent, 0.2);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba($mcf-primary, 0.1);
-  
+  background: $mcf-bg-surface;
+  border: 1px solid $mcf-border-light;
+  border-radius: $mcf-radius-xl;
+  box-shadow: $mcf-shadow-sm;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+
   &:hover {
-    box-shadow: 0 4px 16px rgba($mcf-primary, 0.15);
-    transition: box-shadow 0.3s ease;
+    box-shadow: $mcf-shadow-md;
+    border-color: $mcf-primary;
+    transform: translateY(-2px);
+  }
+
+  &.mcf-card-elevated {
+    box-shadow: $mcf-shadow-md;
+
+    &:hover {
+      box-shadow: $mcf-shadow-lg;
+    }
+  }
+
+  &.mcf-card-interactive {
+    cursor: pointer;
+
+    &:active {
+      transform: translateY(0);
+      box-shadow: $mcf-shadow-sm;
+    }
   }
 }
 
+// === MODERN BUTTON SYSTEM ===
 .mcf-btn-primary {
   background-color: $mcf-primary !important;
-  color: white !important;
-  
+  color: $mcf-text-inverse !important;
+  border: none !important;
+  border-radius: $mcf-radius-lg !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  box-shadow: $mcf-shadow-sm !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+
   &:hover {
     background-color: $mcf-primary-hover !important;
+    box-shadow: $mcf-shadow-md !important;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: $mcf-shadow-sm !important;
   }
 }
 
 .mcf-btn-secondary {
-  background-color: $mcf-secondary !important;
-  color: white !important;
-  
+  background-color: $mcf-bg-surface !important;
+  color: $mcf-primary !important;
+  border: 1px solid $mcf-border-medium !important;
+  border-radius: $mcf-radius-lg !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+
   &:hover {
-    background-color: $mcf-secondary-hover !important;
+    background-color: $mcf-primary !important;
+    color: $mcf-text-inverse !important;
+    border-color: $mcf-primary !important;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 }
 
 .mcf-btn-accent {
   background-color: $mcf-accent !important;
-  color: white !important;
-  
+  color: $mcf-text-inverse !important;
+  border: none !important;
+  border-radius: $mcf-radius-lg !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  box-shadow: $mcf-shadow-sm !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+
   &:hover {
     background-color: $mcf-accent-hover !important;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 }
 
-// Header styling
-.mcf-header {
-  background: linear-gradient(135deg, #{$mcf-primary} 0%, #{$mcf-secondary} 100%) !important;
+.mcf-btn-ghost {
+  background-color: transparent !important;
+  color: $mcf-text-secondary !important;
+  border: none !important;
+  border-radius: $mcf-radius-lg !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+
+  &:hover {
+    background-color: $mcf-bg-secondary !important;
+    color: $mcf-text-primary !important;
+  }
 }
 
-// Custom text colors
-.text-mcf-primary { color: $mcf-primary !important; }
-.text-mcf-secondary { color: $mcf-secondary !important; }
-.text-mcf-accent { color: $mcf-accent !important; }
+// === HEADER STYLING ===
+.mcf-header {
+  background: $mcf-primary !important;
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid $mcf-border-light;
+}
+
+// === MODERN INPUT SYSTEM ===
+.mcf-input {
+  .q-field__control {
+    border-radius: $mcf-radius-lg !important;
+    border: 1px solid $mcf-border-light !important;
+    background: $mcf-bg-surface !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover {
+      border-color: $mcf-border-medium !important;
+    }
+
+    &.q-field__control--focused {
+      border-color: $mcf-primary !important;
+      box-shadow: 0 0 0 3px rgba($mcf-primary, 0.1) !important;
+    }
+  }
+}
+
+// === UTILITY TEXT COLORS ===
+.text-mcf-primary { color: $mcf-text-primary !important; }
+.text-mcf-secondary { color: $mcf-text-secondary !important; }
+.text-mcf-muted { color: $mcf-text-muted !important; }
+.text-mcf-inverse { color: $mcf-text-inverse !important; }
+
+// === MODERN LIST STYLING ===
+.mcf-list {
+  .q-item {
+    border-radius: $mcf-radius-md;
+    margin-bottom: $mcf-space-xs;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover {
+      background-color: $mcf-bg-secondary;
+    }
+
+    &.q-item--active {
+      background-color: $mcf-primary-light;
+      color: $mcf-primary;
+    }
+  }
+}

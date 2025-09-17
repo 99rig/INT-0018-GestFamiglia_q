@@ -1,11 +1,13 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
+  <q-layout view="lHh Lpr lFf" class="mcf-layout">
     <AppHeader @toggle-sidebar="toggleLeftDrawer" />
-    
+
     <AppSidebar v-model="leftDrawerOpen" />
 
-    <q-page-container>
-      <router-view />
+    <q-page-container class="mcf-page-container">
+      <div class="mcf-page-wrapper">
+        <router-view />
+      </div>
     </q-page-container>
 
     <AppMenu />
@@ -31,9 +33,38 @@ function toggleLeftDrawer() {
 // Check authentication on mount
 onMounted(async () => {
   await authStore.initialize()
-  
+
   if (!authStore.isAuthenticated) {
     router.push('/login')
   }
 })
 </script>
+
+<style lang="scss" scoped>
+.mcf-layout {
+  background-color: var(--mcf-bg-primary);
+}
+
+.mcf-page-container {
+  background-color: var(--mcf-bg-primary);
+}
+
+.mcf-page-wrapper {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+
+  @media (min-width: 1400px) {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+}
+
+// Ensure proper spacing for mobile with bottom navigation
+@media (max-width: 767px) {
+  .mcf-page-wrapper {
+    padding-bottom: 80px; // Account for bottom navigation
+  }
+}
+</style>

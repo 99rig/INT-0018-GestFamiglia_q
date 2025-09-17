@@ -13,6 +13,7 @@ class UpdateService {
   constructor() {
     this.currentVersion = null
     this.updateInProgress = false
+    this.SHOWN_UPDATES_KEY = 'shown_update_notifications'
   }
 
   async init() {
@@ -31,17 +32,57 @@ class UpdateService {
   }
 
   /**
+   * Verifica se un aggiornamento è già stato mostrato
+   */
+  hasShownUpdate(versionCode) {
+    try {
+      const shownUpdates = JSON.parse(localStorage.getItem(this.SHOWN_UPDATES_KEY) || '[]')
+      return shownUpdates.includes(versionCode)
+    } catch {
+      return false
+    }
+  }
+
+  /**
+   * Segna un aggiornamento come mostrato
+   */
+  markUpdateAsShown(versionCode) {
+    try {
+      const shownUpdates = JSON.parse(localStorage.getItem(this.SHOWN_UPDATES_KEY) || '[]')
+      if (!shownUpdates.includes(versionCode)) {
+        shownUpdates.push(versionCode)
+        // Mantieni solo gli ultimi 10 aggiornamenti per non far crescere troppo l'array
+        if (shownUpdates.length > 10) {
+          shownUpdates.splice(0, shownUpdates.length - 10)
+        }
+        localStorage.setItem(this.SHOWN_UPDATES_KEY, JSON.stringify(shownUpdates))
+      }
+    } catch (error) {
+      console.error('Error saving shown update:', error)
+    }
+  }
+
+  /**
    * Controlla se ci sono aggiornamenti disponibili
    */
-  async checkForUpdates(showNoUpdateDialog = false) {
+  async checkForUpdates(showNoUpdateDialog = false, forceShow = false) {
     try {
       console.log('🔍 Checking for updates...')
-      
+
       const response = await api.checkUpdate(this.currentVersion.code)
-      
+
       if (response.has_update) {
         console.log('✨ Update available:', response.latest_version)
+
+        // Se non è forzato e abbiamo già mostrato questo aggiornamento, non mostrarlo
+        if (!forceShow && this.hasShownUpdate(response.latest_version.version_code)) {
+          console.log('⏭️ Update already shown to user, skipping...')
+          return true
+        }
+
+        // Mostra il dialog e segna come mostrato
         this.showUpdateDialog(response.latest_version)
+        this.markUpdateAsShown(response.latest_version.version_code)
         return true
       } else {
         console.log('✅ App is up to date')
@@ -239,6 +280,14 @@ ${updateInfo.is_mandatory ? '\n⚠️ Questo aggiornamento è obbligatorio.' : '
       binary += String.fromCharCode(bytes[i])
     }
     return btoa(binary)
+  }
+
+  /**
+   * Resetta la lista degli aggiornamenti mostrati (per testing)
+   */
+  resetShownUpdates() {
+    localStorage.removeItem(this.SHOWN_UPDATES_KEY)
+    console.log('🔄 Reset shown updates list')
   }
 
   /**

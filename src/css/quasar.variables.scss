@@ -10,30 +10,30 @@
 
 // It's highly recommended to change the default colors
 // to match your app's branding.
-// Custom Family Expense Management Theme
+// Modern MCF (My Crazy Family) Theme - Teal to Purple Palette
 
-// === PALETTE FAMIGLIA ===
-$brown-dark: #874e14;      // Marrone scuro - Primary
-$brown-medium: #98663c;    // Marrone medio - Secondary  
-$beige-warm: #ba947f;      // Beige rosato - Neutral
-$beige-light: #e3d9d4;     // Beige chiaro - Background
-$blue-lavender: #9db2ea;   // Blu lavanda - Accent
+// === MCF MODERN PALETTE ===
+$mcf-teal: #239db0;        // Teal principale - Primary
+$mcf-blue: #2a5f82;        // Blue steel - Secondary
+$mcf-purple: #524569;      // Purple slate - Tertiary
+$mcf-deep: #5d3066;        // Deep purple - Accent
+$mcf-light: #f0fafb;       // Light teal - Background
 
 // === QUASAR THEME COLORS ===
-$primary: $brown-dark;     // #874e14 - Bottoni principali, header
-$secondary: $brown-medium; // #98663c - Bottoni secondari
-$accent: $blue-lavender;   // #9db2ea - Highlights, link, focus
+$primary: $mcf-teal;       // #239db0 - Bottoni principali, header, FAB
+$secondary: $mcf-blue;     // #2a5f82 - Bottoni secondari, cards
+$accent: $mcf-purple;      // #524569 - Highlights, link, focus
 
-$dark: #2c1810;           // Versione scura del marrone per dark mode
-$dark-page: #1a0f0a;      // Background scuro
+$dark: #1a2332;           // Dark blue-grey per dark mode
+$dark-page: #0f1419;      // Background scuro
 
 // === STATUS COLORS ===
 $positive: #4caf50;       // Verde per successo (spese pagate)
-$negative: #d32f2f;       // Rosso per errori/spese scadute
-$info: $blue-lavender;    // Info = accent color
-$warning: #ff9800;        // Arancione per warning
+$negative: #e53e3e;       // Rosso moderno per errori/spese scadute
+$info: $mcf-teal;         // Info = primary color (teal)
+$warning: #ff8c00;        // Arancione moderno per warning
 
 // === BACKGROUND COLORS ===
-$background: $beige-light;     // #e3d9d4 - Background principale
+$background: $mcf-light;       // #f0fafb - Background principale (light teal)
 $surface: #ffffff;             // Bianco per card/surface
-$surface-variant: $beige-warm; // #ba947f - Background alternativo
+$surface-variant: #e6f7f8;     // Teal molto chiaro - Background alternativo

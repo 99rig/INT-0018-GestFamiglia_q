@@ -58,13 +58,35 @@ export const api = {
   },
 
   // Expenses endpoints
-  async getExpenses() {
-    const response = await apiClient.get('/expenses/')
+  async getExpenses(filters = {}) {
+    const params = new URLSearchParams()
+
+    if (filters.category) {
+      params.append('category', filters.category)
+    }
+    if (filters.date_from) {
+      params.append('date_from', filters.date_from)
+    }
+    if (filters.date_to) {
+      params.append('date_to', filters.date_to)
+    }
+
+    const url = params.toString() ? `/expenses/?${params.toString()}` : '/expenses/'
+    const response = await apiClient.get(url)
     return response.data
   },
 
   async createExpense(expenseData) {
     const response = await apiClient.post('/expenses/', expenseData)
+    return response.data
+  },
+
+  async createExpenseWithFile(formData) {
+    const response = await apiClient.post('/expenses/', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
     return response.data
   },
 
@@ -96,6 +118,20 @@ export const api = {
 
   async createBudget(budgetData) {
     const response = await apiClient.post('/budgets/', budgetData)
+    return response.data
+  },
+
+  async updateBudget(id, budgetData) {
+    const response = await apiClient.put(`/budgets/${id}/`, budgetData)
+    return response.data
+  },
+
+  async deleteBudget(id) {
+    await apiClient.delete(`/budgets/${id}/`)
+  },
+
+  async getCurrentBudgets() {
+    const response = await apiClient.get('/budgets/current/')
     return response.data
   },
 

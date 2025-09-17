@@ -55,6 +55,25 @@
                 </div>
               </div>
             </q-card>
+            
+            <!-- Download APK for Android -->
+            <div v-if="isAndroidDevice" class="text-center q-mt-md">
+              <q-banner class="bg-primary text-white" rounded>
+                <template v-slot:avatar>
+                  <q-icon name="android" />
+                </template>
+                <div class="text-caption q-mb-xs">Per una migliore esperienza su Android</div>
+                <q-btn 
+                  flat 
+                  dense 
+                  color="white"
+                  label="Scarica l'App"
+                  icon="download"
+                  @click="downloadAPK"
+                  class="text-weight-bold"
+                />
+              </q-banner>
+            </div>
           </div>
 
           <!-- PIN Login (se configurato) -->
@@ -197,6 +216,12 @@ const serverClass = computed(() => {
   const url = process.env.API_BASE_URL || 'http://localhost:8000'
   // Verde per produzione, arancione per sviluppo
   return url.includes('localhost') ? 'text-orange-8' : 'text-green-7'
+})
+
+const isAndroidDevice = computed(() => {
+  // Rileva se è un dispositivo Android (mobile o tablet)
+  const userAgent = navigator.userAgent.toLowerCase()
+  return userAgent.includes('android') && (userAgent.includes('mobile') || userAgent.includes('tablet'))
 })
 
 // Form data
@@ -512,6 +537,23 @@ const refreshNetworkInfo = async () => {
   } finally {
     refreshing.value = false
   }
+}
+
+const downloadAPK = () => {
+  // URL per scaricare l'ultima versione dell'APK
+  const baseUrl = process.env.API_BASE_URL || 'http://localhost:8000'
+  const apkUrl = `${baseUrl}/api/updates/latest/download/`
+  
+  // Apri il link di download in una nuova finestra
+  window.open(apkUrl, '_blank')
+  
+  // Mostra un messaggio informativo
+  $q.notify({
+    message: 'Download APK avviato. Installa l\'app per una migliore esperienza!',
+    color: 'primary',
+    icon: 'android',
+    position: 'top'
+  })
 }
 
 // Lifecycle

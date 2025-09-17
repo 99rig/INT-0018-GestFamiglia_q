@@ -1,11 +1,14 @@
 <template>
-  <q-item 
-    clickable 
+  <q-item
+    clickable
     :to="isInternalLink ? props.link : undefined"
     :href="isInternalLink ? undefined : props.link"
     :target="isInternalLink ? undefined : '_blank'"
     :tag="isInternalLink ? undefined : 'a'"
-    :class="isInternalLink && isCurrentRoute ? 'text-primary bg-grey-2' : ''"
+    :class="[
+      'mcf-essential-link',
+      { 'mcf-essential-link--active': isInternalLink && isCurrentRoute }
+    ]"
   >
     <q-item-section v-if="props.icon" avatar>
       <q-icon :name="props.icon" />
@@ -13,7 +16,7 @@
 
     <q-item-section>
       <q-item-label>{{ props.title }}</q-item-label>
-      <q-item-label caption>{{ props.caption }}</q-item-label>
+      <q-item-label caption v-if="props.caption">{{ props.caption }}</q-item-label>
     </q-item-section>
   </q-item>
 </template>
@@ -62,3 +65,23 @@ const isCurrentRoute = computed(() => {
   return false
 })
 </script>
+
+<style lang="scss" scoped>
+.mcf-essential-link {
+  border-radius: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    background-color: var(--mcf-bg-secondary);
+  }
+
+  &.mcf-essential-link--active {
+    background-color: var(--mcf-primary-light);
+    color: var(--mcf-primary);
+
+    .q-icon {
+      color: var(--mcf-primary);
+    }
+  }
+}
+</style>
