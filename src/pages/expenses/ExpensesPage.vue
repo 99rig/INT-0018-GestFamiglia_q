@@ -99,6 +99,8 @@
         </div>
       </div>
 
+
+
       <!-- Loading -->
       <div v-if="loading" class="text-center q-pa-xl">
         <q-spinner-dots size="40px" color="grey-5" />
@@ -154,11 +156,53 @@
               <q-btn
                 flat
                 dense
-                size="sm"
-                label="modifica"
-                class="mcf-edit-btn"
-                @click.stop="openEditModal(expense)"
-              />
+                round
+                icon="more_vert"
+                class="mcf-expense-menu-btn"
+                @click.stop
+              >
+                <q-menu
+                  class="mcf-expense-menu"
+                  transition-show="scale"
+                  transition-hide="scale"
+                  anchor="bottom right"
+                  self="top right"
+                >
+                  <q-list class="mcf-menu-list">
+                    <q-item
+                      clickable
+                      v-close-popup
+                      @click="openEditModal(expense)"
+                      class="mcf-menu-item mcf-menu-edit"
+                    >
+                      <q-item-section avatar>
+                        <q-icon name="edit" class="mcf-menu-icon" />
+                      </q-item-section>
+                      <q-item-section>
+                        <q-item-label class="mcf-menu-title">Modifica</q-item-label>
+                        <q-item-label caption class="mcf-menu-subtitle">Modifica i dettagli della spesa</q-item-label>
+                      </q-item-section>
+                    </q-item>
+
+                    <q-separator class="mcf-menu-separator" />
+
+                    <q-item
+                      clickable
+                      v-close-popup
+                      @click="deleteExpense(expense)"
+                      class="mcf-menu-item mcf-menu-delete"
+                    >
+                      <q-item-section avatar>
+                        <q-icon name="delete" class="mcf-menu-icon" />
+                      </q-item-section>
+                      <q-item-section>
+                        <q-item-label class="mcf-menu-title">Elimina</q-item-label>
+                        <q-item-label caption class="mcf-menu-subtitle">Rimuovi questa spesa</q-item-label>
+                      </q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-btn>
             </div>
           </div>
 
@@ -288,33 +332,69 @@
                 :rules="[val => val > 0 || 'Importo deve essere maggiore di 0']"
               />
 
-              <q-select
+              <MCFAutocomplete
                 v-model="manualExpense.category"
                 :options="categoryOptions"
                 label="Categoria *"
                 required
                 outlined
-                emit-value
-                map-options
+                option-value="value"
+                option-label="label"
                 @update:model-value="onCategoryChange"
                 :rules="[val => val !== null && val !== undefined || 'Categoria richiesta']"
+                prepend-icon="category"
+                :multiple="false"
               />
 
-              <q-select
+              <MCFAutocomplete
                 v-model="manualExpense.subcategory"
                 :options="subcategoryOptions"
                 label="Sottocategoria"
                 outlined
-                emit-value
-                map-options
+                option-value="value"
+                option-label="label"
                 :disable="!manualExpense.category"
                 clearable
+                prepend-icon="label"
+                :multiple="false"
               />
 
-              <q-input
+              <MCFAutocomplete
+                v-model="manualExpense.spending_plan"
+                :options="spendingPlanOptions"
+                label="Piano di Spesa"
+                outlined
+                option-value="value"
+                option-label="label"
+                clearable
+                prepend-icon="event_note"
+                :hint="manualExpense.spending_plan ? 'Spesa collegata a un piano' : 'Spesa generica (non collegata a nessun piano)'"
+                :multiple="false"
+              >
+                <template v-slot:option="scope">
+                  <q-item v-bind="scope.itemProps">
+                    <q-item-section>
+                      <q-item-label>{{ scope.opt.label }}</q-item-label>
+                      <q-item-label v-if="scope.opt.description" caption>{{ scope.opt.description }}</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </template>
+                <template v-slot:selected v-if="manualExpense.spending_plan">
+                  <div class="mcf-selected-option">
+                    <q-icon
+                      name="event_note"
+                      color="primary"
+                      size="sm"
+                      class="q-mr-sm"
+                    />
+                    {{ getSelectedSpendingPlanLabel(manualExpense.spending_plan) }}
+                  </div>
+                </template>
+              </MCFAutocomplete>
+
+              <MCFDatePicker
                 v-model="manualExpense.date"
                 label="Data *"
-                type="date"
                 required
                 outlined
                 :rules="[val => val && val.length > 0 || 'Data richiesta']"
@@ -478,46 +558,59 @@
                 ]"
               />
 
-              <q-select
+              <MCFAutocomplete
                 v-model="editForm.category"
                 :options="categoryOptions"
                 label="Categoria *"
-                outlined
-                emit-value
-                map-options
+                :required="true"
+                :icon="getCategoryIcon(editForm.category)"
                 @update:model-value="onEditCategoryChange"
-                :rules="[val => val || 'Categoria richiesta']"
+                :multiple="false"
               />
 
-              <q-select
+              <MCFAutocomplete
                 v-model="editForm.subcategory"
                 :options="subcategoryOptions"
                 label="Sottocategoria"
-                outlined
-                emit-value
-                map-options
+                :icon="editForm.subcategory ? 'label' : null"
                 :disable="!editForm.category"
+                :multiple="false"
               />
 
-              <q-input
+              <MCFDatePicker
                 v-model="editForm.date"
                 label="Data *"
-                outlined
-                readonly
-                :rules="[val => val || 'Data richiesta']"
+                :required="true"
+                icon="event"
+              />
+
+              <MCFAutocomplete
+                v-model="editForm.spending_plan"
+                :options="spendingPlanOptions"
+                label="Piano di Spesa"
+                icon="event_note"
+                :multiple="false"
               >
-                <template v-slot:append>
-                  <q-icon name="event" class="cursor-pointer">
-                    <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                      <q-date v-model="editForm.date" mask="YYYY-MM-DD">
-                        <div class="row items-center justify-end">
-                          <q-btn v-close-popup label="OK" color="primary" flat />
-                        </div>
-                      </q-date>
-                    </q-popup-proxy>
-                  </q-icon>
+                <template v-slot:option="scope">
+                  <q-item v-bind="scope.itemProps">
+                    <q-item-section>
+                      <q-item-label>{{ scope.opt.label }}</q-item-label>
+                      <q-item-label v-if="scope.opt.description" caption>{{ scope.opt.description }}</q-item-label>
+                    </q-item-section>
+                  </q-item>
                 </template>
-              </q-input>
+                <template v-slot:selected v-if="editForm.spending_plan">
+                  <div class="mcf-selected-option">
+                    <q-icon
+                      name="event_note"
+                      color="primary"
+                      size="sm"
+                      class="q-mr-sm"
+                    />
+                    {{ getSelectedSpendingPlanLabel(editForm.spending_plan) }}
+                  </div>
+                </template>
+              </MCFAutocomplete>
 
               <q-input
                 v-model="editForm.notes"
@@ -548,8 +641,10 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
-import { api } from 'src/services/api'
-import { useAuthStore } from 'src/stores/auth'
+import { api } from 'src/services/api.js'
+import { useAuthStore } from 'stores/auth.js'
+import MCFAutocomplete from 'components/MCFAutocomplete.vue'
+import MCFDatePicker from 'components/MCFDatePicker.vue'
 
 const $q = useQuasar()
 
@@ -566,6 +661,8 @@ const editingExpense = ref(null)
 const selectedCategoryFilter = ref(null)
 const showAllCategories = ref(false)
 const inputMethod = ref('manual')
+const spendingPlans = ref([])
+const spendingPlanOptions = ref([])
 
 // Form data
 const manualExpense = ref({
@@ -576,6 +673,7 @@ const manualExpense = ref({
   date: new Date().toISOString().split('T')[0], // Today's date
   notes: '',
   shared: false,
+  spending_plan: null,
   receiptFile: null
 })
 
@@ -585,7 +683,8 @@ const editForm = ref({
   category: null,
   subcategory: null,
   date: '',
-  notes: ''
+  notes: '',
+  spending_plan: null
 })
 
 // Computed
@@ -666,7 +765,16 @@ const formatDate = (dateString) => {
   }
 }
 
-const getCategoryIcon = (categoryName) => {
+const getCategoryIcon = (categoryIdOrName) => {
+  if (!categoryIdOrName) return 'category'
+
+  // Se è un numero (ID), trova il nome della categoria
+  let categoryName = categoryIdOrName
+  if (typeof categoryIdOrName === 'number') {
+    const category = categoryOptions.value.find(opt => opt.value === categoryIdOrName)
+    categoryName = category ? category.label : ''
+  }
+
   if (!categoryName) return 'category'
 
   const categoryLower = categoryName.toLowerCase()
@@ -676,8 +784,24 @@ const getCategoryIcon = (categoryName) => {
   if (categoryLower.includes('salute')) return 'local_hospital'
   if (categoryLower.includes('casa')) return 'home'
   if (categoryLower.includes('intrattenimento')) return 'movie'
+  if (categoryLower.includes('tempo libero')) return 'sports_esports'
+  if (categoryLower.includes('viaggi')) return 'flight'
+  if (categoryLower.includes('abbigliamento')) return 'checkroom'
+  if (categoryLower.includes('elettronica')) return 'devices'
+  if (categoryLower.includes('sport')) return 'fitness_center'
+  if (categoryLower.includes('educazione')) return 'school'
+  if (categoryLower.includes('assicurazioni')) return 'security'
+  if (categoryLower.includes('tasse')) return 'receipt_long'
+  if (categoryLower.includes('regali')) return 'card_giftcard'
+  if (categoryLower.includes('animali')) return 'pets'
 
   return 'category'
+}
+
+const getSelectedSpendingPlanLabel = (planId) => {
+  if (!planId) return ''
+  const plan = spendingPlanOptions.value.find(opt => opt.value === planId)
+  return plan ? plan.label : ''
 }
 
 const getStatusIcon = (status) => {
@@ -736,6 +860,38 @@ const loadCategories = async () => {
   }
 }
 
+const loadSpendingPlans = async () => {
+  try {
+    console.log('📋 Loading spending plans for form...')
+    const response = await api.getSpendingPlans()
+    const plans = Array.isArray(response) ? response : (response.results || response)
+
+    if (!Array.isArray(plans)) {
+      console.error('Spending plans response is not an array:', response)
+      return
+    }
+
+    spendingPlans.value = plans
+
+    // Create options for spending plans (only active/current ones)
+    spendingPlanOptions.value = [
+      { label: 'Nessun piano (spesa generica)', value: null },
+      ...plans
+        .filter(plan => plan.is_current || new Date(plan.end_date) >= new Date()) // Solo piani attivi o futuri
+        .map(plan => ({
+          label: plan.name,
+          value: plan.id,
+          description: `${plan.plan_type} - ${plan.start_date} / ${plan.end_date}`
+        }))
+    ]
+
+    console.log('📋 Spending plans loaded for form:', spendingPlanOptions.value.length - 1) // -1 per escludere "Nessun piano"
+  } catch (error) {
+    console.error('Failed to load spending plans for form:', error)
+    // Non mostro errore all'utente perché è un campo opzionale
+  }
+}
+
 const onCategoryChange = (categoryId) => {
   // Reset subcategory when category changes
   manualExpense.value.subcategory = null
@@ -763,6 +919,7 @@ const resetManualForm = () => {
     date: new Date().toISOString().split('T')[0],
     notes: '',
     shared: false,
+    spending_plan: null,
     receiptFile: null
   }
   subcategoryOptions.value = []
@@ -832,6 +989,7 @@ const submitManualExpense = async () => {
     }
 
     console.log('💾 Saving manual expense...', manualExpense.value)
+    console.log('🏷️ Selected subcategory:', manualExpense.value.subcategory)
 
     // Prepare expense data for API
     const expenseData = {
@@ -841,8 +999,11 @@ const submitManualExpense = async () => {
       subcategory: manualExpense.value.subcategory || null,
       date: manualExpense.value.date,
       notes: manualExpense.value.notes || '',
-      shared_with: manualExpense.value.shared ? [] : null // Empty array means shared with all family
+      shared_with: manualExpense.value.shared ? [] : null, // Empty array means shared with all family
+      spending_plan: manualExpense.value.spending_plan || null
     }
+
+    console.log('📤 Expense data to send:', expenseData)
 
     // Se c'è un file ricevuta, crea FormData per l'upload
     if (manualExpense.value.receiptFile) {
@@ -915,8 +1076,11 @@ const filterByCategory = async (categoryId) => {
 }
 
 // Edit functions
-const openEditModal = (expense) => {
+const openEditModal = async (expense) => {
   editingExpense.value = expense
+
+  console.log('🔧 Opening edit modal for expense:', expense)
+  console.log('💰 Expense spending_plan:', expense.spending_plan)
 
   // Populate edit form
   editForm.value = {
@@ -925,12 +1089,20 @@ const openEditModal = (expense) => {
     category: expense.category,
     subcategory: expense.subcategory || null,
     date: expense.date,
-    notes: expense.notes || ''
+    notes: expense.notes || '',
+    spending_plan: expense.spending_plan || null
   }
+
+  console.log('📝 EditForm populated:', editForm.value)
 
   // Load subcategories for selected category
   if (expense.category) {
     onEditCategoryChange(expense.category)
+  }
+
+  // Load spending plans if not already loaded
+  if (spendingPlanOptions.value.length === 0) {
+    await loadSpendingPlans()
   }
 
   showEditForm.value = true
@@ -945,7 +1117,8 @@ const closeEditForm = () => {
     category: null,
     subcategory: null,
     date: '',
-    notes: ''
+    notes: '',
+    spending_plan: null
   }
 }
 
@@ -985,7 +1158,8 @@ const submitEditExpense = async () => {
       category: editForm.value.category,
       subcategory: editForm.value.subcategory,
       date: editForm.value.date,
-      notes: editForm.value.notes
+      notes: editForm.value.notes,
+      spending_plan: editForm.value.spending_plan || null
     }
 
     // Call API to update expense
@@ -1027,6 +1201,59 @@ const submitEditExpense = async () => {
   }
 }
 
+// Delete expense function
+const deleteExpense = async (expense) => {
+  $q.dialog({
+    title: 'Conferma Eliminazione',
+    message: `Sei sicuro di voler eliminare la spesa "${expense.description}"?`,
+    cancel: true,
+    persistent: false,
+    ok: {
+      label: 'Elimina',
+      color: 'negative',
+      unelevated: true
+    },
+    cancel: {
+      label: 'Annulla',
+      color: 'grey-7',
+      flat: true
+    }
+  }).onOk(async () => {
+    try {
+      await api.deleteExpense(expense.id)
+
+      $q.notify({
+        type: 'positive',
+        message: 'Spesa eliminata con successo',
+        position: 'top'
+      })
+
+      // Ricarica le spese
+      const currentFilters = {}
+      if (selectedCategoryFilter.value !== null) {
+        currentFilters.category = selectedCategoryFilter.value
+      }
+      await loadExpenses(currentFilters)
+
+    } catch (error) {
+      console.error('❌ Error deleting expense:', error)
+
+      let errorMessage = 'Errore durante l\'eliminazione della spesa'
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+
+      $q.notify({
+        type: 'negative',
+        message: errorMessage,
+        position: 'top'
+      })
+    }
+  })
+}
+
 // Lifecycle
 onMounted(async () => {
   const authStore = useAuthStore()
@@ -1041,8 +1268,9 @@ onMounted(async () => {
   // Ora carica i dati se autenticato
   if (authStore.isAuthenticated) {
     console.log('✅ User authenticated, loading data...')
-    // Carica prima le categorie, poi le spese senza filtri
+    // Carica prima le categorie e i piani, poi le spese
     await loadCategories()
+    await loadSpendingPlans()
     await loadExpenses()
   } else {
     console.log('⏭️ User not authenticated, skipping data load')
@@ -1054,19 +1282,11 @@ onMounted(async () => {
 .expenses-page-content {
   width: 100%;
   margin: 0;
-  padding: 16px 0;
+  padding: 16px;
 
   @media (min-width: 768px) {
-    padding: 24px 0;
+    padding: 24px;
   }
-}
-
-.mcf-page-container-fullwidth {
-  background-color: var(--mcf-bg-primary);
-  min-height: 100vh;
-  padding: 0 !important;
-  margin: 0 !important;
-  width: 100% !important;
 }
 
 // === ACTION HEADER ===
@@ -1673,6 +1893,90 @@ onMounted(async () => {
 
 :deep(.q-fab__action) {
   transition: all 0.2s ease;
+}
+
+/* === EXPENSE MENU STYLES === */
+.mcf-expense-menu-btn {
+  color: var(--mcf-text-secondary);
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: var(--mcf-primary);
+    background: rgba(35, 157, 176, 0.1);
+  }
+}
+
+.mcf-expense-menu {
+  min-width: 220px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--mcf-border-light);
+  overflow: hidden;
+  background: var(--mcf-bg-surface);
+}
+
+.mcf-menu-list {
+  padding: 8px 0;
+}
+
+.mcf-menu-item {
+  padding: 12px 16px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--mcf-bg-hover);
+    transform: translateX(2px);
+  }
+}
+
+.mcf-menu-edit:hover {
+  background: rgba(35, 157, 176, 0.08);
+
+  .mcf-menu-icon {
+    color: var(--mcf-primary);
+  }
+
+  .mcf-menu-title {
+    color: var(--mcf-primary);
+  }
+}
+
+.mcf-menu-delete:hover {
+  background: rgba(239, 68, 68, 0.08);
+
+  .mcf-menu-icon {
+    color: #ef4444;
+  }
+
+  .mcf-menu-title {
+    color: #ef4444;
+  }
+}
+
+.mcf-menu-icon {
+  font-size: 20px;
+  color: var(--mcf-text-secondary);
+  transition: color 0.2s ease;
+}
+
+.mcf-menu-title {
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--mcf-text-primary);
+  transition: color 0.2s ease;
+}
+
+.mcf-menu-subtitle {
+  font-size: 12px;
+  color: var(--mcf-text-secondary);
+  opacity: 0.8;
+  margin-top: 2px;
+}
+
+.mcf-menu-separator {
+  margin: 4px 0;
+  background: var(--mcf-border-light);
 }
 
 </style>

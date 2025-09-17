@@ -257,8 +257,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
-import { api } from 'src/services/api'
-import { useAuthStore } from 'src/stores/auth'
+import { api } from 'src/services/api.js'
+import { useAuthStore } from 'stores/auth.js'
 
 const $q = useQuasar()
 

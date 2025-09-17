@@ -54,6 +54,19 @@
                   @click="showEmailLogin = true"
                 />
               </div>
+
+              <!-- Delete PIN -->
+              <div class="text-center q-mt-sm">
+                <q-btn
+                  label="Cancella PIN"
+                  flat
+                  dense
+                  no-caps
+                  color="negative"
+                  size="sm"
+                  @click="confirmDeletePin"
+                />
+              </div>
             </q-card-section>
           </q-card>
 
@@ -128,13 +141,34 @@
       </q-page>
     </q-page-container>
   </q-layout>
+
+  <!-- PIN Components -->
+  <PinSetupModal
+    v-model="showPinSetupModal"
+    :loading="setupPinLoading"
+    @confirm="confirmSetupPin"
+    @cancel="closePinSetupModal"
+  />
+
+  <PinActionModals
+    :show-want-pin="showWantPinModal"
+    :show-delete-pin="showDeletePinModal"
+    @update:show-want-pin="showWantPinModal = $event"
+    @update:show-delete-pin="showDeletePinModal = $event"
+    @accept="acceptPin"
+    @decline="declinePin"
+    @confirm-delete="handleDeletePin"
+    @cancel-delete="cancelDeletePin"
+  />
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
-import { useAuthStore } from 'src/stores/auth'
+import { useAuthStore } from 'stores/auth.js'
+import PinSetupModal from 'components/users/PinSetupModal.vue'
+import PinActionModals from 'components/users/PinActionModals.vue'
 
 const router = useRouter()
 const $q = useQuasar()
@@ -156,6 +190,10 @@ const pinInputs = ref([])
 const hasPinSetup = ref(false)
 const showEmailLogin = ref(false)
 const lastUserEmail = ref('')
+
+// PIN Setup Modal
+const showPinSetupModal = ref(false)
+const setupPinLoading = ref(false)
 
 // Removed debug info - now in settings page
 
@@ -267,19 +305,9 @@ const loginWithEmail = async () => {
     if (success) {
       // Se Remember Me, chiedi di impostare PIN
       if (rememberMe.value && !hasPinSetup.value) {
-        const wantPin = await new Promise((resolve) => {
-          $q.dialog({
-            title: 'Accesso Veloce',
-            message: 'Vuoi impostare un PIN per accessi più veloci?',
-            cancel: true,
-            persistent: false
-          }).onOk(() => resolve(true))
-            .onCancel(() => resolve(false))
-        })
-
-        if (wantPin) {
-          await setupPin()
-        }
+        showWantPinModal.value = true
+        // Non fare redirect qui, la modale gestirà il flusso
+        return
       }
 
       $q.notify({
@@ -300,29 +328,95 @@ const loginWithEmail = async () => {
   }
 }
 
-const setupPin = async () => {
-  const pinInput = await new Promise((resolve) => {
-    $q.dialog({
-      title: 'Imposta PIN',
-      message: 'Scegli un PIN di 4 cifre',
-      prompt: {
-        model: '',
-        type: 'number',
-        isValid: val => val && val.length === 4
-      },
-      cancel: true
-    }).onOk(data => resolve(data))
-      .onCancel(() => resolve(null))
-  })
+const setupPin = () => {
+  showPinSetupModal.value = true
+}
 
-  if (pinInput) {
-    await authStore.setupPin(pinInput)
+// PIN Setup Modal Functions
+const confirmSetupPin = async (pin) => {
+  setupPinLoading.value = true
+  try {
+    await authStore.setupPin(pin)
     $q.notify({
       type: 'positive',
       message: 'PIN configurato con successo!',
       position: 'top'
     })
+    closePinSetupModal()
+
+    // Procedi con il redirect dopo aver configurato il PIN
+    router.push('/')
+  } catch (error) {
+    console.error('Errore setup PIN:', error)
+    $q.notify({
+      type: 'negative',
+      message: 'Errore nella configurazione del PIN',
+      position: 'top'
+    })
+  } finally {
+    setupPinLoading.value = false
   }
+}
+
+const closePinSetupModal = () => {
+  showPinSetupModal.value = false
+  setupPinLoading.value = false
+}
+
+// Want PIN Modal
+const showWantPinModal = ref(false)
+
+// Delete PIN Function
+const showDeletePinModal = ref(false)
+
+const confirmDeletePin = () => {
+  showDeletePinModal.value = true
+}
+
+const handleDeletePin = async () => {
+
+  try {
+    await authStore.clearPinData()
+    $q.notify({
+      type: 'positive',
+      message: 'PIN cancellato con successo',
+      position: 'top'
+    })
+
+    // Aggiorna lo stato locale
+    hasPinSetup.value = false
+    showEmailLogin.value = true
+    showDeletePinModal.value = false
+
+  } catch (error) {
+    console.error('Errore cancellazione PIN:', error)
+    $q.notify({
+      type: 'negative',
+      message: 'Errore nella cancellazione del PIN',
+      position: 'top'
+    })
+  }
+}
+
+const cancelDeletePin = () => {
+  showDeletePinModal.value = false
+}
+
+// Want PIN Modal Functions
+const acceptPin = () => {
+  showWantPinModal.value = false
+  setupPin()
+}
+
+const declinePin = () => {
+  showWantPinModal.value = false
+
+  $q.notify({
+    type: 'positive',
+    message: 'Accesso riuscito!',
+    position: 'top'
+  })
+  router.push('/')
 }
 
 // Watchers
@@ -360,6 +454,7 @@ watch(pinDigits, (newVal, oldVal) => {
     }
   }
 }, { deep: true })
+
 
 // Debug functions removed - moved to settings page
 
@@ -563,4 +658,5 @@ onMounted(() => {
 .pin-field :deep(.q-field__bottom) {
   display: none !important;
 }
+
 </style>

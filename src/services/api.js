@@ -57,6 +57,11 @@ export const api = {
     return response.data
   },
 
+  async updateUserProfile(profileData) {
+    const response = await apiClient.patch('/auth/profile/', profileData)
+    return response.data
+  },
+
   // Expenses endpoints
   async getExpenses(filters = {}) {
     const params = new URLSearchParams()
@@ -132,6 +137,136 @@ export const api = {
 
   async getCurrentBudgets() {
     const response = await apiClient.get('/budgets/current/')
+    return response.data
+  },
+
+  // Spending Plans endpoints
+  async getSpendingPlans() {
+    const response = await apiClient.get('/spending-plans/')
+    return response.data
+  },
+
+  async getSpendingPlan(id) {
+    const response = await apiClient.get(`/spending-plans/${id}/`)
+    return response.data
+  },
+
+  async createSpendingPlan(planData) {
+    const response = await apiClient.post('/spending-plans/', planData)
+    return response.data
+  },
+
+  async updateSpendingPlan(id, planData) {
+    const response = await apiClient.put(`/spending-plans/${id}/`, planData)
+    return response.data
+  },
+
+  async deleteSpendingPlan(id) {
+    await apiClient.delete(`/spending-plans/${id}/`)
+  },
+
+  async getCurrentSpendingPlans() {
+    const response = await apiClient.get('/spending-plans/current/')
+    return response.data
+  },
+
+  async getSpendingPlansStatistics() {
+    const response = await apiClient.get('/spending-plans/statistics/')
+    return response.data
+  },
+
+  async copySpendingPlanToNextPeriod(id) {
+    const response = await apiClient.post(`/spending-plans/${id}/copy_to_next_period/`)
+    return response.data
+  },
+
+  // Planned Expenses endpoints
+  async getPlannedExpenses() {
+    const response = await apiClient.get('/planned-expenses/')
+    return response.data
+  },
+
+  async getPlannedExpense(id) {
+    const response = await apiClient.get(`/planned-expenses/${id}/`)
+    return response.data
+  },
+
+  async createPlannedExpense(plannedExpenseData) {
+    const response = await apiClient.post('/planned-expenses/', plannedExpenseData)
+    return response.data
+  },
+
+  async updatePlannedExpense(id, plannedExpenseData) {
+    const response = await apiClient.put(`/planned-expenses/${id}/`, plannedExpenseData)
+    return response.data
+  },
+
+  async deletePlannedExpense(id) {
+    await apiClient.delete(`/planned-expenses/${id}/`)
+  },
+
+  async addPaymentToPlannedExpense(id, paymentData) {
+    const response = await apiClient.post(`/planned-expenses/${id}/add_payment/`, paymentData)
+    return response.data
+  },
+
+  async getPlannedExpensesByStatus(status) {
+    const response = await apiClient.get(`/planned-expenses/by_status/?status=${status}`)
+    return response.data
+  },
+
+  async getPlannedExpensesDueSoon(days = 7) {
+    const response = await apiClient.get(`/planned-expenses/due_soon/?days=${days}`)
+    return response.data
+  },
+
+  async getPlannedExpensesPaymentSummary() {
+    const response = await apiClient.get('/planned-expenses/payment_summary/')
+    return response.data
+  },
+
+  // Family endpoints
+  async getFamilies() {
+    const response = await apiClient.get('/families/')
+    return response.data
+  },
+
+  async getFamily(id) {
+    const response = await apiClient.get(`/families/${id}/`)
+    return response.data
+  },
+
+  async createFamily(familyData) {
+    const response = await apiClient.post('/families/', familyData)
+    return response.data
+  },
+
+  async updateFamily(id, familyData) {
+    const response = await apiClient.put(`/families/${id}/`, familyData)
+    return response.data
+  },
+
+  async deleteFamily(id) {
+    await apiClient.delete(`/families/${id}/`)
+  },
+
+  async joinFamily(joinData) {
+    const response = await apiClient.post('/families/join/', joinData)
+    return response.data
+  },
+
+  async leaveFamily() {
+    const response = await apiClient.post('/families/leave/')
+    return response.data
+  },
+
+  async createFamilyInvitation(invitationData) {
+    const response = await apiClient.post('/family-invitations/', invitationData)
+    return response.data
+  },
+
+  async getFamilyInvitations() {
+    const response = await apiClient.get('/family-invitations/')
     return response.data
   },
 

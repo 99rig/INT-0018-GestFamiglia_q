@@ -40,7 +40,7 @@
         <div class="mcf-stat-header">
           <div class="mcf-stat-label">
             <q-icon name="account_balance_wallet" class="mcf-stat-label-icon" />
-            Budget rimanente
+            Piano di Spesa
           </div>
           <div class="mcf-stat-value-header" :class="budgetRemaining > 0 ? 'text-positive' : 'text-negative'">
             € {{ Math.abs(budgetRemaining) }}
@@ -105,7 +105,7 @@
             <q-icon name="account_balance_wallet" />
           </div>
           <div class="mcf-action-content">
-            <div class="mcf-action-title">Budget</div>
+            <div class="mcf-action-title">Piani Spesa</div>
             <div class="mcf-action-subtitle">Gestisci pianificazione</div>
           </div>
         </div>
@@ -184,7 +184,7 @@
         <q-fab-action
           class="mcf-fab-action mcf-fab-action--warning"
           icon="account_balance_wallet"
-          label="Budget"
+          label="Piani Spesa"
           @click="goToBudget"
         />
       </q-fab>
@@ -198,6 +198,7 @@ import { useRouter } from 'vue-router'
 import { useQuasar, date } from 'quasar'
 import { useAuthStore } from 'stores/auth'
 import { useExpensesStore } from 'stores/expenses'
+import { api } from 'src/services/api'
 
 const $q = useQuasar()
 const router = useRouter()
@@ -210,7 +211,8 @@ const recentExpenses = ref([])
 const monthExpenses = ref(0)
 const monthTrend = ref(0)
 const budgetRemaining = ref(0)
-const budgetTotal = ref(1000) // Default budget
+const budgetTotal = ref(0)
+const activePlans = ref([])
 const lastExpense = ref({})
 
 // Computed
@@ -278,8 +280,8 @@ const loadDashboardData = async () => {
     const monthlyExpenses = expenses.filter(e => new Date(e.date) >= startOfMonth)
     monthExpenses.value = monthlyExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0).toFixed(2)
 
-    // Budget rimanente (assumiamo 1000€ di budget mensile per ora)
-    budgetRemaining.value = (budgetTotal.value - monthExpenses.value).toFixed(2)
+    // Carica piani di spesa attivi per calcolare il budget
+    await loadActivePlans()
 
     // Trend (mock per ora)
     monthTrend.value = Math.random() * 20 - 10 // Random tra -10% e +10%
@@ -290,6 +292,42 @@ const loadDashboardData = async () => {
       type: 'negative',
       message: 'Errore nel caricamento dei dati'
     })
+  }
+}
+
+const loadActivePlans = async () => {
+  try {
+    console.log('🔄 Caricamento piani di spesa attivi...')
+
+    // Carica piani di spesa attivi (current)
+    const currentPlansResponse = await api.getCurrentSpendingPlans()
+    console.log('📋 Risposta API getCurrentSpendingPlans:', currentPlansResponse)
+
+    activePlans.value = currentPlansResponse || []
+    console.log('📊 Piani attivi trovati:', activePlans.value.length)
+    console.log('📝 Dettaglio piani:', activePlans.value)
+
+    // Calcola budget totale da tutti i piani attivi (usa total_budget - budget pianificato dall'utente)
+    budgetTotal.value = activePlans.value.reduce((total, plan) => {
+      const planBudget = parseFloat(plan.total_budget || 0)
+      console.log(`💰 Piano "${plan.name}": Budget €${planBudget} (spese effettive: €${plan.total_estimated_amount})`)
+      return total + planBudget
+    }, 0)
+
+    // Calcola budget rimanente
+    budgetRemaining.value = (budgetTotal.value - parseFloat(monthExpenses.value || 0)).toFixed(2)
+
+    console.log('📊 Piani attivi caricati:', activePlans.value.length)
+    console.log('💰 Budget totale calcolato:', budgetTotal.value)
+    console.log('💸 Spese del mese:', monthExpenses.value)
+    console.log('🏦 Budget rimanente:', budgetRemaining.value)
+
+  } catch (error) {
+    console.error('❌ Errore caricamento piani attivi:', error)
+    console.error('📝 Dettaglio errore:', error.response?.data || error.message)
+    // Se non ci sono piani, impostiamo valori di default
+    budgetTotal.value = 0
+    budgetRemaining.value = 0
   }
 }
 
@@ -338,7 +376,7 @@ const goToExpenses = () => {
 }
 
 const goToBudget = () => {
-  router.push('/budget')
+  router.push('/planned-expenses')
 }
 
 const viewExpense = (expense) => {
@@ -364,7 +402,7 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 .mcf-dashboard {
-  padding: 24px 0;
+  padding: 24px;
   background-color: var(--mcf-bg-primary);
 }
 

@@ -51,7 +51,7 @@
 <script setup>
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
-import DocumentScanner from 'src/components/common/DocumentScanner.vue'
+import DocumentScanner from 'components/common/DocumentScanner.vue'
 
 const $q = useQuasar()
 const router = useRouter()

@@ -13,7 +13,6 @@
       </div>
 
       <!-- Lista Piani di Spesa -->
-      <div class="container">
         <div v-if="loading" class="loading-container">
           <q-circular-progress
             indeterminate
@@ -78,7 +77,27 @@
             <!-- Header della card -->
             <div class="plan-header">
               <div class="plan-main">
-                <div class="plan-name">{{ plan.name }}</div>
+                <div class="plan-name-row">
+                  <div class="plan-name">
+                    {{ plan.name }}
+                    <q-icon
+                      v-if="!plan.is_shared"
+                      name="lock"
+                      size="xs"
+                      color="grey-6"
+                      class="q-ml-xs"
+                    >
+                      <q-tooltip>Piano personale</q-tooltip>
+                    </q-icon>
+                  </div>
+                  <q-chip
+                    :color="getPlanTypeColor(plan.plan_type)"
+                    text-color="white"
+                    size="sm"
+                    :label="getPlanTypeLabel(plan.plan_type)"
+                    class="plan-type-chip"
+                  />
+                </div>
                 <div class="plan-period">
                   {{ formatDate(plan.start_date) }} - {{ formatDate(plan.end_date) }}
                 </div>
@@ -87,71 +106,100 @@
                 </div>
               </div>
               <div class="plan-actions" @click.stop>
-                <q-btn-dropdown
+                <q-btn
                   flat
                   round
                   icon="more_vert"
                   size="sm"
-                  class="text-grey-6"
+                  class="text-grey-6 mcf-plan-menu-btn"
                 >
-                  <q-list>
-                    <q-item clickable v-close-popup @click="addExpenseToPlan(plan)">
-                      <q-item-section avatar>
-                        <q-icon name="add" />
-                      </q-item-section>
-                      <q-item-section>Aggiungi Spesa</q-item-section>
-                    </q-item>
-                    <q-item clickable v-close-popup @click="editPlan(plan)">
-                      <q-item-section avatar>
-                        <q-icon name="edit" />
-                      </q-item-section>
-                      <q-item-section>Modifica</q-item-section>
-                    </q-item>
-                    <q-item clickable v-close-popup @click="deletePlan(plan)">
-                      <q-item-section avatar>
-                        <q-icon name="delete" color="red" />
-                      </q-item-section>
-                      <q-item-section class="text-red">Elimina</q-item-section>
-                    </q-item>
-                  </q-list>
-                </q-btn-dropdown>
+                  <q-menu
+                    class="mcf-plan-menu"
+                    transition-show="scale"
+                    transition-hide="scale"
+                    anchor="bottom right"
+                    self="top right"
+                  >
+                    <q-list class="mcf-plan-menu-list">
+                      <q-item
+                        clickable
+                        v-close-popup
+                        @click="editPlan(plan)"
+                        class="mcf-menu-item mcf-menu-item-edit"
+                      >
+                        <q-item-section avatar class="mcf-menu-icon">
+                          <q-icon name="edit" />
+                        </q-item-section>
+                        <q-item-section class="mcf-menu-text">
+                          <q-item-label>Modifica Piano</q-item-label>
+                          <q-item-label caption>Cambia nome, date o budget</q-item-label>
+                        </q-item-section>
+                      </q-item>
+
+                      <q-separator class="mcf-menu-separator" />
+
+                      <q-item
+                        clickable
+                        v-close-popup
+                        @click="deletePlan(plan)"
+                        class="mcf-menu-item mcf-menu-item-delete"
+                      >
+                        <q-item-section avatar class="mcf-menu-icon">
+                          <q-icon name="delete_outline" />
+                        </q-item-section>
+                        <q-item-section class="mcf-menu-text">
+                          <q-item-label>Elimina Piano</q-item-label>
+                          <q-item-label caption>Rimuovi definitivamente</q-item-label>
+                        </q-item-section>
+                      </q-item>
+                    </q-list>
+                  </q-menu>
+                </q-btn>
               </div>
             </div>
 
             <!-- Statistiche del Piano -->
             <div class="plan-stats">
               <div class="stats-row">
-                <div class="stat-item">
-                  <div class="stat-label">Spese Pianificate</div>
+                <div class="stat-item stat-item-clickable" @click.stop="toggleExpanded(plan.id)">
+                  <div class="stat-label">
+                    Spese Pianificate
+                    <q-icon
+                      :name="isExpanded(plan.id) ? 'expand_less' : 'expand_more'"
+                      size="16px"
+                      class="expand-icon"
+                    />
+                  </div>
                   <div class="stat-value">{{ plan.planned_expenses?.length || 0 }}</div>
                 </div>
                 <div class="stat-item">
                   <div class="stat-label">Completate</div>
-                  <div class="stat-value completed">{{ getCompletedCount(plan) }}</div>
+                  <div class="stat-value completed">{{ plan.completed_count || 0 }}</div>
                 </div>
                 <div class="stat-item">
                   <div class="stat-label">Totale Stimato</div>
-                  <div class="stat-value primary">€{{ formatAmount(getTotalAmount(plan)) }}</div>
+                  <div class="stat-value primary">€{{ formatAmount(plan.total_estimated_amount || 0) }}</div>
                 </div>
               </div>
 
               <!-- Progress Bar -->
               <div class="progress-container">
                 <q-linear-progress
-                  :value="getProgressValue(plan)"
+                  :value="(plan.completion_percentage || 0) / 100"
                   size="8px"
                   :color="getProgressColor(plan)"
                   track-color="grey-3"
                   class="progress-bar"
                 />
                 <div class="progress-text">
-                  {{ Math.round(getProgressValue(plan) * 100) }}% completato
+                  {{ Math.round(plan.completion_percentage || 0) }}% completato
                 </div>
               </div>
             </div>
 
-            <!-- Anteprima Spese -->
-            <div v-if="plan.planned_expenses?.length > 0" class="plan-expenses-preview">
+            <!-- Anteprima Spese Collassabile -->
+            <q-slide-transition>
+              <div v-if="plan.planned_expenses?.length > 0 && isExpanded(plan.id)" class="plan-expenses-preview">
               <div class="preview-header">Prime {{ Math.min(3, plan.planned_expenses.length) }} spese:</div>
               <div
                 v-for="expense in plan.planned_expenses.slice(0, 3)"
@@ -178,18 +226,12 @@
               <div v-if="plan.planned_expenses.length > 3" class="more-expenses">
                 +{{ plan.planned_expenses.length - 3 }} altre spese
               </div>
-            </div>
+              </div>
+            </q-slide-transition>
 
             <!-- Badge del tipo -->
-            <div class="plan-badges">
+            <div class="plan-badges" v-if="plan.is_current">
               <q-chip
-                :color="getPlanTypeColor(plan.plan_type)"
-                text-color="white"
-                size="sm"
-                :label="getPlanTypeLabel(plan.plan_type)"
-              />
-              <q-chip
-                v-if="plan.is_current"
                 color="green"
                 text-color="white"
                 size="sm"
@@ -198,109 +240,24 @@
             </div>
           </div>
         </div>
-      </div>
     </div>
 
-    <!-- Dialog Creazione Piano -->
-    <q-dialog
+    <!-- Dialog Creazione/Modifica Piano -->
+    <SpendingPlanDialog
       v-model="showCreateDialog"
-      persistent
-      :full-width="$q.screen.lt.md"
-      :full-height="$q.screen.lt.md"
-    >
-      <q-card :style="$q.screen.lt.md ? '' : 'min-width: 500px; max-width: 600px;'">
-        <q-card-section>
-          <div class="text-h6">Nuovo Piano di Spesa</div>
-          <div class="text-caption text-grey-6">Crea un contenitore per organizzare le tue spese future</div>
-        </q-card-section>
+      :plan="null"
+      :saving="saving"
+      @submit="handlePlanSubmit"
+      @cancel="handlePlanCancel"
+    />
 
-        <q-card-section class="q-pt-none">
-          <q-form @submit.prevent="createPlan" class="q-gutter-md">
-            <q-input
-              v-model="newPlan.name"
-              label="Nome Piano *"
-              required
-              outlined
-              placeholder="es. Ottobre 2025, Natale 2025, Estate 2026..."
-              :rules="[val => val && val.length > 0 || 'Nome richiesto']"
-            />
-
-            <q-input
-              v-model="newPlan.description"
-              label="Descrizione (opzionale)"
-              outlined
-              type="textarea"
-              rows="2"
-              placeholder="Descrivi a cosa serve questo piano..."
-            />
-
-            <q-select
-              v-model="newPlan.plan_type"
-              :options="planTypeOptions"
-              label="Tipo Piano *"
-              outlined
-              emit-value
-              map-options
-            />
-
-            <div class="row q-gutter-sm">
-              <div class="col">
-                <q-input
-                  v-model="newPlan.start_date"
-                  label="Data Inizio *"
-                  outlined
-                  readonly
-                >
-                  <template v-slot:append>
-                    <q-icon name="event" class="cursor-pointer">
-                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                        <q-date v-model="newPlan.start_date" mask="YYYY-MM-DD">
-                          <div class="row items-center justify-end">
-                            <q-btn v-close-popup label="OK" color="primary" flat />
-                          </div>
-                        </q-date>
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                </q-input>
-              </div>
-              <div class="col">
-                <q-input
-                  v-model="newPlan.end_date"
-                  label="Data Fine *"
-                  outlined
-                  readonly
-                >
-                  <template v-slot:append>
-                    <q-icon name="event" class="cursor-pointer">
-                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                        <q-date v-model="newPlan.end_date" mask="YYYY-MM-DD">
-                          <div class="row items-center justify-end">
-                            <q-btn v-close-popup label="OK" color="primary" flat />
-                          </div>
-                        </q-date>
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                </q-input>
-              </div>
-            </div>
-          </q-form>
-        </q-card-section>
-
-        <q-card-actions align="right">
-          <q-btn flat label="Annulla" v-close-popup @click="resetForm" />
-          <q-btn
-            flat
-            label="Crea Piano"
-            color="primary"
-            @click="createPlan"
-            :loading="saving"
-            :disable="!canCreatePlan"
-          />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
+    <SpendingPlanDialog
+      v-model="showEditDialog"
+      :plan="editingPlan"
+      :saving="saving"
+      @submit="handlePlanUpdate"
+      @cancel="handlePlanCancel"
+    />
 
   </q-page>
 </template>
@@ -309,8 +266,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
-import { api } from 'src/services/api'
-import { useAuthStore } from 'src/stores/auth'
+import { api } from 'src/services/api.js'
+import { useAuthStore } from 'stores/auth.js'
+import SpendingPlanDialog from 'components/SpendingPlanDialog.vue'
 
 const $q = useQuasar()
 const router = useRouter()
@@ -320,37 +278,26 @@ const spendingPlans = ref([])
 const loading = ref(false)
 const saving = ref(false)
 const showCreateDialog = ref(false)
+const showEditDialog = ref(false)
+const editingPlan = ref(null)
+const expandedPlans = ref(new Set())
 
-// Form nuovo piano
-const newPlan = ref({
-  name: '',
-  description: '',
-  plan_type: 'custom',
-  start_date: '',
-  end_date: ''
-})
+const authStore = useAuthStore()
 
-// Opzioni per il tipo piano
+// Opzioni per il tipo piano (per le funzioni helper)
 const planTypeOptions = [
   { label: 'Mensile', value: 'monthly' },
-  { label: 'Stagionale', value: 'seasonal' },
-  { label: 'Evento/Occasione', value: 'event' },
+  { label: 'Trimestrale', value: 'quarterly' },
+  { label: 'Semestrale', value: 'semester' },
   { label: 'Annuale', value: 'yearly' },
   { label: 'Personalizzato', value: 'custom' }
 ]
-
-// Computed
-const canCreatePlan = computed(() => {
-  return newPlan.value.name &&
-         newPlan.value.start_date &&
-         newPlan.value.end_date
-})
 
 // Metodi
 const loadSpendingPlans = async () => {
   loading.value = true
   try {
-    const response = await api.getBudgets() // Manteniamo l'endpoint esistente per ora
+    const response = await api.getSpendingPlans()
     spendingPlans.value = response.results || response || []
     console.log('📋 Piani di spesa caricati:', spendingPlans.value.length)
   } catch (error) {
@@ -365,12 +312,22 @@ const loadSpendingPlans = async () => {
   }
 }
 
-const createPlan = async () => {
-  if (!canCreatePlan.value) return
-
+// Gestori del componente SpendingPlanDialog
+const handlePlanSubmit = async (planData) => {
   saving.value = true
   try {
-    await api.createBudget(newPlan.value) // Manteniamo l'endpoint esistente
+    // Se il piano è condiviso, aggiungi tutti gli utenti della famiglia
+    // Altrimenti solo l'utente corrente
+    const users = planData.is_shared && authStore.user.family
+      ? authStore.user.family.members.map(m => m.id)
+      : [authStore.user.id]
+
+    const submitData = {
+      ...planData,
+      users
+    }
+
+    await api.createSpendingPlan(submitData)
 
     $q.notify({
       type: 'positive',
@@ -379,7 +336,6 @@ const createPlan = async () => {
     })
 
     showCreateDialog.value = false
-    resetForm()
     await loadSpendingPlans()
 
   } catch (error) {
@@ -402,40 +358,63 @@ const createPlan = async () => {
   }
 }
 
-const resetForm = () => {
-  newPlan.value = {
-    name: '',
-    description: '',
-    plan_type: 'custom',
-    start_date: '',
-    end_date: ''
+const handlePlanUpdate = async (planData) => {
+  saving.value = true
+  try {
+    // Se il piano è condiviso, aggiungi tutti gli utenti della famiglia
+    // Altrimenti solo l'utente corrente
+    const users = planData.is_shared && authStore.user.family
+      ? authStore.user.family.members.map(m => m.id)
+      : [authStore.user.id]
+
+    const submitData = {
+      ...planData,
+      users
+    }
+
+    await api.updateSpendingPlan(planData.id, submitData)
+
+    $q.notify({
+      type: 'positive',
+      message: 'Piano di spesa aggiornato con successo!',
+      position: 'top'
+    })
+
+    showEditDialog.value = false
+    editingPlan.value = null
+    await loadSpendingPlans()
+
+  } catch (error) {
+    console.error('Errore nell\'aggiornamento del piano:', error)
+
+    let errorMessage = 'Errore nell\'aggiornamento del piano'
+    if (error.response?.data?.detail) {
+      errorMessage = error.response.data.detail
+    } else if (error.message) {
+      errorMessage = error.message
+    }
+
+    $q.notify({
+      type: 'negative',
+      message: errorMessage,
+      position: 'top'
+    })
+  } finally {
+    saving.value = false
   }
 }
 
-const openPlanDetail = (plan) => {
-  // TODO: Navigare alla pagina di dettaglio del piano
-  $q.notify({
-    type: 'info',
-    message: `Aprendo dettagli del piano "${plan.name}"`,
-    position: 'top'
-  })
+const handlePlanCancel = () => {
+  editingPlan.value = null
 }
 
-const addExpenseToPlan = (plan) => {
-  // TODO: Aprire dialog per aggiungere spesa al piano
-  $q.notify({
-    type: 'info',
-    message: 'Funzione in sviluppo',
-    position: 'top'
-  })
+const openPlanDetail = (plan) => {
+  router.push(`/spending-plans/${plan.id}`)
 }
 
 const editPlan = (plan) => {
-  $q.notify({
-    type: 'info',
-    message: 'Modifica in sviluppo',
-    position: 'top'
-  })
+  editingPlan.value = plan
+  showEditDialog.value = true
 }
 
 const deletePlan = (plan) => {
@@ -485,24 +464,10 @@ const formatAmount = (amount) => {
   return parseFloat(amount || 0).toFixed(2)
 }
 
-const getCompletedCount = (plan) => {
-  if (!plan.planned_expenses) return 0
-  return plan.planned_expenses.filter(exp => exp.is_completed).length
-}
-
-const getTotalAmount = (plan) => {
-  if (!plan.planned_expenses) return 0
-  return plan.planned_expenses.reduce((total, exp) => total + parseFloat(exp.amount || 0), 0)
-}
-
-const getProgressValue = (plan) => {
-  if (!plan.planned_expenses || plan.planned_expenses.length === 0) return 0
-  const completed = getCompletedCount(plan)
-  return completed / plan.planned_expenses.length
-}
+// Funzioni rimosse - ora usiamo i dati calcolati dal backend
 
 const getProgressColor = (plan) => {
-  const progress = getProgressValue(plan)
+  const progress = (plan.completion_percentage || 0) / 100
   if (progress >= 1) return 'green'
   if (progress >= 0.5) return 'orange'
   return 'primary'
@@ -542,6 +507,19 @@ const getPriorityColor = (priority) => {
   }
 }
 
+// Toggle funzioni
+const toggleExpanded = (planId) => {
+  if (expandedPlans.value.has(planId)) {
+    expandedPlans.value.delete(planId)
+  } else {
+    expandedPlans.value.add(planId)
+  }
+}
+
+const isExpanded = (planId) => {
+  return expandedPlans.value.has(planId)
+}
+
 // Lifecycle
 onMounted(async () => {
   const authStore = useAuthStore()
@@ -563,26 +541,13 @@ onMounted(async () => {
 .spending-plan-page-content {
   width: 100%;
   margin: 0;
-  padding: 16px 12px;
-
+  padding: 16px;
   @media (min-width: 768px) {
-    padding: 24px 16px;
-  }
-
-  @media (min-width: 1200px) {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 24px 32px;
+    padding: 24px;
   }
 }
 
-.mcf-page-container-fullwidth {
-  background-color: var(--mcf-bg-primary);
-  min-height: 100vh;
-  padding: 0 !important;
-  margin: 0 !important;
-  width: 100% !important;
-}
+// Override gestito nel CSS globale
 
 // === ACTION HEADER ===
 .mcf-action-header {
@@ -888,12 +853,25 @@ onMounted(async () => {
   min-width: 0;
 }
 
+.plan-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
 .plan-name {
   font-size: 18px;
   font-weight: 600;
   color: var(--mcf-text-primary);
   line-height: 1.3;
-  margin-bottom: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.plan-type-chip {
+  flex-shrink: 0;
 }
 
 .plan-period {
@@ -925,6 +903,19 @@ onMounted(async () => {
   text-align: center;
 }
 
+.stat-item-clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 8px;
+  padding: 8px;
+  margin: -8px;
+
+  &:hover {
+    background: rgba(var(--mcf-primary-rgb, 35, 157, 176), 0.08);
+    transform: translateY(-1px);
+  }
+}
+
 .stat-label {
   font-size: 11px;
   color: var(--mcf-text-muted);
@@ -932,6 +923,27 @@ onMounted(async () => {
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.stat-item-clickable .stat-label {
+  border-bottom: 1px dotted var(--mcf-primary);
+  padding-bottom: 2px;
+  cursor: pointer;
+}
+
+.expand-icon {
+  transition: transform 0.2s ease;
+  color: var(--mcf-primary);
+  opacity: 0.7;
+
+  .stat-item-clickable:hover & {
+    opacity: 1;
+    transform: scale(1.1);
+  }
 }
 
 .stat-value {
@@ -1053,4 +1065,116 @@ onMounted(async () => {
     margin-bottom: 0;
   }
 }
+
+/* === MENU PIANO MODERNO === */
+.mcf-plan-menu-btn {
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(var(--mcf-primary-rgb), 0.1) !important;
+    color: var(--mcf-primary) !important;
+  }
+}
+
+.mcf-plan-menu {
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  overflow: hidden !important;
+  min-width: 220px !important;
+}
+
+.mcf-plan-menu-list {
+  padding: 8px !important;
+}
+
+.mcf-menu-item {
+  border-radius: 8px !important;
+  margin: 2px 0 !important;
+  padding: 12px 16px !important;
+  transition: all 0.2s ease !important;
+  min-height: auto !important;
+
+  &:hover {
+    background: rgba(var(--mcf-primary-rgb), 0.08) !important;
+    transform: translateX(2px);
+  }
+}
+
+.mcf-menu-item-edit {
+  &:hover {
+    background: rgba(var(--mcf-primary-rgb), 0.1) !important;
+
+    .mcf-menu-icon .q-icon {
+      color: var(--mcf-primary) !important;
+    }
+
+    .mcf-menu-text .q-item__label:not(.q-item__label--caption) {
+      color: var(--mcf-primary) !important;
+    }
+  }
+}
+
+.mcf-menu-item-delete {
+  &:hover {
+    background: rgba(229, 62, 62, 0.1) !important;
+
+    .mcf-menu-icon .q-icon {
+      color: #e53e3e !important;
+    }
+
+    .mcf-menu-text .q-item__label:not(.q-item__label--caption) {
+      color: #e53e3e !important;
+    }
+  }
+}
+
+.mcf-menu-icon {
+  min-width: 40px !important;
+  padding-right: 12px !important;
+
+  .q-icon {
+    font-size: 20px !important;
+    color: var(--mcf-text-secondary) !important;
+    transition: color 0.2s ease !important;
+  }
+}
+
+.mcf-menu-text {
+  .q-item__label {
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    color: var(--mcf-text-primary) !important;
+    transition: color 0.2s ease !important;
+    margin-bottom: 2px !important;
+  }
+
+  .q-item__label--caption {
+    font-size: 12px !important;
+    color: var(--mcf-text-muted) !important;
+    font-weight: 400 !important;
+    opacity: 0.8 !important;
+  }
+}
+
+.mcf-menu-separator {
+  margin: 8px 0 !important;
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Animazione di entrata del menu */
+:deep(.q-menu) {
+  .q-transition--scale-enter-active,
+  .q-transition--scale-leave-active {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  .q-transition--scale-enter-from,
+  .q-transition--scale-leave-to {
+    opacity: 0 !important;
+    transform: scale(0.9) !important;
+  }
+}
+
+
 </style>

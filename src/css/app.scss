@@ -23,7 +23,14 @@ body {
 .mcf-page-container {
   background-color: $mcf-bg-primary;
   min-height: 100vh;
-  padding: $mcf-space-lg;
+
+  &.mcf-page-container-fullwidth {
+    padding: 8px;
+
+    @media (min-width: 768px) {
+      padding: 16px;
+    }
+  }
 }
 
 // === MODERN CARD SYSTEM ===
