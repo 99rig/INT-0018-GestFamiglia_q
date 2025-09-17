@@ -55,9 +55,9 @@ export default defineConfig((ctx) => {
       // publicPath: '/',
       // analyze: true,
       env: {
-        API_URL: ctx.dev
-          ? 'http://localhost:8000/api'
-          : 'http://192.168.1.125:8000/api'
+        API_BASE_URL: ctx.dev
+          ? 'http://localhost:8000'
+          : 'https://lacrazyfamily.com'
       },
       // rawDefine: {}
       // ignorePublicFolder: true,
