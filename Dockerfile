@@ -14,8 +14,9 @@ RUN npm install --legacy-peer-deps
 # 🔎 Debug: Controlla che il progetto sia valido
 RUN ls -la /app
 
-# ✅ Build per produzione SPA (usa .env.prod)
-RUN quasar build -m spa --target prod
+# ✅ Build per produzione SPA (con NODE_ENV=production)
+ENV NODE_ENV=production
+RUN quasar build -m spa --skip-pkg-version-check
 # 🔹 2️⃣ STAGE DI PRODUZIONE CON NGINX
 FROM nginx:1.25.0-alpine AS production-stage
 
