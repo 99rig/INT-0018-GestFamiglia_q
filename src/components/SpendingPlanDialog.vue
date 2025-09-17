@@ -115,9 +115,9 @@
               <q-icon name="group" />
             </q-item-section>
             <q-item-section>
-              <q-item-label>Condividi con la famiglia</q-item-label>
+              <q-item-label>Piano famigliare</q-item-label>
               <q-item-label caption>
-                Se disattivato, il piano sarà visibile solo a te
+                Se attivato, il piano sarà condiviso con tutti i membri della famiglia
               </q-item-label>
             </q-item-section>
             <q-item-section side>
@@ -179,7 +179,8 @@ const authStore = useAuthStore()
 const isEdit = computed(() => !!props.plan)
 
 const userHasFamily = computed(() => {
-  return authStore.user?.family && authStore.user.family.members?.length > 1
+  // Mostra il toggle se l'utente ha una famiglia
+  return !!authStore.user?.family_detail
 })
 
 // Form data

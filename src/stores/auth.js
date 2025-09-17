@@ -121,15 +121,13 @@ export const useAuthStore = defineStore('auth', {
           await storage.set(STORAGE_KEYS.ENCRYPTED_CREDENTIALS, this.encryptedCredentials)
         }
 
-        // Se non abbiamo i dati utente completi, caricali dal profilo
-        if (!this.user.name) {
-          try {
-            const profile = await api.getUserProfile()
-            this.user = { ...this.user, ...profile }
-            await storage.saveUserData(this.user)
-          } catch (error) {
-            console.log('Could not load user profile:', error)
-          }
+        // Carica sempre il profilo completo per avere i dati famiglia
+        try {
+          const profile = await api.getUserProfile()
+          this.user = { ...this.user, ...profile }
+          await storage.saveUserData(this.user)
+        } catch (error) {
+          console.log('Could not load user profile:', error)
         }
 
         return true
