@@ -4,9 +4,9 @@
 
 import axios from 'axios'
 
-// Configura istanza axios
+// Configura istanza axios con environment variables Quasar standard
 const apiClient = axios.create({
-  baseURL: process.env.API_URL || 'http://192.168.1.125:8000/api',
+  baseURL: process.env.API_BASE_URL ? `${process.env.API_BASE_URL}/api` : 'http://localhost:8000/api',
   headers: {
     'Content-Type': 'application/json',
   },

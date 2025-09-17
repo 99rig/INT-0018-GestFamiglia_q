@@ -188,13 +188,13 @@ const authStore = useAuthStore()
 
 // Server info
 const apiServer = computed(() => {
-  const url = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+  const url = process.env.API_BASE_URL || 'http://localhost:8000'
   // Rimuovi http:// o https:// per display più pulito
   return url.replace(/^https?:\/\//, '')
 })
 
 const serverClass = computed(() => {
-  const url = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+  const url = process.env.API_BASE_URL || 'http://localhost:8000'
   // Verde per produzione, arancione per sviluppo
   return url.includes('localhost') ? 'text-orange-8' : 'text-green-7'
 })
@@ -218,7 +218,7 @@ const lastUserEmail = ref('')
 const publicIP = ref('Detecting...')
 const deviceIP = ref('Detecting...')
 const platform = ref('Unknown')
-const appVersion = ref('1.0.5')
+const appVersion = ref('1.0.6')
 const serverStatus = ref({ text: 'Checking...', color: 'grey' })
 const refreshing = ref(false)
 
@@ -446,8 +446,29 @@ const getDeviceInfo = async () => {
   // Get local device IP (approximation)
   try {
     if (window.Capacitor) {
-      // For mobile app, try to get network info
-      deviceIP.value = '192.168.1.119 (detected)'
+      // For mobile app, try to create a WebRTC connection to detect local IP
+      const pc = new RTCPeerConnection({iceServers: []})
+      pc.createDataChannel('')
+      pc.createOffer().then(offer => pc.setLocalDescription(offer))
+      
+      pc.onicecandidate = (ice) => {
+        if (ice && ice.candidate && ice.candidate.candidate) {
+          const candidate = ice.candidate.candidate
+          const match = candidate.match(/(\d+\.\d+\.\d+\.\d+)/)
+          if (match && match[1] && !match[1].startsWith('127.')) {
+            deviceIP.value = match[1]
+            pc.close()
+          }
+        }
+      }
+      
+      // Fallback after 2 seconds
+      setTimeout(() => {
+        if (deviceIP.value === 'Detecting...') {
+          deviceIP.value = 'Auto-detect failed'
+        }
+        pc.close()
+      }, 2000)
     } else {
       // For web, show a basic approximation
       deviceIP.value = 'Check WiFi settings'
@@ -478,6 +499,17 @@ const testServerConnection = async () => {
   } catch (error) {
     console.error('Server test error:', error)
     serverStatus.value = { text: 'Unreachable', color: 'red' }
+  }
+}
+
+const refreshNetworkInfo = async () => {
+  refreshing.value = true
+  try {
+    await getDeviceInfo()
+  } catch (error) {
+    console.error('Error refreshing network info:', error)
+  } finally {
+    refreshing.value = false
   }
 }
 
