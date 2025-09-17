@@ -11,25 +11,23 @@ COPY . .
 # ✅ Installa le dipendenze del progetto
 RUN npm install --legacy-peer-deps
 
-# ✅ Crea versione mock di updateService per build web
-RUN echo 'export default { init: () => {}, checkForUpdates: () => {}, downloadUpdate: () => {} }' > src/services/updateService.js.bak && \
-    cp src/services/updateService.js.bak src/services/updateService.js
+# ✅ PWA build supporta Capacitor nativamente - non servono mock
 
 # 🔎 Debug: Controlla che il progetto sia valido
 RUN ls -la /app
 
-# ✅ Build per produzione SPA (con NODE_ENV=production)
+# ✅ Build per produzione PWA (supporta Capacitor plugins)
 ENV NODE_ENV=production
 ENV CI=true
-RUN quasar build -m spa --skip-pkg-version-check || quasar build -m spa
+RUN quasar build -m pwa --skip-pkg-version-check || quasar build -m pwa
 # 🔹 2️⃣ STAGE DI PRODUZIONE CON NGINX
 FROM nginx:1.25.0-alpine AS production-stage
 
-# ✅ Copia configurazione Nginx custom per SPA
+# ✅ Copia configurazione Nginx custom per PWA
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# ✅ Copia i file buildati in Nginx (SPA invece di PWA)
-COPY --from=build-stage /app/dist/spa /usr/share/nginx/html
+# ✅ Copia i file buildati PWA in Nginx
+COPY --from=build-stage /app/dist/pwa /usr/share/nginx/html
 
 # ✅ Aggiungi curl per health check
 RUN apk add --no-cache curl
