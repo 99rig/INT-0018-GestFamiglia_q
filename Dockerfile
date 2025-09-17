@@ -13,8 +13,8 @@ RUN npm install --legacy-peer-deps
 
 # ✅ PWA build supporta Capacitor nativamente - non servono mock
 
-# ✅ Inizializza modalità PWA se non presente
-RUN if [ ! -f "src-pwa/manifest.json" ]; then quasar mode add pwa; fi
+# ✅ Forza ricreazione PWA mode sempre
+RUN rm -rf src-pwa && quasar mode add pwa
 
 # 🔎 Debug: Controlla che il progetto sia valido
 RUN ls -la /app
