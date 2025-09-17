@@ -16,7 +16,8 @@ RUN ls -la /app
 
 # ✅ Build per produzione SPA (con NODE_ENV=production)
 ENV NODE_ENV=production
-RUN quasar build -m spa --skip-pkg-version-check
+ENV CI=true
+RUN quasar build -m spa --skip-pkg-version-check || quasar build -m spa
 # 🔹 2️⃣ STAGE DI PRODUZIONE CON NGINX
 FROM nginx:1.25.0-alpine AS production-stage
 
