@@ -1,16 +1,15 @@
 # 🔹 1️⃣ STAGE DI BUILD CON NODE
-FROM node:18-alpine as build-stage
+FROM node:20-alpine3.20 AS build-stage
 WORKDIR /app
 
-# ✅ Copia solo package.json per ottimizzare la cache dei pacchetti
-COPY package.json package-lock.json* ./
-
-# ✅ Installa le dipendenze globali e di progetto
+# ✅ Installa Quasar CLI globalmente
 RUN npm install -g @quasar/cli
-RUN npm install --legacy-peer-deps
 
-# ✅ Copia tutto il progetto Quasar
+# ✅ Copia tutto il progetto prima (necessario per quasar prepare)
 COPY . .
+
+# ✅ Installa le dipendenze del progetto
+RUN npm install --legacy-peer-deps
 
 # 🔎 Debug: Controlla che il progetto sia valido
 RUN ls -la /app
@@ -18,7 +17,7 @@ RUN ls -la /app
 # ✅ Build per produzione SPA (usa .env.prod)
 RUN quasar build -m spa --target prod
 # 🔹 2️⃣ STAGE DI PRODUZIONE CON NGINX
-FROM nginx:1.25.0-alpine as production-stage
+FROM nginx:1.25.0-alpine AS production-stage
 
 # ✅ Copia configurazione Nginx custom per SPA
 COPY nginx.conf /etc/nginx/nginx.conf
