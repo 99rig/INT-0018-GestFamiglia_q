@@ -485,7 +485,8 @@ const testServerConnection = async () => {
   serverStatus.value = { text: 'Testing...', color: 'orange' }
   
   try {
-    const testUrl = apiServer.value.replace('/api', '/api/auth/login/')
+    const baseUrl = process.env.API_BASE_URL || 'http://localhost:8000'
+    const testUrl = `${baseUrl}/api/auth/login/`
     const response = await fetch(testUrl, {
       method: 'OPTIONS',
       mode: 'cors'
