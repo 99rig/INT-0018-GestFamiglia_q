@@ -11,6 +11,10 @@ COPY . .
 # ✅ Installa le dipendenze del progetto
 RUN npm install --legacy-peer-deps
 
+# ✅ Crea versione mock di updateService per build web
+RUN echo 'export default { init: () => {}, checkForUpdates: () => {}, downloadUpdate: () => {} }' > src/services/updateService.js.bak && \
+    cp src/services/updateService.js.bak src/services/updateService.js
+
 # 🔎 Debug: Controlla che il progetto sia valido
 RUN ls -la /app
 
