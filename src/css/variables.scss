@@ -1,67 +1,82 @@
-// 🎨 MUMBLE COLORS PALETTE
-// Palette colori ufficiale Mumble Projects
+// 🎨 FAMILY EXPENSE MANAGEMENT PALETTE
+// Palette colori calda e familiare per gestione spese
 
-// Variabili colori Mumble
-$mumble-dark-blue: #3A3F4A;      // Blu scuro principale
-$mumble-dark-grey: #29252C;      // Grigio scuro
-$mumble-light-purple: #A096A3;   // Viola chiaro
-$mumble-cream: #E5E9DF;          // Crema
-$mumble-beige: #DCC0AB;          // Beige
+@use "sass:color";
 
-// Alias per facilità di utilizzo
-$mumble-primary: $mumble-dark-blue;
-$mumble-secondary: $mumble-dark-grey;
-$mumble-accent: $mumble-light-purple;
-$mumble-light: $mumble-cream;
-$mumble-warm: $mumble-beige;
+// === PALETTE 1: FAMIGLIA CLASSICA ===
+$family-brown-dark: #874e14;     // Marrone scuro - Stabilità e sicurezza
+$family-brown-medium: #98663c;   // Marrone medio - Calore e affidabilità
+$family-beige-warm: #ba947f;     // Beige rosato - Comfort familiare
+$family-beige-light: #e3d9d4;    // Beige chiaro - Serenità e spazio
+$family-blue-lavender: #9db2ea;  // Blu lavanda - Freschezza e modernità
 
-// Variazioni per stati hover/focus
-$mumble-primary-hover: lighten($mumble-primary, 10%);
-$mumble-secondary-hover: lighten($mumble-secondary, 15%);
-$mumble-accent-hover: lighten($mumble-accent, 8%);
+// === PALETTE 2: FAMIGLIA DORATA ===
+$golden-cream: #fffbf6;          // Crema luminoso - Purezza e chiarezza
+$golden-light: #edb97e;          // Dorato chiaro - Calore e prosperità
+$golden-medium: #d09054;         // Dorato medio - Equilibrio e stabilità
+$golden-warm: #ac8662;           // Bronzo caldo - Comfort e tradizione
+$golden-dark: #935618;           // Bronzo scuro - Serietà e affidabilità
+
+// === SWITCH PALETTE ===
+// Cambia questo valore per switchare tra le palette:
+// 'classic' = palette famiglia classica
+// 'golden' = palette famiglia dorata
+$active-palette: 'golden';
+
+// Definizione variabili MCF basate sulla palette attiva
+$mcf-primary: if($active-palette == 'golden', $golden-dark, $family-brown-dark);
+$mcf-secondary: if($active-palette == 'golden', $golden-medium, $family-brown-medium);
+$mcf-accent: if($active-palette == 'golden', $golden-light, $family-blue-lavender);
+$mcf-light: if($active-palette == 'golden', $golden-cream, $family-beige-light);
+$mcf-warm: if($active-palette == 'golden', $golden-warm, $family-beige-warm);
+
+// Variazioni per stati hover/focus - usando le nuove funzioni SASS
+$mcf-primary-hover: color.adjust($mcf-primary, $lightness: 10%);
+$mcf-secondary-hover: color.adjust($mcf-secondary, $lightness: 15%);
+$mcf-accent-hover: color.adjust($mcf-accent, $lightness: 8%);
 
 // Override delle variabili Quasar
-$primary: $mumble-primary;
-$secondary: $mumble-secondary;
-$accent: $mumble-accent;
-$positive: $mumble-accent;
+$primary: $mcf-primary;
+$secondary: $mcf-secondary;
+$accent: $mcf-accent;
+$positive: $mcf-accent;
 $negative: #c62828;
-$info: $mumble-accent;
+$info: $mcf-accent;
 $warning: #ff8f00;
 
 // Backgrounds
-$mumble-bg-light: $mumble-cream;
-$mumble-bg-warm: $mumble-beige;
-$mumble-bg-dark: $mumble-dark-grey;
-$mumble-bg-primary: $mumble-primary;
+$mcf-bg-light: $mcf-light;        // Beige chiaro
+$mcf-bg-warm: $mcf-warm;          // Beige rosato
+$mcf-bg-dark: $mcf-secondary;     // Marrone medio per dark mode
+$mcf-bg-primary: $mcf-primary;    // Marrone scuro
 
 // Text colors
-$mumble-text-dark: $mumble-dark-grey;
-$mumble-text-light: $mumble-cream;
-$mumble-text-muted: $mumble-light-purple;
+$mcf-text-dark: $mcf-primary;     // Marrone scuro per testo
+$mcf-text-light: $mcf-light;      // Beige chiaro per testo su sfondo scuro
+$mcf-text-muted: $mcf-accent;
 
-// Utilities classes
-.mumble-primary { color: $mumble-primary !important; }
-.mumble-secondary { color: $mumble-secondary !important; }
-.mumble-accent { color: $mumble-accent !important; }
-.mumble-light { color: $mumble-light !important; }
-.mumble-warm { color: $mumble-warm !important; }
+// MCF Utilities classes
+.mcf-primary { color: $mcf-primary !important; }
+.mcf-secondary { color: $mcf-secondary !important; }
+.mcf-accent { color: $mcf-accent !important; }
+.mcf-light { color: $mcf-light !important; }
+.mcf-warm { color: $mcf-warm !important; }
 
-.mumble-bg-primary { background-color: $mumble-primary !important; }
-.mumble-bg-secondary { background-color: $mumble-secondary !important; }
-.mumble-bg-accent { background-color: $mumble-accent !important; }
-.mumble-bg-light { background-color: $mumble-light !important; }
-.mumble-bg-warm { background-color: $mumble-warm !important; }
+.mcf-bg-primary { background-color: $mcf-primary !important; }
+.mcf-bg-secondary { background-color: $mcf-secondary !important; }
+.mcf-bg-accent { background-color: $mcf-accent !important; }
+.mcf-bg-light { background-color: $mcf-light !important; }
+.mcf-bg-warm { background-color: $mcf-warm !important; }
 
-// Gradient utilities
-.mumble-gradient-primary {
-  background: linear-gradient(135deg, #{$mumble-primary} 0%, #{$mumble-secondary} 100%) !important;
+// MCF Gradient utilities
+.mcf-gradient-primary {
+  background: linear-gradient(135deg, #{$mcf-primary} 0%, #{$mcf-secondary} 100%) !important;
 }
 
-.mumble-gradient-warm {
-  background: linear-gradient(135deg, #{$mumble-warm} 0%, #{$mumble-light} 100%) !important;
+.mcf-gradient-warm {
+  background: linear-gradient(135deg, #{$mcf-warm} 0%, #{$mcf-light} 100%) !important;
 }
 
-.mumble-gradient-accent {
-  background: linear-gradient(135deg, #{$mumble-accent} 0%, #{$mumble-light} 100%) !important;
+.mcf-gradient-accent {
+  background: linear-gradient(135deg, #{$mcf-accent} 0%, #{$mcf-light} 100%) !important;
 }

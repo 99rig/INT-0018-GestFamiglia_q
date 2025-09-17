@@ -3,11 +3,12 @@
     <q-list>
       <q-item-label header> 
         <div class="text-center q-py-md">
-          <img 
-            src="/mumble-logo.svg" 
-            alt="Mumble" 
-            style="width: 150px" 
+          <q-icon 
+            name="account_balance_wallet" 
+            size="64px" 
+            class="text-mcf-primary"
           />
+          <div class="text-h6 text-mcf-primary q-mt-sm">MCF</div>
         </div>
       </q-item-label>
 
@@ -40,22 +41,28 @@ const isOpen = computed({
 
 const linksList = [
   {
-    title: 'Dashboard',
-    caption: 'Main dashboard',
+    title: 'Home',
+    caption: 'Dashboard principale',
     icon: 'dashboard',
     link: '/',
   },
   {
-    title: 'Settings',
-    caption: 'App settings',
-    icon: 'settings',
-    link: '/settings',
+    title: 'Spese',
+    caption: 'Visualizza tutte le spese',
+    icon: 'receipt_long',
+    link: '/expenses',
   },
   {
-    title: 'Help',
-    caption: 'Documentation',
-    icon: 'help',
-    link: '/help',
+    title: 'Scanner',
+    caption: 'Scansiona ricevute',
+    icon: 'document_scanner',
+    link: '/scanner',
+  },
+  {
+    title: 'Settings',
+    caption: 'Impostazioni app',
+    icon: 'settings',
+    link: '/settings',
   },
 ]
 </script>

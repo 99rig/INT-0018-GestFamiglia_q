@@ -10,16 +10,30 @@
 
 // It's highly recommended to change the default colors
 // to match your app's branding.
-// Tip: Use the "Theme Builder" on Quasar's documentation website.
+// Custom Family Expense Management Theme
 
-$primary: #1976d2;
-$secondary: #26a69a;
-$accent: #9c27b0;
+// === PALETTE FAMIGLIA ===
+$brown-dark: #874e14;      // Marrone scuro - Primary
+$brown-medium: #98663c;    // Marrone medio - Secondary  
+$beige-warm: #ba947f;      // Beige rosato - Neutral
+$beige-light: #e3d9d4;     // Beige chiaro - Background
+$blue-lavender: #9db2ea;   // Blu lavanda - Accent
 
-$dark: #1d1d1d;
-$dark-page: #121212;
+// === QUASAR THEME COLORS ===
+$primary: $brown-dark;     // #874e14 - Bottoni principali, header
+$secondary: $brown-medium; // #98663c - Bottoni secondari
+$accent: $blue-lavender;   // #9db2ea - Highlights, link, focus
 
-$positive: #21ba45;
-$negative: #c10015;
-$info: #31ccec;
-$warning: #f2c037;
+$dark: #2c1810;           // Versione scura del marrone per dark mode
+$dark-page: #1a0f0a;      // Background scuro
+
+// === STATUS COLORS ===
+$positive: #4caf50;       // Verde per successo (spese pagate)
+$negative: #d32f2f;       // Rosso per errori/spese scadute
+$info: $blue-lavender;    // Info = accent color
+$warning: #ff9800;        // Arancione per warning
+
+// === BACKGROUND COLORS ===
+$background: $beige-light;     // #e3d9d4 - Background principale
+$surface: #ffffff;             // Bianco per card/surface
+$surface-variant: $beige-warm; // #ba947f - Background alternativo

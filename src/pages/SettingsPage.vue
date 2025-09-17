@@ -63,11 +63,38 @@
             </div>
           </div>
           
+          <!-- App Updates Section -->
+          <div class="q-mb-xl">
+            <div class="text-h6 text-mumble-primary q-mb-md">Aggiornamenti App</div>
+            <div class="text-body2 text-mumble-accent q-mb-md">
+              Controlla e installa aggiornamenti dell'applicazione
+            </div>
+            
+            <div class="text-center">
+              <q-btn
+                class="mumble-btn-primary q-mb-md"
+                label="Controlla Aggiornamenti"
+                icon="system_update"
+                @click="checkForUpdates"
+                :loading="updateChecking"
+                no-caps
+                unelevated
+                rounded
+              />
+            </div>
+            
+            <div v-if="currentVersion" class="text-center">
+              <div class="text-caption text-mumble-accent">
+                Versione corrente: v{{ currentVersion.name }} ({{ currentVersion.code }})
+              </div>
+            </div>
+          </div>
+
           <div class="text-center q-mt-xl q-pt-xl">
             <q-icon name="settings" size="4rem" class="text-mumble-accent q-mb-md" />
             <div class="text-h6 text-mumble-primary q-mb-sm">Settings Page</div>
             <div class="text-body2 text-mumble-accent">
-              This is a placeholder settings page. Add your app-specific settings here.
+              Configura le impostazioni dell'applicazione.
             </div>
           </div>
         </div>
@@ -77,8 +104,9 @@
 </template>
 
 <script setup>
-import { ref, onUnmounted } from 'vue'
+import { ref, onUnmounted, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
+import { updateService } from 'src/services/updateService'
 
 const $q = useQuasar()
 
@@ -86,7 +114,15 @@ const videoElement = ref(null)
 const showCamera = ref(false)
 const cameraLoading = ref(false)
 const capturedPhoto = ref(null)
+const updateChecking = ref(false)
+const currentVersion = ref(null)
 let mediaStream = null
+
+onMounted(async () => {
+  // Ottieni versione corrente
+  await updateService.init()
+  currentVersion.value = updateService.currentVersion
+})
 
 async function openBackCamera() {
   try {
@@ -171,6 +207,16 @@ function closeCamera() {
   
   if (videoElement.value) {
     videoElement.value.srcObject = null
+  }
+}
+
+// Controllo manuale aggiornamenti
+async function checkForUpdates() {
+  updateChecking.value = true
+  try {
+    await updateService.checkForUpdates(true) // Mostra dialog anche se non ci sono aggiornamenti
+  } finally {
+    updateChecking.value = false
   }
 }
 

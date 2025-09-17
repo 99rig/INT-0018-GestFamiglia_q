@@ -1,11 +1,11 @@
 <template>
-  <q-footer v-if="$q.screen.lt.md" class="mumble-bottom-menu">
+  <q-footer v-if="$q.screen.lt.md" class="mcf-bottom-menu">
     <q-tabs
       v-model="currentTab"
       dense
-      class="text-mumble-accent"
-      active-color="primary"
-      indicator-color="primary"
+      class="text-mcf-primary"
+      active-color="accent"
+      indicator-color="accent"
       align="justify"
     >
       <q-tab
@@ -15,7 +15,7 @@
         :icon="item.icon"
         :label="item.label"
         @click="navigateTo(item.route)"
-        class="mumble-tab"
+        class="mcf-tab"
       />
     </q-tabs>
   </q-footer>
@@ -32,20 +32,26 @@ const menuItems = [
   {
     name: 'dashboard',
     icon: 'dashboard',
-    label: 'Dashboard',
+    label: 'Home',
     route: '/'
+  },
+  {
+    name: 'expenses',
+    icon: 'receipt_long',
+    label: 'Spese',
+    route: '/expenses'
+  },
+  {
+    name: 'scanner',
+    icon: 'document_scanner',
+    label: 'Scanner',
+    route: '/scanner'
   },
   {
     name: 'settings',
     icon: 'settings',
     label: 'Settings',
     route: '/settings'
-  },
-  {
-    name: 'help',
-    icon: 'help',
-    label: 'Help',
-    route: '/help'
   }
 ]
 
@@ -70,27 +76,27 @@ function navigateTo(routePath) {
 </script>
 
 <style scoped>
-.mumble-bottom-menu {
+.mcf-bottom-menu {
   background: white;
   border-top: 1px solid rgba(160, 150, 163, 0.2);
   box-shadow: 0 -2px 8px rgba(58, 63, 74, 0.1);
 }
 
-.mumble-tab {
+.mcf-tab {
   min-height: 60px;
   padding: 8px 4px;
 }
 
-.mumble-tab .q-tab__content {
+.mcf-tab .q-tab__content {
   flex-direction: column;
   gap: 4px;
 }
 
-.mumble-tab .q-tab__icon {
+.mcf-tab .q-tab__icon {
   font-size: 20px;
 }
 
-.mumble-tab .q-tab__label {
+.mcf-tab .q-tab__label {
   font-size: 11px;
   font-weight: 500;
 }

@@ -1,43 +1,58 @@
-# Mumble App (app-base)
+# My Crazy Family
 
-A Mumble Project
+Gestione Spese Famigliari
 
-## Install the dependencies
+## 🚀 Progetto generato con Mumble Projects
+
+Questo progetto è stato creato utilizzando il boilerplate APP-BASE ottimizzato per Quasar con supporto iOS/Android.
+
+### ⚡ Quick Start
 
 ```bash
-yarn
-# or
+# Installa dipendenze
 npm install
+
+# Sviluppo web
+npm run dev
+
+# Sviluppo mobile
+quasar dev -m capacitor
+
+# Build per produzione
+npm run build                      # Web/PWA
+quasar build -m capacitor -T ios   # iOS
+quasar build -m capacitor -T android # Android
 ```
 
-### Start the app in development mode (hot-code reloading, error reporting, etc.)
+### 📱 Configurazione
 
-```bash
-quasar dev
-```
+- **App ID**: com.mumble.crazyfamily
+- **Nome**: My Crazy Family
+- **Tema**: #874E14
 
-### Lint the files
+### 🛠️ Stack Tecnologico
 
-```bash
-yarn lint
-# or
-npm run lint
-```
+- Vue 3 + Composition API
+- Quasar Framework
+- Capacitor per mobile
+- Pinia per state management
+- PWA ready con Service Worker
+- TypeScript support
 
-### Format the files
+### 📦 Plugin Capacitor inclusi
 
-```bash
-yarn format
-# or
-npm run format
-```
+- 📸 Camera/WebCam
+- 📍 Geolocation/GPS
+- 🔔 Push Notifications
+- 📱 Haptics/Vibrazione
+- 📁 Filesystem
+- 📤 Share
+- 💾 Preferences
+- 📊 Status Bar
+- 🍞 Toast
 
-### Build the app for production
+---
 
-```bash
-quasar build
-```
-
-### Customize the configuration
-
-See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).
+**Creato il**: mer 17 set 2025, 00:48:29, CEST  
+**Template**: APP-BASE v1.0.0  
+**Generator**: Mumble Projects

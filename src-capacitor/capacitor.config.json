@@ -1,19 +1,19 @@
 {
-  "appId": "com.mumble.appbase",
-  "appName": "Mumble App",
+  "appId": "com.mumble.crazyfamily",
+  "appName": "My Crazy Family",
   "webDir": "www",
   "bundledWebRuntime": false,
-  "backgroundColor": "#E5E9DF",
+  "backgroundColor": "#874E14",
   "ios": {
-    "backgroundColor": "#E5E9DF",
+    "backgroundColor": "#874E14",
     "contentInset": "automatic",
     "preferredContentMode": "mobile",
     "allowsLinkPreview": true,
     "scheme": "App",
-    "overrideUserAgent": "MumbleApp/1.0"
+    "overrideUserAgent": "My Crazy Family/1.0"
   },
   "android": {
-    "backgroundColor": "#E5E9DF",
+    "backgroundColor": "#874E14",
     "allowMixedContent": false,
     "webContentsDebuggingEnabled": false,
     "minWebViewVersion": 60,
@@ -34,7 +34,7 @@
     },
     "SplashScreen": {
       "launchAutoHide": true,
-      "backgroundColor": "#E5E9DF",
+      "backgroundColor": "#874E14",
       "showSpinner": false,
       "androidSpinnerStyle": "large",
       "iosSpinnerStyle": "small",
@@ -44,7 +44,7 @@
     },
     "StatusBar": {
       "style": "default",
-      "backgroundColor": "#3A3F4A"
+      "backgroundColor": "#874E14"
     }
   }
 }

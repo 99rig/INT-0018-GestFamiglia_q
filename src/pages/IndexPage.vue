@@ -1,34 +1,36 @@
 <template>
-  <q-page class="flex flex-center mumble-page-container">
+  <q-page class="flex flex-center mcf-page-container">
     <div class="text-center q-pa-lg">
-      <div class="mumble-card q-pa-xl">
-        <img
-          alt="Mumble logo"
-          src="/mumble-logo.svg"
-          style="width: 250px; height: auto; margin-bottom: 2rem"
+      <div class="mcf-card q-pa-xl">
+        <q-icon 
+          name="account_balance_wallet" 
+          size="128px" 
+          class="text-mcf-primary q-mb-lg"
         />
-        <h4 class="text-h4 q-mt-md q-mb-sm text-mumble-primary">Mumble App</h4>
-        <p class="text-subtitle1 text-mumble-accent q-mb-lg">
-          Powered by Mumble Projects
+        <h4 class="text-h4 q-mt-md q-mb-sm text-mcf-primary">My Crazy Family</h4>
+        <p class="text-subtitle1 text-mcf-accent q-mb-lg">
+          Gestione Spese Famigliari
         </p>
         <div class="q-mt-lg">
           <q-btn 
-            class="mumble-btn-primary" 
-            label="Get Started" 
+            class="mcf-btn-primary q-mr-md" 
+            label="Le Tue Spese" 
             size="lg"
+            icon="receipt_long"
             unelevated
             rounded
-            style="padding: 12px 48px"
+            style="padding: 12px 32px"
+            @click="$router.push('/expenses')"
           />
-        </div>
-        <div class="q-mt-md">
           <q-btn 
-            class="mumble-btn-accent" 
-            label="Learn More" 
-            size="md"
-            outline
+            class="mcf-btn-secondary" 
+            label="Scansiona Ricevuta" 
+            size="lg"
+            icon="document_scanner"
+            unelevated
             rounded
-            style="padding: 8px 32px"
+            style="padding: 12px 32px"
+            @click="$router.push('/scanner')"
           />
         </div>
       </div>

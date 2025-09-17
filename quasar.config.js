@@ -26,9 +26,9 @@ export default defineConfig((ctx) => {
 
     // https://github.com/quasarframework/quasar/tree/dev/extras
     extras: [
-      // 'ionicons-v4',
-      // 'mdi-v7',
-      // 'fontawesome-v6',
+      'ionicons-v4',        // Ionicons
+      'mdi-v7',            // Material Design Icons
+      'fontawesome-v6',    // FontAwesome
       // 'eva-icons',
       // 'themify',
       // 'line-awesome',
@@ -57,7 +57,7 @@ export default defineConfig((ctx) => {
       env: {
         API_URL: ctx.dev
           ? 'http://localhost:8000/api'
-          : 'https://api.yourdomain.com/api'
+          : 'http://192.168.1.125:8000/api'
       },
       // rawDefine: {}
       // ignorePublicFolder: true,
@@ -83,12 +83,12 @@ export default defineConfig((ctx) => {
           include: [ fileURLToPath(new URL('./src/i18n', import.meta.url)) ]
         }],
 
-        ['vite-plugin-checker', {
-          eslint: {
-            lintCommand: 'eslint -c ./eslint.config.js "./src*/**/*.{js,mjs,cjs,vue}"',
-            useFlatConfig: true
-          }
-        }, { server: false }]
+        // ['vite-plugin-checker', {
+        //   eslint: {
+        //     lintCommand: 'eslint -c ./eslint.config.js "./src*/**/*.{js,mjs,cjs,vue}"',
+        //     useFlatConfig: true
+        //   }
+        // }, { server: false }]
       ]
     },
 
@@ -178,13 +178,13 @@ export default defineConfig((ctx) => {
 
       // Configurazione del manifest base
       extendManifestJson (json) {
-        json.name = 'Mumble App'
-        json.short_name = 'Mumble'
-        json.description = 'Powered by Mumble Projects'
+        json.name = 'My Crazy Family'
+        json.short_name = 'frontend'
+        json.description = 'Gestione Spese Famigliari'
         json.display = 'standalone'
         json.orientation = 'portrait-primary'
-        json.background_color = '#E5E9DF'
-        json.theme_color = '#3A3F4A'
+        json.background_color = '#874E14'
+        json.theme_color = '#874E14'
         json.start_url = '/?utm_source=pwa'
         json.scope = '/'
         json.lang = 'en-US'
@@ -311,7 +311,7 @@ export default defineConfig((ctx) => {
       builder: {
         // https://www.electron.build/configuration/configuration
 
-        appId: 'app-base'
+        appId: 'frontend'
       }
     },
 

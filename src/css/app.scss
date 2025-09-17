@@ -1,64 +1,69 @@
 // app global css in SCSS form
 
-// Import Mumble variables
+// Import MCF variables
 @import './variables.scss';
 
-// Global Mumble styling
+// Global My Crazy Family App styling
 body {
   font-family: 'Roboto', '-apple-system', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  background-color: $mcf-light; // Beige chiaro come background principale
 }
 
-// Custom Mumble app styles
-.mumble-page-container {
-  background-color: $mumble-bg-light;
+.q-page {
+  background-color: $mcf-light; // Assicura background consistente su tutte le pagine
+}
+
+// Custom MCF app styles
+.mcf-page-container {
+  background-color: $mcf-bg-light;
   min-height: 100vh;
 }
 
-.mumble-card {
+.mcf-card {
   background: white;
-  border: 1px solid rgba($mumble-accent, 0.2);
+  border: 1px solid rgba($mcf-accent, 0.2);
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba($mumble-primary, 0.1);
+  box-shadow: 0 2px 8px rgba($mcf-primary, 0.1);
   
   &:hover {
-    box-shadow: 0 4px 16px rgba($mumble-primary, 0.15);
+    box-shadow: 0 4px 16px rgba($mcf-primary, 0.15);
     transition: box-shadow 0.3s ease;
   }
 }
 
-.mumble-btn-primary {
-  background-color: $mumble-primary !important;
+.mcf-btn-primary {
+  background-color: $mcf-primary !important;
   color: white !important;
   
   &:hover {
-    background-color: $mumble-primary-hover !important;
+    background-color: $mcf-primary-hover !important;
   }
 }
 
-.mumble-btn-secondary {
-  background-color: $mumble-secondary !important;
+.mcf-btn-secondary {
+  background-color: $mcf-secondary !important;
   color: white !important;
   
   &:hover {
-    background-color: $mumble-secondary-hover !important;
+    background-color: $mcf-secondary-hover !important;
   }
 }
 
-.mumble-btn-accent {
-  background-color: $mumble-accent !important;
+.mcf-btn-accent {
+  background-color: $mcf-accent !important;
   color: white !important;
   
   &:hover {
-    background-color: $mumble-accent-hover !important;
+    background-color: $mcf-accent-hover !important;
   }
 }
 
 // Header styling
-.mumble-header {
-  background: linear-gradient(135deg, #{$mumble-primary} 0%, #{$mumble-secondary} 100%) !important;
+.mcf-header {
+  background: linear-gradient(135deg, #{$mcf-primary} 0%, #{$mcf-secondary} 100%) !important;
 }
 
 // Custom text colors
-.text-mumble-primary { color: $mumble-primary !important; }
-.text-mumble-secondary { color: $mumble-secondary !important; }
-.text-mumble-accent { color: $mumble-accent !important; }
+.text-mcf-primary { color: $mcf-primary !important; }
+.text-mcf-secondary { color: $mcf-secondary !important; }
+.text-mcf-accent { color: $mcf-accent !important; }

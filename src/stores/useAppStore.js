@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 
 export const useAppStore = defineStore('app', {
   state: () => ({
-    appName: 'Mumble App',
+    appName: 'My Crazy Family',
     version: '1.0.0',
     theme: 'default'
   }),
