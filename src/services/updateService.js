@@ -96,13 +96,16 @@ class UpdateService {
         return false
       }
     } catch (error) {
-      console.error('❌ Error checking for updates:', error)
+      // Log silenzioso per chiamate automatiche, verbose per chiamate manuali
       if (showNoUpdateDialog) {
+        console.error('❌ Error checking for updates:', error)
         Dialog.create({
           title: 'Errore',
           message: 'Impossibile controllare gli aggiornamenti. Verifica la connessione.',
           ok: 'OK'
         })
+      } else {
+        console.warn('⚠️ Update check failed (silent):', error.message)
       }
       return false
     }
@@ -159,7 +162,7 @@ ${updateInfo.is_mandatory ? '\n⚠️ Questo aggiornamento è obbligatorio.' : '
 
       console.log('📥 Downloading update...')
 
-      // Download dell'APK  
+      // Download dell'APK
       const downloadUrl = `${process.env.API_URL.replace('/api', '')}${updateInfo.download_url}`
       const response = await fetch(downloadUrl, {
         headers: {
@@ -176,7 +179,7 @@ ${updateInfo.is_mandatory ? '\n⚠️ Questo aggiornamento è obbligatorio.' : '
 
       // Salva il file APK
       const fileName = `MyCrazyFamily-v${updateInfo.version_name}.apk`
-      
+
       await Filesystem.writeFile({
         path: fileName,
         data: this.arrayBufferToBase64(arrayBuffer),
@@ -200,7 +203,7 @@ ${updateInfo.is_mandatory ? '\n⚠️ Questo aggiornamento è obbligatorio.' : '
 
     } catch (error) {
       console.error('❌ Error downloading update:', error)
-      
+
       Dialog.create({
         title: 'Errore Download',
         message: 'Impossibile scaricare l\'aggiornamento. Riprova più tardi.',
@@ -249,7 +252,7 @@ ${updateInfo.is_mandatory ? '\n⚠️ Questo aggiornamento è obbligatorio.' : '
 
     } catch (error) {
       console.error('❌ Error installing APK:', error)
-      
+
       Dialog.create({
         title: 'Errore Installazione',
         message: 'Impossibile avviare l\'installazione automatica. Installa manualmente l\'APK dalla cartella Download.',

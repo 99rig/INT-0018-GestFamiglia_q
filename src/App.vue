@@ -12,12 +12,9 @@ onMounted(async () => {
   const authStore = useAuthStore()
   await authStore.initialize()
 
-  // Inizializza il servizio di aggiornamento
+  // Inizializza il servizio di aggiornamento (solo init, no auto-check)
   await updateService.init()
 
-  // Controlla aggiornamenti dopo 2 secondi (per dare tempo al login)
-  setTimeout(() => {
-    updateService.checkForUpdates(false)
-  }, 2000)
+  // Controllo aggiornamenti rimosso - ora solo manuale dalle settings
 })
 </script>

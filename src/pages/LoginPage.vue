@@ -3,90 +3,25 @@
     <q-page-container>
       <q-page class="flex flex-center mcf-login-page">
         <div class="mcf-login-container">
-          <!-- Debug Info -->
-          <div class="text-center q-mb-lg">
-            <div class="text-h5 text-mcf-primary q-mb-md">My Crazy Family</div>
-            
-            <!-- Debug Information Box -->
-            <q-card class="debug-info-card q-pa-sm">
-              <div class="row">
-                <div class="col">
-                  <div class="text-caption">
-                    <div class="row q-gutter-xs">
-                      <div class="col-12">
-                        <q-icon name="dns" size="xs" /> Server: 
-                        <span :class="serverClass">{{ apiServer }}</span>
-                      </div>
-                      <div class="col-12">
-                        <q-icon name="wifi" size="xs" /> Public IP: 
-                        <span class="text-weight-bold">{{ publicIP }}</span>
-                      </div>
-                      <div class="col-12">
-                        <q-icon name="devices" size="xs" /> Device IP: 
-                        <span class="text-weight-bold">{{ deviceIP }}</span>
-                      </div>
-                      <div class="col-12">
-                        <q-icon name="smartphone" size="xs" /> Platform: 
-                        <span>{{ platform }}</span>
-                      </div>
-                      <div class="col-12">
-                        <q-icon name="info" size="xs" /> Version: 
-                        <span>{{ appVersion }}</span>
-                      </div>
-                      <div class="col-12">
-                        <q-icon name="circle" size="xs" :color="serverStatus.color" /> Status: 
-                        <span :class="'text-' + serverStatus.color">{{ serverStatus.text }}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-auto self-center">
-                  <q-btn 
-                    round 
-                    flat 
-                    size="sm" 
-                    icon="refresh" 
-                    color="primary"
-                    @click="refreshNetworkInfo"
-                    :loading="refreshing"
-                  >
-                    <q-tooltip>Aggiorna info di rete</q-tooltip>
-                  </q-btn>
-                </div>
-              </div>
-            </q-card>
-            
-            <!-- Download APK for Android -->
-            <div v-if="isAndroidDevice" class="text-center q-mt-md">
-              <q-banner class="bg-primary text-white" rounded>
-                <template v-slot:avatar>
-                  <q-icon name="android" />
-                </template>
-                <div class="text-caption q-mb-xs">Per una migliore esperienza su Android</div>
-                <q-btn 
-                  flat 
-                  dense 
-                  color="white"
-                  label="Scarica l'App"
-                  icon="download"
-                  @click="downloadAPK"
-                  class="text-weight-bold"
+          <!-- Modern App Logo -->
+          <div class="mcf-login-header">
+            <div class="mcf-logo-container">
+              <div class="mcf-logo-background">
+                <q-icon
+                  name="account_balance_wallet"
+                  class="mcf-logo-icon"
                 />
-              </q-banner>
+              </div>
+            </div>
+            <div class="mcf-welcome-text">
+              <h1 class="mcf-app-title">My Crazy Family</h1>
+              <p class="mcf-app-subtitle">Gestione Spese Familiari</p>
             </div>
           </div>
 
           <!-- PIN Login (se configurato) -->
-          <q-card v-if="hasPinSetup && !showEmailLogin" class="mcf-login-card q-pa-md">
-            <q-card-section>
-              <div class="text-center q-mb-md">
-                <q-avatar size="72px" class="mcf-bg-primary text-white">
-                  <span style="font-size: 24px; font-weight: 500;">{{ userInitials }}</span>
-                </q-avatar>
-                <div class="text-h6 q-mt-sm text-grey-8">Bentornato!</div>
-                <div class="text-caption text-grey-6">{{ lastUserEmail }}</div>
-              </div>
-
+          <q-card v-if="hasPinSetup && !showEmailLogin" class="mcf-login-card">
+            <q-card-section class="q-pa-lg">
               <!-- PIN Input Fields -->
               <div class="pin-input-container">
                 <div class="pin-fields">
@@ -205,24 +140,7 @@ const router = useRouter()
 const $q = useQuasar()
 const authStore = useAuthStore()
 
-// Server info
-const apiServer = computed(() => {
-  const url = process.env.API_BASE_URL || 'http://localhost:8000'
-  // Rimuovi http:// o https:// per display più pulito
-  return url.replace(/^https?:\/\//, '')
-})
-
-const serverClass = computed(() => {
-  const url = process.env.API_BASE_URL || 'http://localhost:8000'
-  // Verde per produzione, arancione per sviluppo
-  return url.includes('localhost') ? 'text-orange-8' : 'text-green-7'
-})
-
-const isAndroidDevice = computed(() => {
-  // Rileva se è un dispositivo Android (mobile o tablet)
-  const userAgent = navigator.userAgent.toLowerCase()
-  return userAgent.includes('android') && (userAgent.includes('mobile') || userAgent.includes('tablet'))
-})
+// Removed server info - now in settings page
 
 // Form data
 const email = ref('')
@@ -239,13 +157,7 @@ const hasPinSetup = ref(false)
 const showEmailLogin = ref(false)
 const lastUserEmail = ref('')
 
-// Debug info
-const publicIP = ref('Detecting...')
-const deviceIP = ref('Detecting...')
-const platform = ref('Unknown')
-const appVersion = ref('1.0.6')
-const serverStatus = ref({ text: 'Checking...', color: 'grey' })
-const refreshing = ref(false)
+// Removed debug info - now in settings page
 
 // Computed
 const userInitials = computed(() => {
@@ -260,22 +172,22 @@ const userInitials = computed(() => {
 // Methods
 const handlePinInput = (index, value) => {
   console.log('handlePinInput:', index, value)
-  
+
   // Prendi solo l'ultima cifra se inserito più di un carattere
   const digit = value.toString().slice(-1)
-  
+
   // Accetta solo numeri
   if (!/^\d*$/.test(digit)) {
     pinDigits.value[index] = ''
     return
   }
-  
+
   pinDigits.value[index] = digit
-  
+
   // Aggiorna il PIN completo
   pin.value = pinDigits.value.join('')
   console.log('PIN completo:', pin.value)
-  
+
   // Auto-focus al campo successivo
   if (digit && index < 3) {
     console.log('Trying to focus next field:', index + 1)
@@ -297,7 +209,7 @@ const handlePinInput = (index, value) => {
       }
     }, 50)
   }
-  
+
   // Auto-login quando tutti i 4 campi sono compilati
   if (pin.value.length === 4 && !/[^0-9]/.test(pin.value)) {
     console.log('Auto-login triggered')
@@ -319,11 +231,11 @@ const handleBackspace = (index) => {
 
 const loginWithPin = async () => {
   if (pin.value.length !== 4) return
-  
+
   loading.value = true
   try {
     const success = await authStore.loginWithPin(pin.value)
-    
+
     if (success) {
       $q.notify({
         type: 'positive',
@@ -347,11 +259,11 @@ const loginWithPin = async () => {
 
 const loginWithEmail = async () => {
   if (!email.value || !password.value) return
-  
+
   loading.value = true
   try {
     const success = await authStore.login(email.value, password.value)
-    
+
     if (success) {
       // Se Remember Me, chiedi di impostare PIN
       if (rememberMe.value && !hasPinSetup.value) {
@@ -364,12 +276,12 @@ const loginWithEmail = async () => {
           }).onOk(() => resolve(true))
             .onCancel(() => resolve(false))
         })
-        
+
         if (wantPin) {
           await setupPin()
         }
       }
-      
+
       $q.notify({
         type: 'positive',
         message: 'Accesso riuscito!',
@@ -402,7 +314,7 @@ const setupPin = async () => {
     }).onOk(data => resolve(data))
       .onCancel(() => resolve(null))
   })
-  
+
   if (pinInput) {
     await authStore.setupPin(pinInput)
     $q.notify({
@@ -416,15 +328,15 @@ const setupPin = async () => {
 // Watchers
 watch(pinDigits, (newVal, oldVal) => {
   console.log('pinDigits changed:', oldVal, '->', newVal)
-  
+
   // Trova quale campo è stato modificato
   for (let i = 0; i < 4; i++) {
     if (newVal[i] !== oldVal[i] && newVal[i]) {
       console.log(`Campo ${i} modificato con: ${newVal[i]}`)
-      
+
       // Aggiorna PIN completo
       pin.value = newVal.join('')
-      
+
       // Auto-focus al prossimo campo
       if (i < 3 && newVal[i]) {
         setTimeout(() => {
@@ -438,7 +350,7 @@ watch(pinDigits, (newVal, oldVal) => {
           }
         }, 100)
       }
-      
+
       // Auto-login quando completo
       if (pin.value.length === 4) {
         console.log('PIN completo, auto-login...')
@@ -449,179 +361,162 @@ watch(pinDigits, (newVal, oldVal) => {
   }
 }, { deep: true })
 
-// Helper functions for debug info
-const getDeviceInfo = async () => {
-  // Get platform info
-  if (window.Capacitor) {
-    const { Capacitor } = window
-    platform.value = `${Capacitor.getPlatform()} (${Capacitor.isNativePlatform() ? 'Native' : 'Web'})`
-  } else {
-    platform.value = 'Web Browser'
-  }
-  
-  // Get public IP
-  try {
-    const response = await fetch('https://api.ipify.org?format=json')
-    const data = await response.json()
-    publicIP.value = data.ip || 'Unknown'
-  } catch (error) {
-    publicIP.value = 'Cannot detect'
-  }
-  
-  // Get local device IP (approximation)
-  try {
-    if (window.Capacitor) {
-      // For mobile app, try to create a WebRTC connection to detect local IP
-      const pc = new RTCPeerConnection({iceServers: []})
-      pc.createDataChannel('')
-      pc.createOffer().then(offer => pc.setLocalDescription(offer))
-      
-      pc.onicecandidate = (ice) => {
-        if (ice && ice.candidate && ice.candidate.candidate) {
-          const candidate = ice.candidate.candidate
-          const match = candidate.match(/(\d+\.\d+\.\d+\.\d+)/)
-          if (match && match[1] && !match[1].startsWith('127.')) {
-            deviceIP.value = match[1]
-            pc.close()
-          }
-        }
-      }
-      
-      // Fallback after 2 seconds
-      setTimeout(() => {
-        if (deviceIP.value === 'Detecting...') {
-          deviceIP.value = 'Auto-detect failed'
-        }
-        pc.close()
-      }, 2000)
-    } else {
-      // For web, show a basic approximation
-      deviceIP.value = 'Check WiFi settings'
-    }
-  } catch (error) {
-    deviceIP.value = 'Cannot detect'
-  }
-  
-  // Test server connection
-  testServerConnection()
-}
-
-const testServerConnection = async () => {
-  serverStatus.value = { text: 'Testing...', color: 'orange' }
-  
-  try {
-    const baseUrl = process.env.API_BASE_URL || 'http://localhost:8000'
-    const testUrl = `${baseUrl}/api/auth/login/`
-    const response = await fetch(testUrl, {
-      method: 'OPTIONS',
-      mode: 'cors'
-    })
-    
-    if (response.ok || response.status === 200 || response.status === 405) {
-      serverStatus.value = { text: 'Connected', color: 'green' }
-    } else {
-      serverStatus.value = { text: `Error ${response.status}`, color: 'red' }
-    }
-  } catch (error) {
-    console.error('Server test error:', error)
-    serverStatus.value = { text: 'Unreachable', color: 'red' }
-  }
-}
-
-const refreshNetworkInfo = async () => {
-  refreshing.value = true
-  try {
-    await getDeviceInfo()
-  } catch (error) {
-    console.error('Error refreshing network info:', error)
-  } finally {
-    refreshing.value = false
-  }
-}
-
-const downloadAPK = () => {
-  // URL per scaricare l'ultima versione dell'APK
-  const baseUrl = process.env.API_BASE_URL || 'http://localhost:8000'
-  const apkUrl = `${baseUrl}/api/updates/latest/download/`
-  
-  // Apri il link di download in una nuova finestra
-  window.open(apkUrl, '_blank')
-  
-  // Mostra un messaggio informativo
-  $q.notify({
-    message: 'Download APK avviato. Installa l\'app per una migliore esperienza!',
-    color: 'primary',
-    icon: 'android',
-    position: 'top'
-  })
-}
+// Debug functions removed - moved to settings page
 
 // Lifecycle
 onMounted(() => {
   // Check if user has PIN setup
   hasPinSetup.value = authStore.hasPinSetup()
   lastUserEmail.value = authStore.getLastUserEmail()
-  
+
   // If no PIN, show email login
   if (!hasPinSetup.value) {
     showEmailLogin.value = true
   }
-  
-  // Get device info for debugging
-  getDeviceInfo()
-  
-  // Test connection every 5 seconds
-  setInterval(testServerConnection, 5000)
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .mcf-login-page {
   background: linear-gradient(135deg, var(--mcf-primary) 0%, var(--mcf-secondary) 100%);
   min-height: 100vh;
+  padding: 20px;
 }
 
 .mcf-login-container {
   width: 100%;
   max-width: 400px;
-  padding: 20px;
+  margin: 0 auto;
 }
 
-.debug-info-card {
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid #ddd;
-  margin-bottom: 10px;
+/* === MODERN LOGIN HEADER === */
+.mcf-login-header {
+  text-align: center;
+  margin-bottom: 32px;
+
+  @media (min-width: 768px) {
+    margin-bottom: 36px;
+  }
 }
 
+.mcf-logo-container {
+  margin-bottom: 16px;
+
+  @media (min-width: 768px) {
+    margin-bottom: 20px;
+  }
+}
+
+.mcf-logo-background {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+
+  @media (min-width: 768px) {
+    width: 140px;
+    height: 140px;
+  }
+}
+
+.mcf-logo-icon {
+  font-size: 60px;
+  color: white;
+
+  @media (min-width: 768px) {
+    font-size: 70px;
+  }
+}
+
+.mcf-welcome-text {
+  color: white;
+}
+
+.mcf-app-title {
+  font-family: var(--mcf-logo-font, 'Fredoka One'), cursive;
+  font-size: 28px;
+  font-weight: 400;
+  margin: 0 0 4px 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+  @media (min-width: 768px) {
+    font-size: 32px;
+    margin-bottom: 6px;
+  }
+}
+
+.mcf-app-subtitle {
+  font-family: 'Nunito', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0;
+  opacity: 0.9;
+
+  @media (min-width: 768px) {
+    font-size: 18px;
+  }
+}
+
+/* === LOGIN CARD === */
 .mcf-login-card {
-  border-radius: 16px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
 }
 
-/* PIN Styles */
+/* === PIN STYLES === */
 .pin-input-container {
   display: flex;
   justify-content: center;
-  padding: 20px 0;
+  padding: 16px 0;
+
+  @media (min-width: 768px) {
+    padding: 20px 0;
+  }
 }
 
 .pin-fields {
   display: flex;
-  gap: 12px;
+  gap: 16px;
   justify-content: center;
   align-items: center;
+
+  @media (min-width: 768px) {
+    gap: 20px;
+  }
 }
 
 .pin-field {
-  width: 60px;
-  height: 60px;
+  width: 56px;
+  height: 56px;
+
+  @media (min-width: 768px) {
+    width: 64px;
+    height: 64px;
+  }
 }
 
 .pin-field :deep(.q-field__control) {
-  height: 60px !important;
-  border-radius: 16px !important;
-  border: 2px solid #e0e0e0 !important;
+  height: 56px !important;
+  border-radius: 12px !important;
+  border: 2px solid var(--mcf-border-light, #e0e0e0) !important;
   background: white !important;
+  transition: all 0.2s ease !important;
+
+  @media (min-width: 768px) {
+    height: 64px !important;
+    border-radius: 16px !important;
+  }
 }
 
 .pin-field :deep(.q-field__control-container) {
@@ -631,23 +526,33 @@ onMounted(() => {
 .pin-field :deep(.q-field__native) {
   padding: 0 !important;
   text-align: center !important;
-  font-size: 28px !important;
-  font-weight: bold !important;
+  font-size: 24px !important;
+  font-weight: 600 !important;
   color: var(--mcf-primary) !important;
-  line-height: 60px !important;
+  line-height: 56px !important;
+
+  @media (min-width: 768px) {
+    font-size: 28px !important;
+    line-height: 64px !important;
+  }
 }
 
 .pin-field :deep(.q-field__marginal) {
-  height: 60px !important;
+  height: 56px !important;
+
+  @media (min-width: 768px) {
+    height: 64px !important;
+  }
 }
 
 .pin-field:hover :deep(.q-field__control) {
-  border-color: var(--mcf-accent) !important;
+  border-color: var(--mcf-primary) !important;
+  box-shadow: 0 0 0 2px rgba(35, 157, 176, 0.1) !important;
 }
 
 .pin-field.q-field--focused :deep(.q-field__control) {
-  border-color: var(--mcf-accent) !important;
-  box-shadow: 0 0 0 3px rgba(157, 178, 234, 0.2) !important;
+  border-color: var(--mcf-primary) !important;
+  box-shadow: 0 0 0 3px rgba(35, 157, 176, 0.2) !important;
 }
 
 /* Rimuovi il label e hint space */
