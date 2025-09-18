@@ -19,14 +19,70 @@ apiClient.interceptors.request.use((config) => {
   return config
 })
 
+// State per gestire il refresh dei token
+let isRefreshing = false
+let failedQueue = []
+
 // Interceptor per gestire errori di autenticazione
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Token scaduto, gestito dal store auth
-      console.log('Token expired, handled by auth store')
+  async (error) => {
+    const originalRequest = error.config
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // Metti in coda le richieste fallite durante il refresh
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject })
+        }).then(token => {
+          originalRequest.headers['Authorization'] = `Bearer ${token}`
+          return apiClient(originalRequest)
+        }).catch(err => {
+          return Promise.reject(err)
+        })
+      }
+
+      originalRequest._retry = true
+      isRefreshing = true
+
+      try {
+        // Importa dinamicamente il store per evitare circular imports
+        const { useAuthStore } = await import('../stores/auth.js')
+        const authStore = useAuthStore()
+
+        // Tenta il refresh del token
+        await authStore.refreshAccessToken()
+
+        // Aggiorna il token per tutte le richieste in coda
+        failedQueue.forEach(({ resolve }) => {
+          resolve(authStore.accessToken)
+        })
+        failedQueue = []
+
+        // Riprova la richiesta originale con il nuovo token
+        originalRequest.headers['Authorization'] = `Bearer ${authStore.accessToken}`
+        return apiClient(originalRequest)
+
+      } catch (refreshError) {
+        // Refresh fallito - reindirizza al login
+        failedQueue.forEach(({ reject }) => {
+          reject(refreshError)
+        })
+        failedQueue = []
+
+        // Importa dinamicamente router per reindirizzamento
+        const { useRouter } = await import('vue-router')
+        const router = useRouter()
+        if (router && router.currentRoute.value.path !== '/login') {
+          router.push('/login')
+        }
+
+        return Promise.reject(refreshError)
+      } finally {
+        isRefreshing = false
+      }
     }
+
     return Promise.reject(error)
   }
 )

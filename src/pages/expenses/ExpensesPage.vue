@@ -43,12 +43,27 @@
         </q-btn-dropdown>
       </div>
 
-      <!-- Category Filters -->
+      <!-- Search and Filters -->
       <div v-if="!loading" class="mcf-filters-section">
-        <div class="mcf-filters-header">
-          <span class="mcf-filters-label">Filtra per categoria:</span>
+        <!-- Search Input -->
+        <div class="mcf-search-container">
+          <q-input
+            v-model="searchQuery"
+            placeholder="Cerca per nome o categoria..."
+            outlined
+            dense
+            clearable
+            @update:model-value="onSearchChange"
+            class="mcf-search-input"
+          >
+            <template v-slot:prepend>
+              <q-icon name="search" />
+            </template>
+          </q-input>
         </div>
-        <div class="mcf-filters-chips">
+
+        <!-- Category Chips -->
+        <div v-if="categories.length > 0" class="mcf-filters-chips">
           <q-chip
             :outline="selectedCategoryFilter !== null"
             :color="selectedCategoryFilter === null ? 'primary' : 'grey-5'"
@@ -82,7 +97,7 @@
             @click="showAllCategories = true"
             class="mcf-filter-chip mcf-more-chip"
           >
-            ... ({{ availableCategories.length - 3 }} altre)
+            ... ({{ categories.length - 3 }} altre)
           </q-chip>
 
           <q-chip
@@ -98,8 +113,6 @@
           </q-chip>
         </div>
       </div>
-
-
 
       <!-- Loading -->
       <div v-if="loading" class="text-center q-pa-xl">
@@ -666,7 +679,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { useSnackbar } from 'src/composables/useSnackbar'
 import { api } from 'src/services/api.js'
-import { useAuthStore } from 'stores/auth.js'
 import MCFAutocomplete from 'components/MCFAutocomplete.vue'
 import MCFDatePicker from 'components/MCFDatePicker.vue'
 import DeleteExpenseModal from 'components/DeleteExpenseModal.vue'
@@ -683,11 +695,27 @@ const showEditForm = ref(false)
 const showQuickForm = ref(false)
 const saving = ref(false)
 const editingExpense = ref(null)
-const selectedCategoryFilter = ref(null)
-const showAllCategories = ref(false)
 const inputMethod = ref('manual')
 const spendingPlans = ref([])
 const spendingPlanOptions = ref([])
+const selectedCategoryFilter = ref(null)
+const categories = ref([])
+const showAllCategories = ref(false)
+const searchQuery = ref('')
+let searchTimeout = null
+
+// Computed properties for category filtering UI
+const visibleCategories = computed(() => {
+  if (showAllCategories.value) {
+    return categories.value
+  }
+  // Mostra solo i primi 3 categorie
+  return categories.value.slice(0, 3)
+})
+
+const hasMoreCategories = computed(() => {
+  return categories.value.length > 3
+})
 
 // Delete modal state
 const showDeleteModal = ref(false)
@@ -983,18 +1011,45 @@ const submitManualExpense = async () => {
   }
 }
 
+// Categories functions
+const loadCategories = async () => {
+  try {
+    const response = await api.getCategories()
+    categories.value = response.results || response || []
+  } catch (error) {
+    console.error('Error loading categories:', error)
+    snackbar.error('Errore nel caricamento delle categorie')
+  }
+}
+
+// Search functions
+const onSearchChange = () => {
+  // Debounce per evitare troppe chiamate API
+  clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    performSearch()
+  }, 500)
+}
+
+const performSearch = async () => {
+  // Prepara i filtri per il backend
+  const filters = {}
+
+  if (searchQuery.value && searchQuery.value.trim()) {
+    filters.search = searchQuery.value.trim()
+  }
+
+  if (selectedCategoryFilter.value !== null) {
+    filters.category = selectedCategoryFilter.value
+  }
+
+  await loadExpenses(filters)
+}
+
 // Filter functions
 const filterByCategory = async (categoryId) => {
   selectedCategoryFilter.value = categoryId
-
-  // Prepara i filtri per il backend
-  const filters = {}
-  if (categoryId !== null) {
-    filters.category = categoryId
-  }
-
-  // Ricarica le spese con i filtri
-  await loadExpenses(filters)
+  await performSearch() // Usa la ricerca unificata
 }
 
 // Edit functions
@@ -1225,24 +1280,14 @@ const submitQuickExpense = async () => {
 
 // Lifecycle
 onMounted(async () => {
-  const authStore = useAuthStore()
-
-  // Aspetta che l'auth store sia inizializzato
-  let attempts = 0
-  while (authStore.accessToken === null && attempts < 100) {
-    await new Promise(resolve => setTimeout(resolve, 50))
-    attempts++
-  }
-
-  // Ora carica i dati se autenticato
-  if (authStore.isAuthenticated) {
-    console.log('✅ User authenticated, loading data...')
-    // Carica prima i piani e poi le spese
-    await loadSpendingPlans()
-    await loadExpenses()
-  } else {
-    console.log('⏭️ User not authenticated, skipping data load')
-  }
+  // Le route guards garantiscono che l'utente sia autenticato
+  console.log('✅ Loading expenses data...')
+  // Carica prima i piani, le categorie e poi le spese
+  await Promise.all([
+    loadSpendingPlans(),
+    loadCategories()
+  ])
+  await loadExpenses()
 })
 </script>
 
@@ -1406,6 +1451,32 @@ onMounted(async () => {
   @media (min-width: 768px) {
     margin-bottom: 20px;
     padding: 0 8px;
+  }
+}
+
+.mcf-search-container {
+  margin-bottom: 12px;
+
+  @media (min-width: 768px) {
+    margin-bottom: 16px;
+  }
+}
+
+.mcf-search-input {
+  width: 100%;
+
+  :deep(.q-field__control) {
+    border-radius: 12px;
+    background-color: var(--mcf-bg-card);
+  }
+
+  :deep(.q-field__native) {
+    font-size: 14px;
+    color: var(--mcf-text-primary);
+  }
+
+  :deep(.q-icon) {
+    color: var(--mcf-text-secondary);
   }
 }
 

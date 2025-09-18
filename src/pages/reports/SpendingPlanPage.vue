@@ -529,18 +529,8 @@ const isExpanded = (planId) => {
 
 // Lifecycle
 onMounted(async () => {
-  const authStore = useAuthStore()
-
-  // Attendi che l'auth store sia inizializzato
-  let attempts = 0
-  while (authStore.accessToken === null && attempts < 100) {
-    await new Promise(resolve => setTimeout(resolve, 50))
-    attempts++
-  }
-
-  if (authStore.isAuthenticated) {
-    await loadSpendingPlans()
-  }
+  // Le route guards garantiscono che l'utente sia autenticato
+  await loadSpendingPlans()
 })
 </script>
 

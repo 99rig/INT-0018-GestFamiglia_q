@@ -489,7 +489,6 @@ import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute } from 'vue-router'
 import { api } from 'src/services/api.js'
-import { useAuthStore } from 'stores/auth.js'
 import { useSnackbar } from 'src/composables/useSnackbar'
 import MCFDatePicker from 'components/MCFDatePicker.vue'
 import MCFAutocomplete from 'components/MCFAutocomplete.vue'
@@ -881,18 +880,8 @@ const getEmptyStateText = () => {
 
 // Lifecycle
 onMounted(async () => {
-  const authStore = useAuthStore()
-
-  // Attendi che l'auth store sia inizializzato
-  let attempts = 0
-  while (authStore.accessToken === null && attempts < 100) {
-    await new Promise(resolve => setTimeout(resolve, 50))
-    attempts++
-  }
-
-  if (authStore.isAuthenticated) {
-    await loadPlanData()
-  }
+  // Le route guards garantiscono che l'utente sia autenticato
+  await loadPlanData()
 })
 </script>
 

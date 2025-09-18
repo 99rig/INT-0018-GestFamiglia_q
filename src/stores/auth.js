@@ -13,7 +13,8 @@ export const useAuthStore = defineStore('auth', {
     refreshToken: null,
     pinHash: null,
     lastUserEmail: null,
-    encryptedCredentials: null
+    encryptedCredentials: null,
+    isInitialized: false
   }),
 
   getters: {
@@ -70,6 +71,10 @@ export const useAuthStore = defineStore('auth', {
           }
         }
       }
+
+      // Marca lo store come inizializzato
+      this.isInitialized = true
+      console.log('✅ Auth store initialized')
     },
 
     // Metodi helper

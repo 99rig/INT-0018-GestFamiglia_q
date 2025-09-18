@@ -33,5 +33,39 @@ export default defineRouter(function (/* { store, ssrContext } */) {
     history: createHistory(process.env.VUE_ROUTER_BASE),
   })
 
+  // Route guard per autenticazione
+  Router.beforeEach(async (to, from, next) => {
+    // Pagine pubbliche che non richiedono autenticazione
+    const publicPages = ['/login', '/register']
+    const requiresAuth = !publicPages.includes(to.path)
+
+    if (!requiresAuth) {
+      return next()
+    }
+
+    try {
+      // Importa dinamicamente il store per evitare circular imports
+      const { useAuthStore } = await import('../stores/auth.js')
+      const authStore = useAuthStore()
+
+      // Aspetta che l'auth store sia inizializzato
+      if (!authStore.isInitialized) {
+        await authStore.initialize()
+      }
+
+      // Controlla se l'utente è autenticato
+      if (!authStore.isAuthenticated) {
+        console.log('User not authenticated, redirecting to login')
+        return next('/login')
+      }
+
+      // Utente autenticato, procedi
+      next()
+    } catch (error) {
+      console.error('Authentication check failed:', error)
+      next('/login')
+    }
+  })
+
   return Router
 })
