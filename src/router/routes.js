@@ -5,6 +5,12 @@ const routes = [
     component: () => import('pages/users/LoginPage.vue')
   },
 
+  // Register route (no layout)
+  {
+    path: '/register',
+    component: () => import('pages/users/RegisterPage.vue')
+  },
+
   // Main app routes (with layout)
   {
     path: '/',

@@ -5,17 +5,21 @@
         <div class="mcf-login-container">
           <!-- Modern App Logo -->
           <div class="mcf-login-header">
-            <div class="mcf-logo-container">
-              <div class="mcf-logo-background">
-                <q-icon
-                  name="account_balance_wallet"
-                  class="mcf-logo-icon"
-                />
-              </div>
-            </div>
             <div class="mcf-welcome-text">
               <h1 class="mcf-app-title">My Crazy Family</h1>
               <p class="mcf-app-subtitle">Gestione Spese Familiari</p>
+            </div>
+          </div>
+
+          <!-- Logo positioned to overlap the card -->
+          <div class="mcf-logo-overlay">
+            <div class="mcf-logo-background">
+              <div class="mcf-logo-glass-effect"></div>
+              <div class="mcf-logo-shine"></div>
+              <q-icon
+                name="account_balance_wallet"
+                class="mcf-logo-icon"
+              />
             </div>
           </div>
 
@@ -133,6 +137,19 @@
                   dense
                   color="grey-7"
                   @click="showEmailLogin = false"
+                />
+              </div>
+
+              <!-- Registration Link -->
+              <div class="text-center q-mt-md">
+                <span class="text-body2 text-grey-7">Non hai ancora un account? </span>
+                <q-btn
+                  label="Registrati"
+                  flat
+                  dense
+                  no-caps
+                  color="primary"
+                  @click="goToRegister"
                 />
               </div>
             </q-card-section>
@@ -419,6 +436,10 @@ const declinePin = () => {
   router.push('/')
 }
 
+const goToRegister = () => {
+  router.push('/register')
+}
+
 // Watchers
 watch(pinDigits, (newVal, oldVal) => {
   console.log('pinDigits changed:', oldVal, '->', newVal)
@@ -487,46 +508,124 @@ onMounted(() => {
 /* === MODERN LOGIN HEADER === */
 .mcf-login-header {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 60px;
 
   @media (min-width: 768px) {
-    margin-bottom: 36px;
+    margin-bottom: 70px;
   }
 }
 
-.mcf-logo-container {
-  margin-bottom: 16px;
+/* === LOGO OVERLAY === */
+.mcf-logo-overlay {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  margin-bottom: -60px;
+  z-index: 10;
 
   @media (min-width: 768px) {
-    margin-bottom: 20px;
+    margin-bottom: -70px;
   }
 }
 
 .mcf-logo-background {
   width: 120px;
   height: 120px;
-  margin: 0 auto;
-  background: rgba(255, 255, 255, 0.15);
+  background: linear-gradient(145deg,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(255, 255, 255, 0.1) 25%,
+    var(--mcf-primary) 50%,
+    var(--mcf-secondary) 75%,
+    rgba(0, 0, 0, 0.1) 100%
+  );
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 2px 8px rgba(255, 255, 255, 0.3),
+    inset 0 -2px 8px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(15px);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s ease;
 
   @media (min-width: 768px) {
     width: 140px;
     height: 140px;
   }
+
+  &:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow:
+      0 15px 45px rgba(0, 0, 0, 0.4),
+      inset 0 3px 12px rgba(255, 255, 255, 0.4),
+      inset 0 -3px 12px rgba(0, 0, 0, 0.3);
+
+    .mcf-logo-shine {
+      animation: shine 0.8s ease-in-out;
+    }
+  }
+}
+
+.mcf-logo-glass-effect {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.3) 40%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.3) 60%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  pointer-events: none;
+  animation: rotate-glass 8s linear infinite;
+}
+
+.mcf-logo-shine {
+  position: absolute;
+  top: 15%;
+  left: 20%;
+  width: 30%;
+  height: 40%;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.8) 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  border-radius: 50% 30% 40% 60%;
+  filter: blur(1px);
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+@keyframes rotate-glass {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes shine {
+  0% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0.7; transform: scale(1); }
 }
 
 .mcf-logo-icon {
-  font-size: 60px;
+  font-size: 65px;
   color: white;
+  position: relative;
+  z-index: 2;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 
   @media (min-width: 768px) {
-    font-size: 70px;
+    font-size: 75px;
   }
 }
 
@@ -567,6 +666,11 @@ onMounted(() => {
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   overflow: hidden;
+  padding-top: 60px;
+
+  @media (min-width: 768px) {
+    padding-top: 70px;
+  }
 }
 
 /* === PIN STYLES === */
