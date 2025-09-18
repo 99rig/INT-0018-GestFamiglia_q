@@ -14,14 +14,11 @@
 
       <!-- Lista Budget -->
       <div class="container">
-        <div v-if="loading" class="loading-container">
-          <q-circular-progress
-            indeterminate
-            size="50px"
-            color="primary"
-          />
-          <div class="q-mt-md text-center">Caricamento budget...</div>
-        </div>
+        <MCFLoading
+          v-if="loading"
+          message="Caricamento piani di spesa..."
+          submessage="Recupero dati di budget e pianificazione"
+        />
 
         <div v-else-if="budgets.length === 0" class="empty-state">
           <q-icon
@@ -260,6 +257,7 @@ import { useQuasar } from 'quasar'
 import { useSnackbar } from 'src/composables/useSnackbar'
 import { api } from 'src/services/api.js'
 import { useAuthStore } from 'stores/auth.js'
+import MCFLoading from 'src/components/MCFLoading.vue'
 
 const $q = useQuasar()
 const snackbar = useSnackbar()
@@ -299,8 +297,8 @@ const canCreateBudget = computed(() => {
 
 // Metodi
 const loadBudgets = async () => {
-  loading.value = true
   try {
+    loading.value = true
     const response = await api.getBudgets()
     budgets.value = response.results || response || []
     console.log('📊 Budget caricati:', budgets.value.length)
@@ -538,13 +536,6 @@ onMounted(async () => {
   line-height: 1.4;
 }
 
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 80px 20px;
-}
 
 .empty-state {
   text-align: center;

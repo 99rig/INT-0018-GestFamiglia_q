@@ -45,10 +45,11 @@ const categorySelection = ref({ category: null, subcategory: null })
 // Handle category changes
 const onCategoryChanged = (categoryId) => {
   if (props.returnObject) {
-    emit('update:modelValue', {
+    const newValue = {
       category: categoryId,
       subcategory: categorySelection.value.subcategory
-    })
+    }
+    emit('update:modelValue', newValue)
   } else {
     emit('update:modelValue', categoryId)
   }

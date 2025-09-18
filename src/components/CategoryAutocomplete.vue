@@ -23,12 +23,13 @@
     outlined
     option-value="value"
     option-label="label"
-    :disable="!selectedCategory"
+    :disable="!selectedCategory || subcategoryOptions.length === 0"
     clearable
     prepend-icon="label"
     :multiple="false"
     @update:model-value="onSubcategoryChange"
     :show-icon="false"
+    :placeholder="selectedCategory ? (subcategoryOptions.length > 0 ? 'Seleziona sottocategoria...' : 'Nessuna sottocategoria disponibile') : 'Seleziona prima una categoria'"
   />
 </template>
 
@@ -72,7 +73,8 @@ const selectedSubcategory = ref(null)
 
 // Computed
 const showSubcategorySelect = computed(() => {
-  return !props.hideSubcategory && selectedCategory.value && subcategoryOptions.value.length > 0
+  // Mostra sempre il campo sottocategoria a meno che non sia esplicitamente nascosto
+  return !props.hideSubcategory
 })
 
 // Methods
@@ -182,10 +184,12 @@ const categoryFilter = (options, searchText) => {
 }
 
 const onCategoryChange = (selectedValue) => {
+  console.log('🔧 onCategoryChange called with:', selectedValue)
   selectedSubcategory.value = null
   subcategoryOptions.value = []
 
   if (!selectedValue) {
+    selectedCategory.value = null
     const newValue = { category: null, subcategory: null }
     emit('update:modelValue', newValue)
     emit('category-changed', null)
@@ -199,6 +203,7 @@ const onCategoryChange = (selectedValue) => {
     // Find category and populate subcategories
     const category = categories.value.find(cat => cat.id === categoryId)
     if (category) {
+      selectedCategory.value = categoryId // ⭐ ANCHE QUI!
       subcategoryOptions.value = (category.subcategories || []).map(sub => ({
         label: sub.name || sub.nome,
         value: sub.id,
@@ -218,11 +223,16 @@ const onCategoryChange = (selectedValue) => {
     const category = categories.value.find(cat => cat.id === categoryId)
 
     if (category) {
+      selectedCategory.value = categoryId // ⭐ QUI ERA IL PROBLEMA!
       subcategoryOptions.value = (category.subcategories || []).map(sub => ({
         label: sub.name || sub.nome,
         value: sub.id,
         icon: sub.icon
       }))
+      console.log('🔧 CategoryAutocomplete - Categoria selezionata:', category.name)
+      console.log('🔧 CategoryAutocomplete - selectedCategory.value ora è:', selectedCategory.value)
+      console.log('🔧 CategoryAutocomplete - Sottocategorie caricate:', subcategoryOptions.value.length)
+      console.log('🔧 CategoryAutocomplete - Lista sottocategorie:', subcategoryOptions.value)
 
       const newValue = { category: categoryId, subcategory: null }
       emit('update:modelValue', newValue)

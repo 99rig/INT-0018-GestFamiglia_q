@@ -1,5 +1,14 @@
 <template>
   <q-page class="mcf-dashboard">
+    <!-- Loading State -->
+    <MCFLoading
+      v-if="loading"
+      message="Caricamento dashboard..."
+      submessage="Preparazione dei dati finanziari"
+    />
+
+    <!-- Dashboard Content -->
+    <div v-else>
     <!-- Modern Header -->
     <div class="mcf-dashboard-header">
       <div class="mcf-welcome-section">
@@ -190,6 +199,7 @@
         />
       </q-fab>
     </q-page-sticky>
+    </div>
   </q-page>
 </template>
 
@@ -200,6 +210,7 @@ import { useQuasar, date } from 'quasar'
 import { useAuthStore } from 'stores/auth'
 import { useExpensesStore } from 'stores/expenses'
 import { api } from 'src/services/api'
+import MCFLoading from 'src/components/MCFLoading.vue'
 // import { useSnackbar } from 'src/composables/useSnackbar' - not used yet
 
 const $q = useQuasar()
@@ -209,6 +220,7 @@ const expensesStore = useExpensesStore()
 // const snackbar = useSnackbar() - not used yet
 
 // Data
+const loading = ref(true)
 const userName = ref('Utente')
 const recentExpenses = ref([])
 const monthExpenses = ref(0)
@@ -248,6 +260,7 @@ const budgetProgress = computed(() => {
 // Methods
 const loadDashboardData = async () => {
   try {
+    loading.value = true
     // Carica dati utente
     const userProfile = authStore.user
     if (userProfile?.first_name) {
@@ -309,6 +322,8 @@ const loadDashboardData = async () => {
       type: 'negative',
       message: 'Errore nel caricamento dei dati'
     })
+  } finally {
+    loading.value = false
   }
 }
 

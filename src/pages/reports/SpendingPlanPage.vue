@@ -13,14 +13,11 @@
       </div>
 
       <!-- Lista Piani di Spesa -->
-        <div v-if="loading" class="loading-container">
-          <q-circular-progress
-            indeterminate
-            size="50px"
-            color="primary"
-          />
-          <div class="q-mt-md text-center">Caricamento piani di spesa...</div>
-        </div>
+        <MCFLoading
+          v-if="loading"
+          message="Caricamento piani di spesa..."
+          submessage="Recupero pianificazioni e spese future"
+        />
 
         <div v-else-if="spendingPlans.length === 0" class="mcf-empty-state">
           <div class="mcf-empty-illustration">
@@ -285,6 +282,7 @@ import { useAuthStore } from 'stores/auth.js'
 import { useSnackbar } from 'src/composables/useSnackbar'
 import SpendingPlanDialog from 'components/SpendingPlanDialog.vue'
 import CloneSpendingPlanDialog from 'components/CloneSpendingPlanDialog.vue'
+import MCFLoading from 'src/components/MCFLoading.vue'
 
 const $q = useQuasar()
 const router = useRouter()
@@ -314,8 +312,8 @@ const planTypeOptions = [
 
 // Metodi
 const loadSpendingPlans = async () => {
-  loading.value = true
   try {
+    loading.value = true
     const response = await api.getSpendingPlans()
     spendingPlans.value = response.results || response || []
     console.log('📋 Piani di spesa caricati:', spendingPlans.value.length)
@@ -617,13 +615,6 @@ onMounted(async () => {
   line-height: 1.4;
 }
 
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 80px 20px;
-}
 
 // === MODERN EMPTY STATE ===
 .mcf-empty-state {

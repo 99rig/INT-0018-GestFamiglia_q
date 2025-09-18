@@ -13,14 +13,11 @@
       </div>
 
       <!-- Loading State -->
-      <div v-if="loading" class="loading-container">
-        <q-circular-progress
-          indeterminate
-          size="50px"
-          color="primary"
-        />
-        <div class="q-mt-md text-center">Caricamento spese pianificate...</div>
-      </div>
+      <MCFLoading
+        v-if="loading"
+        message="Caricamento spese pianificate..."
+        submessage="Recupero dettagli del piano di spesa"
+      />
 
       <!-- Content -->
       <div v-else>
@@ -334,6 +331,7 @@
                   label="Categoria"
                   outlined
                   clearable
+                  :return-object="true"
                 />
               </div>
               <div class="mcf-form-col">
@@ -479,6 +477,7 @@
               label="Categoria"
               outlined
               clearable
+              :return-object="true"
             />
 
             <MCFAutocomplete
@@ -619,6 +618,7 @@ import MCFDatePicker from 'components/MCFDatePicker.vue'
 import MCFAutocomplete from 'components/MCFAutocomplete.vue'
 import CategorySelect from 'components/CategorySelect.vue'
 import DeleteExpenseModal from 'components/DeleteExpenseModal.vue'
+import MCFLoading from 'src/components/MCFLoading.vue'
 
 const $q = useQuasar()
 const route = useRoute()
@@ -648,7 +648,7 @@ const deleting = ref(false)
 const newExpense = ref({
   description: '',
   amount: '',
-  category: null,
+  category: { category: null, subcategory: null },
   priority: 'medium',
   due_date: '',
   notes: ''
@@ -795,7 +795,9 @@ const createExpense = async () => {
     const expenseData = {
       ...newExpense.value,
       spending_plan: parseInt(planId.value),
-      amount: parseFloat(newExpense.value.amount)
+      amount: parseFloat(newExpense.value.amount),
+      category: newExpense.value.category?.category || newExpense.value.category,
+      subcategory: newExpense.value.category?.subcategory || null
     }
 
     await api.createPlannedExpense(expenseData)
@@ -855,7 +857,7 @@ const resetExpenseForm = () => {
   newExpense.value = {
     description: '',
     amount: '',
-    category: null,
+    category: { category: null, subcategory: null },
     priority: 'medium',
     due_date: '',
     notes: ''
@@ -875,7 +877,7 @@ const resetEditExpenseForm = () => {
   editExpenseForm.value = {
     description: '',
     amount: '',
-    category: null,
+    category: { category: null, subcategory: null },
     priority: 'medium',
     due_date: '',
     notes: ''
@@ -891,7 +893,9 @@ const updateExpense = async () => {
     const expenseData = {
       ...editExpenseForm.value,
       spending_plan: parseInt(planId.value),
-      amount: parseFloat(editExpenseForm.value.amount)
+      amount: parseFloat(editExpenseForm.value.amount),
+      category: editExpenseForm.value.category?.category || editExpenseForm.value.category,
+      subcategory: editExpenseForm.value.category?.subcategory || null
     }
 
     await api.updatePlannedExpense(editingExpense.value.id, expenseData)
@@ -915,7 +919,10 @@ const editExpense = (expense) => {
   editExpenseForm.value = {
     description: expense.description,
     amount: expense.amount,
-    category: expense.category,
+    category: {
+      category: expense.category,
+      subcategory: expense.subcategory || null
+    },
     priority: expense.priority,
     due_date: expense.due_date,
     notes: expense.notes || ''
@@ -1072,13 +1079,6 @@ onMounted(async () => {
   }
 }
 
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 80px 20px;
-}
 
 // === PLAN INFO CARD ===
 .plan-info-card {
