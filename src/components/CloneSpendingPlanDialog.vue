@@ -21,7 +21,7 @@
       </q-card-section>
 
       <q-card-section class="mcf-dialog-content">
-        <div v-if="!clonePreview" class="q-gutter-md">
+        <div v-if="!clonePreview && plan" class="q-gutter-md">
           <!-- Piano originale -->
           <q-card flat bordered class="q-pa-md">
             <div class="text-subtitle1 text-weight-medium q-mb-sm">
@@ -243,7 +243,7 @@ const props = defineProps({
   },
   plan: {
     type: Object,
-    required: true
+    default: null
   }
 })
 

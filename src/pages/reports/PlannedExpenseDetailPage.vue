@@ -1309,6 +1309,19 @@ onMounted(async () => {
 
   &.status-completed {
     border-left: 4px solid var(--mcf-accent);
+    opacity: 0.6;
+    background-color: rgba(0, 0, 0, 0.02);
+
+    .expense-name,
+    .expense-category,
+    .amount-main,
+    .payment-by-text {
+      color: var(--mcf-text-disabled) !important;
+    }
+
+    .status-badge {
+      opacity: 0.8;
+    }
   }
 
   &.status-partial {
