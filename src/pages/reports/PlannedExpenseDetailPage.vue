@@ -151,73 +151,125 @@
 
             <!-- Action Buttons -->
             <div class="expense-actions">
-              <q-btn
-                v-if="!expense.is_fully_paid"
-                icon="payment"
-                label="Aggiungi Pagamento"
-                size="sm"
-                color="primary"
-                outline
-                @click="openPaymentDialog(expense)"
-              />
-              <q-btn
-                icon="receipt"
-                label="Pagamenti"
-                size="sm"
-                color="secondary"
-                outline
-                @click="viewPayments(expense)"
-              />
-              <q-btn
-                flat
-                round
-                icon="more_vert"
-                size="sm"
-                class="mcf-planned-expense-menu-btn"
-                @click.stop
-              >
-                <q-menu
-                  class="mcf-planned-expense-menu"
-                  transition-show="scale"
-                  transition-hide="scale"
-                  anchor="bottom right"
-                  self="top right"
+              <!-- Desktop view with labels -->
+              <template v-if="$q.screen.gt.sm">
+                <q-btn
+                  v-if="!expense.is_fully_paid"
+                  icon="payment"
+                  label="Aggiungi Pagamento"
+                  size="sm"
+                  color="primary"
+                  outline
+                  @click="openPaymentDialog(expense)"
+                />
+                <q-btn
+                  icon="receipt"
+                  label="Pagamenti"
+                  size="sm"
+                  color="secondary"
+                  outline
+                  @click="viewPayments(expense)"
+                />
+                <q-btn
+                  flat
+                  round
+                  icon="more_vert"
+                  size="sm"
+                  class="mcf-planned-expense-menu-btn"
+                  @click.stop
                 >
-                  <q-list class="mcf-menu-list">
-                    <q-item
-                      clickable
-                      v-close-popup
-                      @click="editExpense(expense)"
-                      class="mcf-menu-item mcf-menu-edit"
-                    >
-                      <q-item-section avatar>
-                        <q-icon name="edit" class="mcf-menu-icon" />
-                      </q-item-section>
-                      <q-item-section>
-                        <q-item-label class="mcf-menu-title">Modifica</q-item-label>
-                        <q-item-label caption class="mcf-menu-subtitle">Modifica i dettagli della spesa pianificata</q-item-label>
-                      </q-item-section>
-                    </q-item>
+                  <q-menu
+                    class="mcf-planned-expense-menu"
+                    transition-show="scale"
+                    transition-hide="scale"
+                    anchor="bottom right"
+                    self="top right"
+                  >
+                    <q-list class="mcf-menu-list">
+                      <q-item
+                        clickable
+                        v-close-popup
+                        @click="editExpense(expense)"
+                        class="mcf-menu-item mcf-menu-edit"
+                      >
+                        <q-item-section avatar>
+                          <q-icon name="edit" class="mcf-menu-icon" />
+                        </q-item-section>
+                        <q-item-section>
+                          <q-item-label class="mcf-menu-title">Modifica</q-item-label>
+                          <q-item-label caption class="mcf-menu-subtitle">Modifica i dettagli della spesa pianificata</q-item-label>
+                        </q-item-section>
+                      </q-item>
 
-                    <q-separator class="mcf-menu-separator" />
+                      <q-separator class="mcf-menu-separator" />
 
-                    <q-item
-                      clickable
-                      v-close-popup
-                      @click="deleteExpense(expense)"
-                      class="mcf-menu-item mcf-menu-delete"
-                    >
-                      <q-item-section avatar>
-                        <q-icon name="delete" class="mcf-menu-icon" />
-                      </q-item-section>
-                      <q-item-section>
-                        <q-item-label class="mcf-menu-title">Elimina</q-item-label>
-                        <q-item-label caption class="mcf-menu-subtitle">Rimuovi questa spesa pianificata</q-item-label>
-                      </q-item-section>
-                    </q-item>
-                  </q-list>
-                </q-menu>
-              </q-btn>
+                      <q-item
+                        clickable
+                        v-close-popup
+                        @click="deleteExpense(expense)"
+                        class="mcf-menu-item mcf-menu-delete"
+                      >
+                        <q-item-section avatar>
+                          <q-icon name="delete" class="mcf-menu-icon" />
+                        </q-item-section>
+                        <q-item-section>
+                          <q-item-label class="mcf-menu-title">Elimina</q-item-label>
+                          <q-item-label caption class="mcf-menu-subtitle">Rimuovi questa spesa pianificata</q-item-label>
+                        </q-item-section>
+                      </q-item>
+                    </q-list>
+                  </q-menu>
+                </q-btn>
+              </template>
+
+              <!-- Mobile view with icons only -->
+              <template v-else>
+                <q-btn
+                  v-if="!expense.is_fully_paid"
+                  flat
+                  round
+                  icon="payment"
+                  size="sm"
+                  color="primary"
+                  class="mcf-mobile-action-btn"
+                  @click="openPaymentDialog(expense)"
+                >
+                  <q-tooltip>Aggiungi Pagamento</q-tooltip>
+                </q-btn>
+                <q-btn
+                  flat
+                  round
+                  icon="receipt"
+                  size="sm"
+                  color="secondary"
+                  class="mcf-mobile-action-btn"
+                  @click="viewPayments(expense)"
+                >
+                  <q-tooltip>Visualizza Pagamenti</q-tooltip>
+                </q-btn>
+                <q-btn
+                  flat
+                  round
+                  icon="edit"
+                  size="sm"
+                  color="grey-7"
+                  class="mcf-mobile-action-btn"
+                  @click="editExpense(expense)"
+                >
+                  <q-tooltip>Modifica Spesa</q-tooltip>
+                </q-btn>
+                <q-btn
+                  flat
+                  round
+                  icon="delete"
+                  size="sm"
+                  color="red-5"
+                  class="mcf-mobile-action-btn"
+                  @click="deleteExpense(expense)"
+                >
+                  <q-tooltip>Elimina Spesa</q-tooltip>
+                </q-btn>
+              </template>
             </div>
           </div>
 
@@ -394,10 +446,9 @@
     <q-dialog
       v-model="showEditExpenseDialog"
       persistent
-      :full-width="$q.screen.lt.md"
-      :full-height="$q.screen.lt.md"
+      maximized
     >
-      <q-card :style="$q.screen.lt.md ? '' : 'min-width: 500px; max-width: 600px;'">
+      <q-card>
         <q-card-section>
           <div class="text-h6">Modifica Spesa Pianificata</div>
         </q-card-section>
@@ -472,6 +523,80 @@
       </q-card>
     </q-dialog>
 
+    <!-- Payments View Dialog -->
+    <q-dialog
+      v-model="showPaymentsDialog"
+      persistent
+      :full-width="$q.screen.lt.md"
+      :full-height="$q.screen.lt.md"
+    >
+      <q-card :style="$q.screen.lt.md ? '' : 'min-width: 600px; max-width: 800px;'">
+        <q-card-section>
+          <div class="text-h6">Pagamenti Effettuati</div>
+          <div class="text-caption text-grey-6">
+            {{ selectedExpense?.description }}
+            <br>Totale spesa: €{{ selectedExpense?.amount }} - Pagato: €{{ selectedExpense?.total_paid }} - Rimanente: €{{ selectedExpense?.remaining_amount }}
+          </div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <!-- Loading payments -->
+          <div v-if="loading" class="text-center q-pa-lg">
+            <q-spinner-dots size="40px" color="primary" />
+            <div class="q-mt-md">Caricamento pagamenti...</div>
+          </div>
+
+          <!-- Payments list -->
+          <div v-else-if="payments.length > 0" class="payments-list">
+            <div
+              v-for="payment in payments"
+              :key="payment.id"
+              class="payment-item"
+            >
+              <div class="payment-header">
+                <div class="payment-main">
+                  <div class="payment-description">{{ payment.description }}</div>
+                  <div class="payment-date">{{ formatDate(payment.date) }}</div>
+                </div>
+                <div class="payment-amount">€{{ formatAmount(payment.amount) }}</div>
+              </div>
+              <div v-if="payment.notes" class="payment-notes">{{ payment.notes }}</div>
+            </div>
+
+            <!-- Summary -->
+            <div class="payments-summary">
+              <div class="summary-row">
+                <span>Totale pagamenti:</span>
+                <span class="summary-amount">€{{ formatAmount(totalPayments) }}</span>
+              </div>
+              <div class="summary-row">
+                <span>Importo rimanente:</span>
+                <span class="summary-amount remaining">€{{ formatAmount(selectedExpense?.remaining_amount || 0) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty state -->
+          <div v-else class="empty-payments">
+            <q-icon name="receipt" size="48px" class="text-grey-4" />
+            <div class="empty-title">Nessun pagamento effettuato</div>
+            <div class="empty-subtitle">Questa spesa non ha ancora ricevuto pagamenti.</div>
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Chiudi" v-close-popup @click="closePaymentsDialog" />
+          <q-btn
+            v-if="!selectedExpense?.is_fully_paid"
+            flat
+            label="Aggiungi Pagamento"
+            color="primary"
+            @click="addPaymentFromPaymentsView"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
     <!-- Delete Expense Modal -->
     <DeleteExpenseModal
       v-model="showDeleteModal"
@@ -509,8 +634,10 @@ const activeTab = ref('all')
 const showCreateExpenseDialog = ref(false)
 const showPaymentDialog = ref(false)
 const showEditExpenseDialog = ref(false)
+const showPaymentsDialog = ref(false)
 const selectedExpense = ref(null)
 const editingExpense = ref(null)
+const payments = ref([])
 
 // Delete modal state
 const showDeleteModal = ref(false)
@@ -608,6 +735,10 @@ const canEditExpense = computed(() => {
          parseFloat(editExpenseForm.value.amount) > 0
 })
 
+const totalPayments = computed(() => {
+  return payments.value.reduce((sum, payment) => sum + parseFloat(payment.amount || 0), 0)
+})
+
 
 // Metodi
 const loadPlanData = async () => {
@@ -686,7 +817,7 @@ const createExpense = async () => {
 const openPaymentDialog = (expense) => {
   selectedExpense.value = expense
   newPayment.value = {
-    amount: '',
+    amount: parseFloat(expense.remaining_amount || 0).toString(),
     description: `Pagamento per ${expense.description}`,
     date: new Date().toISOString().split('T')[0]
   }
@@ -822,9 +953,33 @@ const cancelDeleteExpense = () => {
   expenseToDelete.value = null
 }
 
-// eslint-disable-next-line no-unused-vars
-const viewPayments = (expense) => {
-  snackbar.info('Vista pagamenti in sviluppo')
+const viewPayments = async (expense) => {
+  selectedExpense.value = expense
+  showPaymentsDialog.value = true
+
+  try {
+    loading.value = true
+    const response = await api.getPlannedExpensePayments(expense.id)
+    payments.value = response.results || response || []
+    console.log('📋 Pagamenti caricati:', payments.value.length)
+  } catch (error) {
+    console.error('Errore nel caricamento dei pagamenti:', error)
+    snackbar.error('Errore nel caricamento dei pagamenti')
+    payments.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+const closePaymentsDialog = () => {
+  showPaymentsDialog.value = false
+  selectedExpense.value = null
+  payments.value = []
+}
+
+const addPaymentFromPaymentsView = () => {
+  showPaymentsDialog.value = false
+  openPaymentDialog(selectedExpense.value)
 }
 
 // Utility functions
@@ -1252,11 +1407,25 @@ onMounted(async () => {
   flex-wrap: wrap;
 
   @media (max-width: 600px) {
-    justify-content: stretch;
+    justify-content: center;
+    gap: 12px;
+  }
+}
 
-    .q-btn {
-      flex: 1;
-    }
+.mcf-mobile-action-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  @media (max-width: 600px) {
+    width: 36px;
+    height: 36px;
   }
 }
 
@@ -1477,5 +1646,122 @@ onMounted(async () => {
     flex: none;
     width: 100%;
   }
+}
+
+/* === PAYMENTS VIEW STYLES === */
+.payments-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.payment-item {
+  padding: 12px;
+  border: 1px solid var(--mcf-border-light);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background: var(--mcf-bg-surface);
+  transition: all 0.2s ease;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  &:hover {
+    box-shadow: var(--mcf-shadow-sm);
+  }
+}
+
+.payment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.payment-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.payment-description {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--mcf-text-primary);
+  margin-bottom: 4px;
+}
+
+.payment-date {
+  font-size: 12px;
+  color: var(--mcf-text-secondary);
+  font-weight: 500;
+}
+
+.payment-amount {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--mcf-primary);
+  font-feature-settings: 'tnum';
+}
+
+.payment-notes {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--mcf-text-muted);
+  font-style: italic;
+  padding-top: 8px;
+  border-top: 1px solid var(--mcf-border-light);
+}
+
+.payments-summary {
+  margin-top: 16px;
+  padding: 12px;
+  background: var(--mcf-bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--mcf-border-light);
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+  font-size: 13px;
+
+  &:last-child {
+    margin-bottom: 0;
+    padding-top: 4px;
+    border-top: 1px solid var(--mcf-border-light);
+    font-weight: 600;
+  }
+}
+
+.summary-amount {
+  font-weight: 600;
+  color: var(--mcf-primary);
+
+  &.remaining {
+    color: var(--mcf-text-secondary);
+  }
+}
+
+.empty-payments {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.empty-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--mcf-text-primary);
+  margin: 12px 0 8px 0;
+}
+
+.empty-subtitle {
+  font-size: 14px;
+  color: var(--mcf-text-secondary);
 }
 </style>

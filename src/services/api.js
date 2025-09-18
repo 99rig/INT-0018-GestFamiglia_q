@@ -132,6 +132,9 @@ export const api = {
   async getExpenses(filters = {}) {
     const params = new URLSearchParams()
 
+    if (filters.search) {
+      params.append('search', filters.search)
+    }
     if (filters.category) {
       params.append('category', filters.category)
     }
@@ -293,6 +296,11 @@ export const api = {
 
   async getPlannedExpensesPaymentSummary() {
     const response = await apiClient.get('/planned-expenses/payment_summary/')
+    return response.data
+  },
+
+  async getPlannedExpensePayments(plannedExpenseId) {
+    const response = await apiClient.get(`/expenses/?planned_expense=${plannedExpenseId}`)
     return response.data
   },
 

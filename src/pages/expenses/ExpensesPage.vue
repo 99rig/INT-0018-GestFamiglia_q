@@ -48,6 +48,7 @@
         <!-- Search Input -->
         <div class="mcf-search-container">
           <q-input
+            ref="searchInputRef"
             v-model="searchQuery"
             placeholder="Cerca per nome o categoria..."
             outlined
@@ -122,15 +123,27 @@
 
       <!-- Lista spese moderna -->
       <div v-else-if="filteredExpenses.length > 0" class="mcf-expenses-list">
-        <div
-          v-for="expense in filteredExpenses"
-          :key="expense.id"
-          :class="[
-            'mcf-expense-card',
-            { 'mcf-expense-card--quick': isQuickExpense(expense) }
-          ]"
-          @click="openEditModal(expense)"
-        >
+        <div v-for="group in groupedExpenses" :key="group.date" class="mcf-expense-group">
+          <!-- Date Header -->
+          <div class="mcf-date-header">
+            <div class="mcf-date-label">
+              {{ formatDateHeader(group.date) }}
+            </div>
+            <div class="mcf-date-count">
+              {{ group.expenses.length }} spesa{{ group.expenses.length !== 1 ? 'e' : '' }}
+            </div>
+          </div>
+
+          <!-- Expenses for this date -->
+          <div
+            v-for="expense in group.expenses"
+            :key="expense.id"
+            :class="[
+              'mcf-expense-card',
+              { 'mcf-expense-card--quick': isQuickExpense(expense) }
+            ]"
+            @click="openEditModal(expense)"
+          >
           <!-- Header della card -->
           <div class="mcf-expense-header">
             <div class="mcf-expense-content">
@@ -196,6 +209,7 @@
                 {{ expense.note }}
               </div>
             </q-expansion-item>
+          </div>
           </div>
         </div>
       </div>
@@ -676,7 +690,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useSnackbar } from 'src/composables/useSnackbar'
 import { api } from 'src/services/api.js'
 import MCFAutocomplete from 'components/MCFAutocomplete.vue'
@@ -702,6 +716,7 @@ const selectedCategoryFilter = ref(null)
 const categories = ref([])
 const showAllCategories = ref(false)
 const searchQuery = ref('')
+const searchInputRef = ref(null)
 let searchTimeout = null
 
 // Computed properties for category filtering UI
@@ -764,6 +779,27 @@ const filteredExpenses = computed(() => {
   return expenses.value
 })
 
+// Group expenses by date
+const groupedExpenses = computed(() => {
+  const groups = {}
+
+  filteredExpenses.value.forEach(expense => {
+    const dateKey = expense.date // Use the date as key (YYYY-MM-DD format)
+
+    if (!groups[dateKey]) {
+      groups[dateKey] = {
+        date: dateKey,
+        expenses: []
+      }
+    }
+
+    groups[dateKey].expenses.push(expense)
+  })
+
+  // Convert to array and sort by date (newest first)
+  return Object.values(groups).sort((a, b) => new Date(b.date) - new Date(a.date))
+})
+
 
 const receiptPreviewUrl = computed(() => {
   if (manualExpense.value.receiptFile) {
@@ -809,6 +845,38 @@ const formatDate = (dateString) => {
       month: '2-digit',
       year: 'numeric'
     })
+  } catch {
+    return dateString
+  }
+}
+
+const formatDateHeader = (dateString) => {
+  if (!dateString) return 'Data non specificata'
+
+  try {
+    const date = new Date(dateString)
+    const today = new Date()
+    const yesterday = new Date()
+    yesterday.setDate(today.getDate() - 1)
+
+    // Normalize dates to compare only year, month, day
+    const normalize = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate())
+    const normalizedDate = normalize(date)
+    const normalizedToday = normalize(today)
+    const normalizedYesterday = normalize(yesterday)
+
+    if (normalizedDate.getTime() === normalizedToday.getTime()) {
+      return 'Oggi'
+    } else if (normalizedDate.getTime() === normalizedYesterday.getTime()) {
+      return 'Ieri'
+    } else {
+      return date.toLocaleDateString('it-IT', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      })
+    }
   } catch {
     return dateString
   }
@@ -1032,18 +1100,33 @@ const onSearchChange = () => {
 }
 
 const performSearch = async () => {
-  // Prepara i filtri per il backend
-  const filters = {}
+  // Salva il riferimento al campo di input attivo
+  const activeElement = document.activeElement
+  const wasSearchInput = activeElement?.classList?.contains('mcf-search-input') ||
+                        activeElement?.closest('.mcf-search-input')
 
-  if (searchQuery.value && searchQuery.value.trim()) {
-    filters.search = searchQuery.value.trim()
+  try {
+    // Prepara i filtri per il backend
+    const filters = {}
+
+    if (searchQuery.value && searchQuery.value.trim()) {
+      filters.search = searchQuery.value.trim()
+    }
+
+    if (selectedCategoryFilter.value !== null) {
+      filters.category = selectedCategoryFilter.value
+    }
+
+    await loadExpenses(filters)
+
+    // Ripristina il focus se era sul campo di ricerca
+    if (wasSearchInput && searchInputRef.value) {
+      await nextTick()
+      searchInputRef.value.focus()
+    }
+  } catch (error) {
+    console.error('Search error:', error)
   }
-
-  if (selectedCategoryFilter.value !== null) {
-    filters.category = selectedCategoryFilter.value
-  }
-
-  await loadExpenses(filters)
 }
 
 // Filter functions
@@ -1288,6 +1371,12 @@ onMounted(async () => {
     loadCategories()
   ])
   await loadExpenses()
+
+  // Auto-focus sul campo di ricerca dopo il caricamento
+  await nextTick()
+  if (searchInputRef.value) {
+    searchInputRef.value.focus()
+  }
 })
 </script>
 
@@ -1537,12 +1626,62 @@ onMounted(async () => {
 .mcf-expenses-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 16px;
   padding: 0;
   width: 100%;
 
   @media (min-width: 768px) {
+    gap: 20px;
+  }
+}
+
+.mcf-expense-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  @media (min-width: 768px) {
     gap: 10px;
+  }
+}
+
+// === DATE HEADER ===
+.mcf-date-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: var(--mcf-bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--mcf-border-light);
+  margin-bottom: 4px;
+
+  @media (min-width: 768px) {
+    padding: 10px 16px;
+    border-radius: 10px;
+    margin-bottom: 6px;
+  }
+}
+
+.mcf-date-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--mcf-text-primary);
+  text-transform: capitalize;
+
+  @media (min-width: 768px) {
+    font-size: 15px;
+  }
+}
+
+.mcf-date-count {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--mcf-text-secondary);
+  opacity: 0.8;
+
+  @media (min-width: 768px) {
+    font-size: 13px;
   }
 }
 
