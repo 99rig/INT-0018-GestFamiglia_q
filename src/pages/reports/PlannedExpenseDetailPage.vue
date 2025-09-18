@@ -144,6 +144,10 @@
                 track-color="grey-2"
                 class="payment-progress-bar"
               />
+              <!-- Payment Details -->
+              <div v-if="expense.actual_payments_count > 0" class="payment-details">
+                <span class="payment-by-text">{{ getPaymentByText(expense) }}</span>
+              </div>
             </div>
 
             <!-- Action Buttons -->
@@ -628,6 +632,9 @@ const snackbar = useSnackbar()
 const plannedExpenses = ref([])
 const currentPlan = ref(null)
 const loading = ref(false)
+
+// Cache per i pagamenti
+const expensePaymentsCache = ref(new Map())
 const saving = ref(false)
 const savingPayment = ref(false)
 const activeTab = ref('all')
@@ -778,6 +785,9 @@ const loadPlanData = async () => {
     console.log('💳 Spese reali collegate:', filteredRealExpenses.length)
     console.log('📝 Piano ID cercato:', parseInt(planId.value))
     console.log('💰 Totale spese caricate:', plannedExpenses.value.length)
+
+    // Carica i dati dei pagamenti in background
+    loadPaymentsData()
   } catch (error) {
     console.error('Errore nel caricamento dei dati del piano:', error)
     snackbar.error('Errore nel caricamento dei dati')
@@ -1028,6 +1038,38 @@ const getProgressColor = (percentage) => {
   return 'primary'
 }
 
+// Nuovo metodo per il testo dei pagatori
+const getPaymentByText = (expense) => {
+  const paymentsData = expensePaymentsCache.value.get(expense.id)
+
+  if (paymentsData && paymentsData.length > 0) {
+    // Raggruppa i pagamenti per utente
+    const paymentsByUser = paymentsData.reduce((acc, payment) => {
+      const userName = payment.user.first_name || payment.user.username
+      acc[userName] = (acc[userName] || 0) + 1
+      return acc
+    }, {})
+
+    const users = Object.keys(paymentsByUser)
+    if (users.length === 1) {
+      const count = paymentsByUser[users[0]]
+      return count === 1
+        ? `Pagamento di ${users[0]}`
+        : `${count} pagamenti di ${users[0]}`
+    } else if (users.length === 2) {
+      return `Pagamenti di ${users[0]} e ${users[1]}`
+    } else {
+      return `Pagamenti di ${users[0]} e altri ${users.length - 1}`
+    }
+  }
+
+  // Fallback: mostra solo il numero di pagamenti
+  if (expense.actual_payments_count === 1) {
+    return `1 pagamento effettuato`
+  }
+  return `${expense.actual_payments_count} pagamenti effettuati`
+}
+
 const getEmptyStateText = () => {
   const texts = {
     all: 'trovata',
@@ -1037,6 +1079,21 @@ const getEmptyStateText = () => {
     overdue: 'scaduta'
   }
   return texts[activeTab.value] || 'trovata'
+}
+
+// Carica i dati dei pagamenti per tutte le spese con pagamenti
+const loadPaymentsData = async () => {
+  for (const expense of plannedExpenses.value) {
+    if (expense.actual_payments_count > 0) {
+      try {
+        const paymentsResponse = await api.getPlannedExpensePayments(expense.id)
+        const paymentsData = paymentsResponse.results || paymentsResponse || []
+        expensePaymentsCache.value.set(expense.id, paymentsData)
+      } catch (error) {
+        console.warn(`Errore nel caricamento pagamenti per spesa ${expense.id}:`, error)
+      }
+    }
+  }
 }
 
 
@@ -1399,6 +1456,17 @@ onMounted(async () => {
 
 .payment-progress-bar {
   border-radius: 3px;
+}
+
+.payment-details {
+  margin-top: 4px;
+  text-align: center;
+}
+
+.payment-by-text {
+  font-size: 11px;
+  color: var(--mcf-text-secondary);
+  font-style: italic;
 }
 
 .expense-actions {
