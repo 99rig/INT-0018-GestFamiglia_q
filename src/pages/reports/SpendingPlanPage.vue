@@ -277,16 +277,18 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
 import { api } from 'src/services/api.js'
 import { useAuthStore } from 'stores/auth.js'
+import { useSnackbar } from 'src/composables/useSnackbar'
 import SpendingPlanDialog from 'components/SpendingPlanDialog.vue'
 import CloneSpendingPlanDialog from 'components/CloneSpendingPlanDialog.vue'
 
 const $q = useQuasar()
 const router = useRouter()
+const snackbar = useSnackbar()
 
 // Stato reattivo
 const spendingPlans = ref([])
@@ -319,11 +321,7 @@ const loadSpendingPlans = async () => {
     console.log('📋 Piani di spesa caricati:', spendingPlans.value.length)
   } catch (error) {
     console.error('Errore nel caricamento dei piani:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Errore nel caricamento dei piani di spesa',
-      position: 'top'
-    })
+    snackbar.error('Errore nel caricamento dei piani di spesa')
   } finally {
     loading.value = false
   }
@@ -346,11 +344,7 @@ const handlePlanSubmit = async (planData) => {
 
     await api.createSpendingPlan(submitData)
 
-    $q.notify({
-      type: 'positive',
-      message: 'Piano di spesa creato con successo!',
-      position: 'top'
-    })
+    snackbar.success('Piano di spesa creato con successo!')
 
     showCreateDialog.value = false
     await loadSpendingPlans()
@@ -365,11 +359,7 @@ const handlePlanSubmit = async (planData) => {
       errorMessage = error.message
     }
 
-    $q.notify({
-      type: 'negative',
-      message: errorMessage,
-      position: 'top'
-    })
+    snackbar.error(errorMessage)
   } finally {
     saving.value = false
   }
@@ -391,11 +381,7 @@ const handlePlanUpdate = async (planData) => {
 
     await api.updateSpendingPlan(planData.id, submitData)
 
-    $q.notify({
-      type: 'positive',
-      message: 'Piano di spesa aggiornato con successo!',
-      position: 'top'
-    })
+    snackbar.success('Piano di spesa aggiornato con successo!')
 
     showEditDialog.value = false
     editingPlan.value = null
@@ -411,11 +397,7 @@ const handlePlanUpdate = async (planData) => {
       errorMessage = error.message
     }
 
-    $q.notify({
-      type: 'negative',
-      message: errorMessage,
-      position: 'top'
-    })
+    snackbar.error(errorMessage)
   } finally {
     saving.value = false
   }
@@ -444,20 +426,12 @@ const deletePlan = (plan) => {
     try {
       await api.deleteBudget(plan.id)
 
-      $q.notify({
-        type: 'positive',
-        message: 'Piano eliminato con successo',
-        position: 'top'
-      })
+      snackbar.success('Piano eliminato con successo')
 
       await loadSpendingPlans()
     } catch (error) {
       console.error('Errore nell\'eliminazione del piano:', error)
-      $q.notify({
-        type: 'negative',
-        message: 'Errore nell\'eliminazione del piano',
-        position: 'top'
-      })
+      snackbar.error('Errore nell\'eliminazione del piano')
     }
   })
 }
@@ -468,11 +442,7 @@ const clonePlan = (plan) => {
 }
 
 const handlePlanCloned = async (clonedPlan) => {
-  $q.notify({
-    type: 'positive',
-    message: `Piano "${clonedPlan.name}" clonato con successo!`,
-    position: 'top'
-  })
+  snackbar.success(`Piano "${clonedPlan.name}" clonato con successo!`)
 
   // Ricarica la lista dei piani per mostrare il nuovo piano clonato
   await loadSpendingPlans()

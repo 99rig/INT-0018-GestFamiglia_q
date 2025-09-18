@@ -749,9 +749,11 @@ import { useQuasar } from 'quasar'
 import { updateService } from 'src/services/updateService.js'
 import { api } from 'src/services/api.js'
 import { useAuthStore } from 'stores/auth.js'
+import { useSnackbar } from 'src/composables/useSnackbar'
 
 const $q = useQuasar()
 const authStore = useAuthStore()
+const snackbar = useSnackbar()
 
 // Camera refs
 const videoElement = ref(null)
@@ -892,19 +894,11 @@ async function openBackCamera() {
       videoElement.value.srcObject = mediaStream
     }
 
-    $q.notify({
-      type: 'positive',
-      message: 'Camera opened successfully',
-      position: 'top'
-    })
+    snackbar.success('Camera opened successfully')
 
   } catch (error) {
     console.error('Error accessing camera:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Failed to access camera: ' + error.message,
-      position: 'top'
-    })
+    snackbar.error('Failed to access camera: ' + error.message)
   } finally {
     cameraLoading.value = false
   }
@@ -925,19 +919,11 @@ function takePhoto() {
 
     capturedPhoto.value = canvas.toDataURL('image/jpeg', 0.8)
 
-    $q.notify({
-      type: 'positive',
-      message: 'Photo captured successfully',
-      position: 'top'
-    })
+    snackbar.success('Photo captured successfully')
 
   } catch (error) {
     console.error('Error taking photo:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Failed to capture photo',
-      position: 'top'
-    })
+    snackbar.error('Failed to capture photo')
   }
 }
 
@@ -978,7 +964,7 @@ const getDeviceInfo = async () => {
     const response = await fetch('https://api.ipify.org?format=json')
     const data = await response.json()
     publicIP.value = data.ip || 'Sconosciuto'
-  } catch (error) {
+  } catch {
     publicIP.value = 'Non rilevabile'
   }
 
@@ -1012,7 +998,7 @@ const getDeviceInfo = async () => {
       // For web, show a basic approximation
       deviceIP.value = 'Controlla impostazioni WiFi'
     }
-  } catch (error) {
+  } catch {
     deviceIP.value = 'Non rilevabile'
   }
 
@@ -1046,18 +1032,10 @@ const refreshNetworkInfo = async () => {
   refreshing.value = true
   try {
     await getDeviceInfo()
-    $q.notify({
-      type: 'positive',
-      message: 'Informazioni aggiornate',
-      position: 'top'
-    })
+    snackbar.success('Informazioni aggiornate')
   } catch (error) {
     console.error('Error refreshing network info:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Errore durante l\'aggiornamento',
-      position: 'top'
-    })
+    snackbar.error('Errore durante l\'aggiornamento')
   } finally {
     refreshing.value = false
   }
@@ -1072,12 +1050,7 @@ const downloadAPK = () => {
   window.open(apkUrl, '_blank')
 
   // Mostra un messaggio informativo
-  $q.notify({
-    message: 'Download APK avviato. Installa l\'app per una migliore esperienza!',
-    color: 'primary',
-    icon: 'android',
-    position: 'top'
-  })
+  snackbar.info('Download APK avviato. Installa l\'app per una migliore esperienza!')
 }
 
 // Font management functions
@@ -1091,11 +1064,7 @@ const updateLogoFont = async (fontFamily) => {
   // Salva nel profilo utente
   await saveUIPreference('logoFont', fontFamily)
 
-  $q.notify({
-    type: 'positive',
-    message: `Font logo aggiornato: ${fontFamily}`,
-    position: 'top'
-  })
+  snackbar.success(`Font logo aggiornato: ${fontFamily}`)
 }
 
 const updateAppFont = async (fontFamily) => {
@@ -1108,11 +1077,7 @@ const updateAppFont = async (fontFamily) => {
   // Salva nel profilo utente
   await saveUIPreference('appFont', fontFamily)
 
-  $q.notify({
-    type: 'positive',
-    message: `Font applicazione aggiornato: ${fontFamily}`,
-    position: 'top'
-  })
+  snackbar.success(`Font applicazione aggiornato: ${fontFamily}`)
 }
 
 // UI Preferences management
@@ -1199,11 +1164,7 @@ const resetFonts = async () => {
   await updateLogoFont('Fredoka One')
   await updateAppFont('Nunito')
 
-  $q.notify({
-    type: 'info',
-    message: 'Font ripristinati ai valori predefiniti',
-    position: 'top'
-  })
+  snackbar.info('Font ripristinati ai valori predefiniti')
 }
 
 // Family Management Methods
@@ -1254,22 +1215,14 @@ const createFamily = async () => {
     // Aggiorna i dati utente nell'authStore per includere la famiglia appena creata
     await authStore.refreshUserData()
 
-    $q.notify({
-      type: 'positive',
-      message: 'Famiglia creata con successo!',
-      position: 'top'
-    })
+    snackbar.success('Famiglia creata con successo!')
 
     showCreateFamilyDialog.value = false
     resetFamilyForms()
 
   } catch (error) {
     console.error('Errore nella creazione della famiglia:', error)
-    $q.notify({
-      type: 'negative',
-      message: error.response?.data?.detail || 'Errore nella creazione della famiglia',
-      position: 'top'
-    })
+    snackbar.error(error.response?.data?.detail || 'Errore nella creazione della famiglia')
   } finally {
     familyLoading.value = false
   }
@@ -1284,28 +1237,20 @@ const joinFamily = async () => {
       invite_code: joinFamilyCode.value
     }
 
-    const result = await api.joinFamily(joinData)
+    await api.joinFamily(joinData)
     await loadCurrentFamily() // Ricarica i dati della famiglia
 
     // Aggiorna i dati utente nell'authStore per includere la famiglia
     await authStore.refreshUserData()
 
-    $q.notify({
-      type: 'positive',
-      message: 'Ti sei unito alla famiglia con successo!',
-      position: 'top'
-    })
+    snackbar.success('Ti sei unito alla famiglia con successo!')
 
     showJoinFamilyDialog.value = false
     resetFamilyForms()
 
   } catch (error) {
     console.error('Errore nell\'adesione alla famiglia:', error)
-    $q.notify({
-      type: 'negative',
-      message: error.response?.data?.detail || 'Codice invito non valido o scaduto',
-      position: 'top'
-    })
+    snackbar.error(error.response?.data?.detail || 'Codice invito non valido o scaduto')
   } finally {
     familyLoading.value = false
   }
@@ -1326,19 +1271,11 @@ const generateInviteCode = async () => {
 
     inviteCode.value = invitation.token
 
-    $q.notify({
-      type: 'positive',
-      message: 'Codice invito generato!',
-      position: 'top'
-    })
+    snackbar.success('Codice invito generato!')
 
   } catch (error) {
     console.error('Errore nella generazione del codice invito:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Errore nella generazione del codice invito',
-      position: 'top'
-    })
+    snackbar.error('Errore nella generazione del codice invito')
   } finally {
     familyLoading.value = false
   }
@@ -1347,19 +1284,10 @@ const generateInviteCode = async () => {
 const copyInviteCode = async () => {
   try {
     await navigator.clipboard.writeText(inviteCode.value)
-    $q.notify({
-      type: 'positive',
-      message: 'Codice copiato negli appunti!',
-      position: 'top'
-    })
-  } catch (error) {
+    snackbar.success('Codice copiato negli appunti!')
+  } catch {
     // Fallback per browser che non supportano clipboard API
-    $q.notify({
-      type: 'info',
-      message: `Codice: ${inviteCode.value}`,
-      position: 'top',
-      timeout: 5000
-    })
+    snackbar.info(`Codice: ${inviteCode.value}`)
   }
 }
 
@@ -1377,7 +1305,7 @@ const shareInviteCode = async () => {
       // Fallback per desktop
       await copyInviteCode()
     }
-  } catch (error) {
+  } catch {
     await copyInviteCode()
   }
 }
@@ -1390,21 +1318,13 @@ const updateFamily = async () => {
     const updatedFamily = await api.updateFamily(currentFamily.value.id, familyEditForm.value)
     currentFamily.value = updatedFamily
 
-    $q.notify({
-      type: 'positive',
-      message: 'Famiglia aggiornata con successo!',
-      position: 'top'
-    })
+    snackbar.success('Famiglia aggiornata con successo!')
 
     showManageFamilyDialog.value = false
 
   } catch (error) {
     console.error('Errore nell\'aggiornamento della famiglia:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Errore nell\'aggiornamento della famiglia',
-      position: 'top'
-    })
+    snackbar.error('Errore nell\'aggiornamento della famiglia')
   } finally {
     familyLoading.value = false
   }
@@ -1422,21 +1342,13 @@ const confirmDeleteFamily = () => {
       await api.deleteFamily(currentFamily.value.id)
       currentFamily.value = null
 
-      $q.notify({
-        type: 'positive',
-        message: 'Famiglia eliminata con successo',
-        position: 'top'
-      })
+      snackbar.success('Famiglia eliminata con successo')
 
       showManageFamilyDialog.value = false
 
     } catch (error) {
       console.error('Errore nell\'eliminazione della famiglia:', error)
-      $q.notify({
-        type: 'negative',
-        message: 'Errore nell\'eliminazione della famiglia',
-        position: 'top'
-      })
+      snackbar.error('Errore nell\'eliminazione della famiglia')
     }
   })
 }
@@ -1469,11 +1381,7 @@ const loadFamilyInvitations = async () => {
     console.log('✅ Loaded family invitations:', familyInvitations.value)
   } catch (error) {
     console.error('❌ Error loading invitations:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Errore nel caricamento degli inviti',
-      position: 'top'
-    })
+    snackbar.error('Errore nel caricamento degli inviti')
   } finally {
     invitationsLoading.value = false
   }
@@ -1487,11 +1395,7 @@ const loadReceivedInvitations = async () => {
     console.log('✅ Loaded received invitations:', receivedInvitations.value)
   } catch (error) {
     console.error('❌ Error loading received invitations:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Errore nel caricamento degli inviti ricevuti',
-      position: 'top'
-    })
+    snackbar.error('Errore nel caricamento degli inviti ricevuti')
   } finally {
     receivedInvitationsLoading.value = false
   }
@@ -1502,12 +1406,7 @@ const acceptInvitation = async (invitation) => {
   try {
     const response = await api.acceptInvitation(invitation.id)
 
-    $q.notify({
-      type: 'positive',
-      message: response.detail || 'Invito accettato con successo!',
-      position: 'top',
-      timeout: 3000
-    })
+    snackbar.success(response.detail || 'Invito accettato con successo!')
 
     // Rimuovi l'invito dalla lista
     receivedInvitations.value = receivedInvitations.value.filter(inv => inv.id !== invitation.id)
@@ -1523,11 +1422,7 @@ const acceptInvitation = async (invitation) => {
 
     const errorMessage = error.response?.data?.detail || 'Errore nell\'accettare l\'invito'
 
-    $q.notify({
-      type: 'negative',
-      message: errorMessage,
-      position: 'top'
-    })
+    snackbar.error(errorMessage)
   } finally {
     acceptingInvitation.value = null
   }

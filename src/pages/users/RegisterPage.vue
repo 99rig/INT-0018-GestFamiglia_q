@@ -177,13 +177,13 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useQuasar } from 'quasar'
 import { useAuthStore } from 'stores/auth.js'
 import { api } from 'src/services/api'
+import { useSnackbar } from 'src/composables/useSnackbar'
 
 const router = useRouter()
-const $q = useQuasar()
 const authStore = useAuthStore()
+const snackbar = useSnackbar()
 
 // Form data
 const firstName = ref('')
@@ -233,12 +233,7 @@ const register = async () => {
     // Chiama l'API di registrazione
     const response = await api.register(userData)
 
-    $q.notify({
-      type: 'positive',
-      message: 'Registrazione completata con successo!',
-      position: 'top',
-      timeout: 2000
-    })
+    snackbar.success('Registrazione completata con successo!')
 
     // Se la registrazione include già i token, effettua il login automatico
     if (response.access && response.refresh) {
@@ -274,11 +269,7 @@ const register = async () => {
       }
     }
 
-    $q.notify({
-      type: 'negative',
-      message: errorMessage,
-      position: 'top'
-    })
+    snackbar.error(errorMessage)
   } finally {
     loading.value = false
   }

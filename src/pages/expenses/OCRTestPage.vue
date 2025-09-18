@@ -124,10 +124,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useQuasar } from 'quasar'
+import { useSnackbar } from 'src/composables/useSnackbar'
 import { ocrService } from 'src/services/ocr.js'
 
-const $q = useQuasar()
+const snackbar = useSnackbar()
 
 // State
 const testing = ref(false)
@@ -197,11 +197,7 @@ const generateTestImage = () => {
 
   testImageGenerated.value = true
 
-  $q.notify({
-    type: 'positive',
-    message: 'Ricevuta test generata!',
-    position: 'top'
-  })
+  snackbar.success('Ricevuta test generata!')
 }
 
 const runOCRTest = async () => {
@@ -214,11 +210,7 @@ const runOCRTest = async () => {
     // Converti canvas in data URL
     const imageDataUrl = testCanvas.value.toDataURL('image/png')
 
-    $q.notify({
-      type: 'info',
-      message: 'Avvio test OCR...',
-      position: 'top'
-    })
+    snackbar.info('Avvio test OCR...')
 
     // Testa OCR
     const result = await ocrService.extractText(imageDataUrl, {
@@ -229,26 +221,14 @@ const runOCRTest = async () => {
     ocrResult.value = result
 
     if (result.success) {
-      $q.notify({
-        type: 'positive',
-        message: `OCR completato con ${result.provider}!`,
-        position: 'top'
-      })
+      snackbar.success(`OCR completato con ${result.provider}!`)
     } else {
-      $q.notify({
-        type: 'negative',
-        message: `OCR fallito: ${result.error}`,
-        position: 'top'
-      })
+      snackbar.error(`OCR fallito: ${result.error}`)
     }
 
   } catch (error) {
     console.error('Test OCR error:', error)
-    $q.notify({
-      type: 'negative',
-      message: `Errore test: ${error.message}`,
-      position: 'top'
-    })
+    snackbar.error(`Errore test: ${error.message}`)
   } finally {
     testing.value = false
   }

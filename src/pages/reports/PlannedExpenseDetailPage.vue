@@ -277,17 +277,11 @@
 
             <div class="mcf-form-row">
               <div class="mcf-form-col">
-                <MCFAutocomplete
+                <CategorySelect
                   v-model="newExpense.category"
-                  :options="categoriesWithIcons"
                   label="Categoria"
                   outlined
-                  option-value="id"
-                  option-label="name"
-                  :search-fields="['name', 'description']"
-                  :show-icon="true"
                   clearable
-                  prepend-icon="category"
                 />
               </div>
               <div class="mcf-form-col">
@@ -429,17 +423,11 @@
               ]"
             />
 
-            <MCFAutocomplete
+            <CategorySelect
               v-model="editExpenseForm.category"
-              :options="categoriesWithIcons"
-              option-value="id"
-              option-label="name"
               label="Categoria"
               outlined
-              :search-fields="['name', 'description']"
-              :show-icon="true"
               clearable
-              prepend-icon="category"
             />
 
             <MCFAutocomplete
@@ -484,25 +472,37 @@
       </q-card>
     </q-dialog>
 
+    <!-- Delete Expense Modal -->
+    <DeleteExpenseModal
+      v-model="showDeleteModal"
+      :expense-name="expenseToDelete?.description || ''"
+      :loading="deleting"
+      @confirm="confirmDeleteExpense"
+      @cancel="cancelDeleteExpense"
+    />
+
   </q-page>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute } from 'vue-router'
 import { api } from 'src/services/api.js'
 import { useAuthStore } from 'stores/auth.js'
+import { useSnackbar } from 'src/composables/useSnackbar'
 import MCFDatePicker from 'components/MCFDatePicker.vue'
 import MCFAutocomplete from 'components/MCFAutocomplete.vue'
+import CategorySelect from 'components/CategorySelect.vue'
+import DeleteExpenseModal from 'components/DeleteExpenseModal.vue'
 
 const $q = useQuasar()
 const route = useRoute()
+const snackbar = useSnackbar()
 
 // Stato reattivo
 const plannedExpenses = ref([])
 const currentPlan = ref(null)
-const categories = ref([])
 const loading = ref(false)
 const saving = ref(false)
 const savingPayment = ref(false)
@@ -512,6 +512,11 @@ const showPaymentDialog = ref(false)
 const showEditExpenseDialog = ref(false)
 const selectedExpense = ref(null)
 const editingExpense = ref(null)
+
+// Delete modal state
+const showDeleteModal = ref(false)
+const expenseToDelete = ref(null)
+const deleting = ref(false)
 
 // Form nuova spesa
 const newExpense = ref({
@@ -604,16 +609,6 @@ const canEditExpense = computed(() => {
          parseFloat(editExpenseForm.value.amount) > 0
 })
 
-// Categorie con icone per MCFAutocomplete
-const categoriesWithIcons = computed(() => {
-  return categories.value.map(category => ({
-    id: category.id,
-    name: category.name,
-    description: category.description,
-    icon: getCategoryIcon(category.name),
-    color: 'primary'
-  }))
-})
 
 // Metodi
 const loadPlanData = async () => {
@@ -655,24 +650,12 @@ const loadPlanData = async () => {
     console.log('💰 Totale spese caricate:', plannedExpenses.value.length)
   } catch (error) {
     console.error('Errore nel caricamento dei dati del piano:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Errore nel caricamento dei dati',
-      position: 'top'
-    })
+    snackbar.error('Errore nel caricamento dei dati')
   } finally {
     loading.value = false
   }
 }
 
-const loadCategories = async () => {
-  try {
-    const response = await api.getCategories()
-    categories.value = response.results || response || []
-  } catch (error) {
-    console.error('Errore nel caricamento delle categorie:', error)
-  }
-}
 
 const createExpense = async () => {
   if (!canCreateExpense.value) return
@@ -687,11 +670,7 @@ const createExpense = async () => {
 
     await api.createPlannedExpense(expenseData)
 
-    $q.notify({
-      type: 'positive',
-      message: 'Spesa pianificata creata con successo!',
-      position: 'top'
-    })
+    snackbar.success('Spesa pianificata creata con successo!')
 
     showCreateExpenseDialog.value = false
     resetExpenseForm()
@@ -699,11 +678,7 @@ const createExpense = async () => {
 
   } catch (error) {
     console.error('Errore nella creazione della spesa:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Errore nella creazione della spesa',
-      position: 'top'
-    })
+    snackbar.error('Errore nella creazione della spesa')
   } finally {
     saving.value = false
   }
@@ -732,11 +707,7 @@ const addPayment = async () => {
 
     await api.addPaymentToPlannedExpense(selectedExpense.value.id, paymentData)
 
-    $q.notify({
-      type: 'positive',
-      message: 'Pagamento aggiunto con successo!',
-      position: 'top'
-    })
+    snackbar.success('Pagamento aggiunto con successo!')
 
     showPaymentDialog.value = false
     resetPaymentForm()
@@ -744,11 +715,7 @@ const addPayment = async () => {
 
   } catch (error) {
     console.error('Errore nell\'aggiunta del pagamento:', error)
-    $q.notify({
-      type: 'negative',
-      message: error.response?.data?.detail || 'Errore nell\'aggiunta del pagamento',
-      position: 'top'
-    })
+    snackbar.error(error.response?.data?.detail || 'Errore nell\'aggiunta del pagamento')
   } finally {
     savingPayment.value = false
   }
@@ -799,11 +766,7 @@ const updateExpense = async () => {
 
     await api.updatePlannedExpense(editingExpense.value.id, expenseData)
 
-    $q.notify({
-      type: 'positive',
-      message: 'Spesa pianificata aggiornata con successo!',
-      position: 'top'
-    })
+    snackbar.success('Spesa pianificata aggiornata con successo!')
 
     showEditExpenseDialog.value = false
     resetEditExpenseForm()
@@ -811,11 +774,7 @@ const updateExpense = async () => {
 
   } catch (error) {
     console.error('Errore nell\'aggiornamento della spesa:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Errore nell\'aggiornamento della spesa',
-      position: 'top'
-    })
+    snackbar.error('Errore nell\'aggiornamento della spesa')
   } finally {
     saving.value = false
   }
@@ -835,37 +794,38 @@ const editExpense = (expense) => {
 }
 
 const deleteExpense = (expense) => {
-  $q.dialog({
-    title: 'Conferma Eliminazione',
-    message: `Sei sicuro di voler eliminare la spesa "${expense.description}"?`,
-    cancel: true,
-    persistent: true
-  }).onOk(async () => {
-    try {
-      await api.deletePlannedExpense(expense.id)
-      $q.notify({
-        type: 'positive',
-        message: 'Spesa eliminata con successo',
-        position: 'top'
-      })
-      await loadPlanData()
-    } catch (error) {
-      console.error('Errore nell\'eliminazione della spesa:', error)
-      $q.notify({
-        type: 'negative',
-        message: 'Errore nell\'eliminazione della spesa',
-        position: 'top'
-      })
-    }
-  })
+  expenseToDelete.value = expense
+  showDeleteModal.value = true
 }
 
+const confirmDeleteExpense = async () => {
+  if (!expenseToDelete.value) return
+
+  deleting.value = true
+  try {
+    await api.deletePlannedExpense(expenseToDelete.value.id)
+    snackbar.success('Spesa eliminata con successo')
+    await loadPlanData()
+
+    // Chiudi la modale
+    showDeleteModal.value = false
+    expenseToDelete.value = null
+  } catch (error) {
+    console.error('Errore nell\'eliminazione della spesa:', error)
+    snackbar.error('Errore nell\'eliminazione della spesa')
+  } finally {
+    deleting.value = false
+  }
+}
+
+const cancelDeleteExpense = () => {
+  showDeleteModal.value = false
+  expenseToDelete.value = null
+}
+
+// eslint-disable-next-line no-unused-vars
 const viewPayments = (expense) => {
-  $q.notify({
-    type: 'info',
-    message: 'Vista pagamenti in sviluppo',
-    position: 'top'
-  })
+  snackbar.info('Vista pagamenti in sviluppo')
 }
 
 // Utility functions
@@ -918,60 +878,6 @@ const getEmptyStateText = () => {
   return texts[activeTab.value] || 'trovata'
 }
 
-const getCategoryIcon = (categoryIdOrName) => {
-  if (!categoryIdOrName) return 'category'
-
-  // Se è un numero (ID), trova il nome della categoria
-  let categoryName = categoryIdOrName
-  if (typeof categoryIdOrName === 'number') {
-    const category = categories.value.find(cat => cat.id === categoryIdOrName)
-    categoryName = category ? category.name : ''
-  }
-
-  if (!categoryName) return 'category'
-
-  const categoryLower = categoryName.toLowerCase()
-
-  if (categoryLower.includes('alimentari')) return 'restaurant'
-  if (categoryLower.includes('trasporti')) return 'directions_car'
-  if (categoryLower.includes('salute')) return 'local_hospital'
-  if (categoryLower.includes('casa')) return 'home'
-  if (categoryLower.includes('intrattenimento')) return 'movie'
-  if (categoryLower.includes('tempo libero')) return 'sports_esports'
-  if (categoryLower.includes('viaggi')) return 'flight'
-  if (categoryLower.includes('abbigliamento')) return 'checkroom'
-  if (categoryLower.includes('elettronica')) return 'devices'
-  if (categoryLower.includes('sport')) return 'fitness_center'
-  if (categoryLower.includes('educazione')) return 'school'
-  if (categoryLower.includes('assicurazioni')) return 'security'
-  if (categoryLower.includes('tasse')) return 'receipt_long'
-  if (categoryLower.includes('regali')) return 'card_giftcard'
-  if (categoryLower.includes('animali')) return 'pets'
-  if (categoryLower.includes('benzina')) return 'local_gas_station'
-  if (categoryLower.includes('carburante')) return 'local_gas_station'
-  if (categoryLower.includes('telefono')) return 'phone'
-  if (categoryLower.includes('internet')) return 'wifi'
-  if (categoryLower.includes('utenze')) return 'electrical_services'
-  if (categoryLower.includes('luce')) return 'lightbulb'
-  if (categoryLower.includes('gas')) return 'local_fire_department'
-  if (categoryLower.includes('acqua')) return 'water_drop'
-  if (categoryLower.includes('spesa')) return 'shopping_cart'
-  if (categoryLower.includes('supermercato')) return 'store'
-  if (categoryLower.includes('farmacia')) return 'local_pharmacy'
-  if (categoryLower.includes('medico')) return 'medical_services'
-  if (categoryLower.includes('dentista')) return 'dentistry'
-  if (categoryLower.includes('palestra')) return 'fitness_center'
-  if (categoryLower.includes('cinema')) return 'theaters'
-  if (categoryLower.includes('ristorante')) return 'restaurant'
-  if (categoryLower.includes('bar')) return 'local_bar'
-  if (categoryLower.includes('caffè')) return 'local_cafe'
-  if (categoryLower.includes('libro')) return 'menu_book'
-  if (categoryLower.includes('giochi')) return 'sports_esports'
-  if (categoryLower.includes('musica')) return 'music_note'
-  if (categoryLower.includes('streaming')) return 'play_circle'
-
-  return 'category'
-}
 
 // Lifecycle
 onMounted(async () => {
@@ -985,10 +891,7 @@ onMounted(async () => {
   }
 
   if (authStore.isAuthenticated) {
-    await Promise.all([
-      loadPlanData(),
-      loadCategories()
-    ])
+    await loadPlanData()
   }
 })
 </script>

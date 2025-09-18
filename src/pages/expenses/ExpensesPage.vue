@@ -112,7 +112,11 @@
         <div
           v-for="expense in filteredExpenses"
           :key="expense.id"
-          class="mcf-expense-card"
+          :class="[
+            'mcf-expense-card',
+            { 'mcf-expense-card--quick': isQuickExpense(expense) }
+          ]"
+          @click="openEditModal(expense)"
         >
           <!-- Header della card -->
           <div class="mcf-expense-header">
@@ -142,7 +146,7 @@
           <div class="mcf-expense-metadata">
             <div class="mcf-metadata-left">
               <div class="mcf-metadata-item mcf-metadata-category">
-                <q-icon :name="getCategoryIcon(expense.category_detail?.name)" />
+                <q-icon name="category" />
                 <span>{{ expense.category_detail?.name || 'Categoria non specificata' }}</span>
               </div>
 
@@ -157,51 +161,12 @@
                 flat
                 dense
                 round
-                icon="more_vert"
-                class="mcf-expense-menu-btn"
-                @click.stop
+                icon="delete_outline"
+                class="mcf-delete-btn"
+                @click.stop="deleteExpense(expense)"
+                size="sm"
               >
-                <q-menu
-                  class="mcf-expense-menu"
-                  transition-show="scale"
-                  transition-hide="scale"
-                  anchor="bottom right"
-                  self="top right"
-                >
-                  <q-list class="mcf-menu-list">
-                    <q-item
-                      clickable
-                      v-close-popup
-                      @click="openEditModal(expense)"
-                      class="mcf-menu-item mcf-menu-edit"
-                    >
-                      <q-item-section avatar>
-                        <q-icon name="edit" class="mcf-menu-icon" />
-                      </q-item-section>
-                      <q-item-section>
-                        <q-item-label class="mcf-menu-title">Modifica</q-item-label>
-                        <q-item-label caption class="mcf-menu-subtitle">Modifica i dettagli della spesa</q-item-label>
-                      </q-item-section>
-                    </q-item>
-
-                    <q-separator class="mcf-menu-separator" />
-
-                    <q-item
-                      clickable
-                      v-close-popup
-                      @click="deleteExpense(expense)"
-                      class="mcf-menu-item mcf-menu-delete"
-                    >
-                      <q-item-section avatar>
-                        <q-icon name="delete" class="mcf-menu-icon" />
-                      </q-item-section>
-                      <q-item-section>
-                        <q-item-label class="mcf-menu-title">Elimina</q-item-label>
-                        <q-item-label caption class="mcf-menu-subtitle">Rimuovi questa spesa</q-item-label>
-                      </q-item-section>
-                    </q-item>
-                  </q-list>
-                </q-menu>
+                <q-tooltip>Elimina spesa</q-tooltip>
               </q-btn>
             </div>
           </div>
@@ -253,30 +218,32 @@
       </div>
 
       <!-- FAB per aggiungere spesa -->
-      <q-page-sticky position="bottom-right" :offset="[18, 18]">
-        <q-fab
-          icon="add"
-          direction="up"
-          class="mcf-fab-main"
-        >
-          <q-fab-action
-            @click="showManualForm = true"
-            icon="edit"
-            label="Manuale"
-            external-label
-            label-position="left"
-            class="mcf-fab-action mcf-fab-manual"
-          />
-          <q-fab-action
-            @click="$router.push('/scanner')"
-            icon="document_scanner"
-            label="Scanner"
-            external-label
-            label-position="left"
-            class="mcf-fab-action mcf-fab-scanner"
-          />
-        </q-fab>
-      </q-page-sticky>
+      <MCFDraggableFab>
+        <q-fab-action
+          @click="showManualForm = true"
+          icon="edit"
+          label="Manuale"
+          external-label
+          label-position="left"
+          class="mcf-fab-action mcf-fab-manual"
+        />
+        <q-fab-action
+          @click="$router.push('/scanner')"
+          icon="document_scanner"
+          label="Scanner"
+          external-label
+          label-position="left"
+          class="mcf-fab-action mcf-fab-scanner"
+        />
+        <q-fab-action
+          @click="openQuickExpense"
+          icon="flash_on"
+          label="Rapida"
+          external-label
+          label-position="left"
+          class="mcf-fab-action mcf-fab-quick"
+        />
+      </MCFDraggableFab>
 
       <!-- Dialog inserimento manuale -->
       <q-dialog
@@ -332,31 +299,13 @@
                 :rules="[val => val > 0 || 'Importo deve essere maggiore di 0']"
               />
 
-              <MCFAutocomplete
-                v-model="manualExpense.category"
-                :options="categoryOptions"
+              <CategorySelect
+                v-model="categorySelection"
                 label="Categoria *"
-                required
-                outlined
-                option-value="value"
-                option-label="label"
-                @update:model-value="onCategoryChange"
-                :rules="[val => val !== null && val !== undefined || 'Categoria richiesta']"
-                prepend-icon="category"
-                :multiple="false"
-              />
-
-              <MCFAutocomplete
-                v-model="manualExpense.subcategory"
-                :options="subcategoryOptions"
-                label="Sottocategoria"
-                outlined
-                option-value="value"
-                option-label="label"
-                :disable="!manualExpense.category"
-                clearable
-                prepend-icon="label"
-                :multiple="false"
+                subcategory-label="Sottocategoria"
+                return-object
+                @category-changed="onCategoryChanged"
+                @subcategory-changed="onSubcategoryChanged"
               />
 
               <MCFAutocomplete
@@ -567,23 +516,13 @@
                 ]"
               />
 
-              <MCFAutocomplete
-                v-model="editForm.category"
-                :options="categoryOptions"
+              <CategorySelect
+                v-model="editCategorySelection"
                 label="Categoria *"
-                :required="true"
-                :icon="getCategoryIcon(editForm.category)"
-                @update:model-value="onEditCategoryChange"
-                :multiple="false"
-              />
-
-              <MCFAutocomplete
-                v-model="editForm.subcategory"
-                :options="subcategoryOptions"
-                label="Sottocategoria"
-                :icon="editForm.subcategory ? 'label' : null"
-                :disable="!editForm.category"
-                :multiple="false"
+                subcategory-label="Sottocategoria"
+                return-object
+                @category-changed="onEditCategoryChanged"
+                @subcategory-changed="onEditSubcategoryChanged"
               />
 
               <MCFDatePicker
@@ -652,35 +591,110 @@
           </q-card-actions>
         </q-card>
       </q-dialog>
+
+      <!-- Dialog spesa rapida -->
+      <q-dialog
+        v-model="showQuickForm"
+        persistent
+      >
+        <q-card style="min-width: 350px; max-width: 400px;">
+          <q-card-section class="row items-center">
+            <q-icon name="flash_on" color="orange" size="28px" class="q-mr-sm" />
+            <div>
+              <div class="text-h6">Spesa Rapida</div>
+              <div class="text-caption text-grey-6">Inserimento veloce per poi gestire dopo</div>
+            </div>
+          </q-card-section>
+
+          <q-card-section class="q-pt-none">
+            <q-form @submit.prevent="submitQuickExpense" class="q-gutter-md">
+              <q-input
+                v-model="quickExpense.description"
+                label="Cosa hai comprato? *"
+                required
+                autofocus
+                outlined
+                :rules="[val => val && val.length > 0 || 'Descrizione richiesta']"
+                placeholder="es. Spesa supermercato"
+              />
+
+              <q-input
+                v-model="quickExpense.amount"
+                label="Quanto hai speso? *"
+                type="number"
+                step="0.01"
+                required
+                outlined
+                prefix="€"
+                :rules="[val => val > 0 || 'Importo deve essere maggiore di 0']"
+                placeholder="es. 25.50"
+              />
+            </q-form>
+          </q-card-section>
+
+          <q-card-actions align="right">
+            <q-btn
+              flat
+              label="Annulla"
+              color="grey"
+              @click="closeQuickForm"
+            />
+            <q-btn
+              label="Salva Veloce"
+              color="orange"
+              :loading="saving"
+              @click="submitQuickExpense"
+              icon="flash_on"
+            />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
+
+      <!-- Delete Expense Modal -->
+      <DeleteExpenseModal
+        v-model="showDeleteModal"
+        :expense-name="expenseToDelete?.description || ''"
+        :loading="deleting"
+        @confirm="confirmDeleteExpense"
+        @cancel="cancelDeleteExpense"
+      />
     </div>
   </q-page>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useQuasar } from 'quasar'
+import { useSnackbar } from 'src/composables/useSnackbar'
 import { api } from 'src/services/api.js'
 import { useAuthStore } from 'stores/auth.js'
 import MCFAutocomplete from 'components/MCFAutocomplete.vue'
 import MCFDatePicker from 'components/MCFDatePicker.vue'
+import DeleteExpenseModal from 'components/DeleteExpenseModal.vue'
+import MCFDraggableFab from 'components/MCFDraggableFab.vue'
+import CategorySelect from 'components/CategorySelect.vue'
 
-const $q = useQuasar()
+const snackbar = useSnackbar()
 
 // State
 const loading = ref(false)
 const expenses = ref([])
 const showManualForm = ref(false)
 const showEditForm = ref(false)
+const showQuickForm = ref(false)
 const saving = ref(false)
-const categoryOptions = ref([])
-const subcategoryOptions = ref([])
-const categoriesData = ref([])
 const editingExpense = ref(null)
 const selectedCategoryFilter = ref(null)
 const showAllCategories = ref(false)
 const inputMethod = ref('manual')
 const spendingPlans = ref([])
 const spendingPlanOptions = ref([])
+
+// Delete modal state
+const showDeleteModal = ref(false)
+const expenseToDelete = ref(null)
+const deleting = ref(false)
+
+
 
 // Form data
 const manualExpense = ref({
@@ -695,6 +709,9 @@ const manualExpense = ref({
   receiptFile: null
 })
 
+// Category selection for new component
+const categorySelection = ref({ category: null, subcategory: null })
+
 const editForm = ref({
   description: '',
   amount: null,
@@ -705,30 +722,20 @@ const editForm = ref({
   spending_plan: null
 })
 
+// Category selection for edit form
+const editCategorySelection = ref({ category: null, subcategory: null })
+
+const quickExpense = ref({
+  description: '',
+  amount: null
+})
+
 // Computed
 const filteredExpenses = computed(() => {
   // Con filtri backend, expenses contiene già i risultati filtrati
   return expenses.value
 })
 
-const availableCategories = computed(() => {
-  return categoriesData.value.map(category => ({
-    id: category.id,
-    name: category.name,
-    count: null // Il conteggio verrà gestito dal backend se necessario
-  }))
-})
-
-const visibleCategories = computed(() => {
-  if (showAllCategories.value) {
-    return availableCategories.value
-  }
-  return availableCategories.value.slice(0, 3) // Mostra solo le prime 3
-})
-
-const hasMoreCategories = computed(() => {
-  return availableCategories.value.length > 3
-})
 
 const receiptPreviewUrl = computed(() => {
   if (manualExpense.value.receiptFile) {
@@ -758,11 +765,7 @@ const loadExpenses = async (filters = {}) => {
       errorMessage = error.message
     }
 
-    $q.notify({
-      type: 'negative',
-      message: errorMessage,
-      position: 'top'
-    })
+    snackbar.error(errorMessage)
   } finally {
     loading.value = false
   }
@@ -783,38 +786,6 @@ const formatDate = (dateString) => {
   }
 }
 
-const getCategoryIcon = (categoryIdOrName) => {
-  if (!categoryIdOrName) return 'category'
-
-  // Se è un numero (ID), trova il nome della categoria
-  let categoryName = categoryIdOrName
-  if (typeof categoryIdOrName === 'number') {
-    const category = categoryOptions.value.find(opt => opt.value === categoryIdOrName)
-    categoryName = category ? category.label : ''
-  }
-
-  if (!categoryName) return 'category'
-
-  const categoryLower = categoryName.toLowerCase()
-
-  if (categoryLower.includes('alimentari')) return 'restaurant'
-  if (categoryLower.includes('trasporti')) return 'directions_car'
-  if (categoryLower.includes('salute')) return 'local_hospital'
-  if (categoryLower.includes('casa')) return 'home'
-  if (categoryLower.includes('intrattenimento')) return 'movie'
-  if (categoryLower.includes('tempo libero')) return 'sports_esports'
-  if (categoryLower.includes('viaggi')) return 'flight'
-  if (categoryLower.includes('abbigliamento')) return 'checkroom'
-  if (categoryLower.includes('elettronica')) return 'devices'
-  if (categoryLower.includes('sport')) return 'fitness_center'
-  if (categoryLower.includes('educazione')) return 'school'
-  if (categoryLower.includes('assicurazioni')) return 'security'
-  if (categoryLower.includes('tasse')) return 'receipt_long'
-  if (categoryLower.includes('regali')) return 'card_giftcard'
-  if (categoryLower.includes('animali')) return 'pets'
-
-  return 'category'
-}
 
 const getSelectedSpendingPlanLabel = (planId) => {
   if (!planId) return ''
@@ -822,61 +793,16 @@ const getSelectedSpendingPlanLabel = (planId) => {
   return plan ? plan.label : ''
 }
 
-const getStatusIcon = (status) => {
-  switch (status) {
-    case 'pagata': return 'check_circle'
-    case 'pianificata': return 'schedule'
-    case 'da_pagare': return 'pending'
-    case 'parzialmente_pagata': return 'hourglass_half'
-    case 'annullata': return 'cancel'
-    default: return 'help'
-  }
+const isQuickExpense = (expense) => {
+  // Identifica le spese rapide tramite:
+  // 1. Note che contengono "Spesa rapida - da completare"
+  // 2. Categoria ID 16 (Da Categorizzare)
+  return (expense.notes && expense.notes.includes('Spesa rapida - da completare')) ||
+         expense.category === 16
 }
 
-const getStatusColor = (status) => {
-  switch (status) {
-    case 'pagata': return 'positive'
-    case 'pianificata': return 'warning'
-    case 'da_pagare': return 'orange'
-    case 'parzialmente_pagata': return 'amber'
-    case 'annullata': return 'negative'
-    default: return 'grey'
-  }
-}
 
 // Manual form methods
-const loadCategories = async () => {
-  try {
-    console.log('📂 Loading categories for manual form...')
-    const response = await api.getCategories()
-    // Handle paginated response
-    const categories = Array.isArray(response) ? response : (response.results || response)
-
-    if (!Array.isArray(categories)) {
-      console.error('Categories response is not an array:', response)
-      return
-    }
-
-    // Store full categories data for subcategory lookup
-    categoriesData.value = categories
-
-    // Create options for main categories
-    categoryOptions.value = categories.map(cat => ({
-      label: cat.name || cat.nome,
-      value: cat.id,
-      subcategories: cat.subcategories || []
-    }))
-
-    console.log('📂 Categories loaded for form:', categoryOptions.value.length)
-  } catch (error) {
-    console.error('Failed to load categories for form:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Errore nel caricamento delle categorie',
-      position: 'top'
-    })
-  }
-}
 
 const loadSpendingPlans = async () => {
   try {
@@ -910,23 +836,29 @@ const loadSpendingPlans = async () => {
   }
 }
 
-const onCategoryChange = (categoryId) => {
-  // Reset subcategory when category changes
-  manualExpense.value.subcategory = null
-  subcategoryOptions.value = []
 
-  if (!categoryId) return
-
-  // Find selected category and populate subcategories
-  const selectedCategory = categoriesData.value.find(cat => cat.id === categoryId)
-  if (selectedCategory && selectedCategory.subcategories) {
-    subcategoryOptions.value = selectedCategory.subcategories.map(sub => ({
-      label: sub.name || sub.nome,
-      value: sub.id
-    }))
-    console.log('📂 Subcategories loaded:', subcategoryOptions.value.length)
-  }
+// New methods for CategorySelect component
+const onCategoryChanged = (categoryId) => {
+  manualExpense.value.category = categoryId
+  categorySelection.value.category = categoryId
 }
+
+const onSubcategoryChanged = (subcategoryId) => {
+  manualExpense.value.subcategory = subcategoryId
+  categorySelection.value.subcategory = subcategoryId
+}
+
+// Edit form category methods
+const onEditCategoryChanged = (categoryId) => {
+  editForm.value.category = categoryId
+  editCategorySelection.value.category = categoryId
+}
+
+const onEditSubcategoryChanged = (subcategoryId) => {
+  editForm.value.subcategory = subcategoryId
+  editCategorySelection.value.subcategory = subcategoryId
+}
+
 
 const resetManualForm = () => {
   manualExpense.value = {
@@ -940,7 +872,7 @@ const resetManualForm = () => {
     spending_plan: null,
     receiptFile: null
   }
-  subcategoryOptions.value = []
+  categorySelection.value = { category: null, subcategory: null }
 }
 
 const closeManualForm = () => {
@@ -952,11 +884,7 @@ const closeManualForm = () => {
 // Scanner functions
 const openCamera = () => {
   // Reindirizza alla pagina scanner
-  $q.notify({
-    type: 'info',
-    message: 'Apertura fotocamera...',
-    position: 'top'
-  })
+  snackbar.info('Apertura fotocamera...')
   closeManualForm()
   // Qui potresti implementare la logica della fotocamera o reindirizzare
   // router.push('/scanner?mode=camera')
@@ -964,32 +892,20 @@ const openCamera = () => {
 
 const uploadImage = () => {
   // Implementa il caricamento di immagini
-  $q.notify({
-    type: 'info',
-    message: 'Caricamento immagine...',
-    position: 'top'
-  })
+  snackbar.info('Caricamento immagine...')
   closeManualForm()
   // Qui potresti implementare il file picker per le immagini
   // router.push('/scanner?mode=upload')
 }
 
 // Receipt handling functions
-const onReceiptRejected = (rejectedEntries) => {
-  $q.notify({
-    type: 'negative',
-    message: `File troppo grande o formato non supportato. Max 5MB, solo immagini.`,
-    position: 'top'
-  })
+const onReceiptRejected = () => {
+  snackbar.error(`File troppo grande o formato non supportato. Max 5MB, solo immagini.`)
 }
 
 const takeReceiptPhoto = () => {
   // Implementa l'apertura della fotocamera
-  $q.notify({
-    type: 'info',
-    message: 'Funzionalità fotocamera in sviluppo',
-    position: 'top'
-  })
+  snackbar.info('Funzionalità fotocamera in sviluppo')
 }
 
 const submitManualExpense = async () => {
@@ -998,11 +914,7 @@ const submitManualExpense = async () => {
 
     // Validate form
     if (!manualExpense.value.description || !manualExpense.value.amount || !manualExpense.value.category || !manualExpense.value.date) {
-      $q.notify({
-        type: 'warning',
-        message: 'Compila tutti i campi obbligatori',
-        position: 'top'
-      })
+      snackbar.warning('Compila tutti i campi obbligatori')
       return
     }
 
@@ -1042,11 +954,7 @@ const submitManualExpense = async () => {
       await api.createExpense(expenseData)
     }
 
-    $q.notify({
-      type: 'positive',
-      message: 'Spesa salvata con successo!',
-      position: 'top'
-    })
+    snackbar.success('Spesa salvata con successo!')
 
     // Close form and reload expenses with current filter
     closeManualForm()
@@ -1069,11 +977,7 @@ const submitManualExpense = async () => {
       errorMessage = error.message
     }
 
-    $q.notify({
-      type: 'negative',
-      message: errorMessage,
-      position: 'top'
-    })
+    snackbar.error(errorMessage)
   } finally {
     saving.value = false
   }
@@ -1111,12 +1015,14 @@ const openEditModal = async (expense) => {
     spending_plan: expense.spending_plan || null
   }
 
-  console.log('📝 EditForm populated:', editForm.value)
-
-  // Load subcategories for selected category
-  if (expense.category) {
-    onEditCategoryChange(expense.category)
+  // Populate category selection for CategorySelect component
+  editCategorySelection.value = {
+    category: expense.category || null,
+    subcategory: expense.subcategory || null
   }
+
+  console.log('📝 EditForm populated:', editForm.value)
+  console.log('📂 EditCategorySelection populated:', editCategorySelection.value)
 
   // Load spending plans if not already loaded
   if (spendingPlanOptions.value.length === 0) {
@@ -1138,20 +1044,11 @@ const closeEditForm = () => {
     notes: '',
     spending_plan: null
   }
+
+  // Reset category selection
+  editCategorySelection.value = { category: null, subcategory: null }
 }
 
-const onEditCategoryChange = (categoryId) => {
-  const category = categoriesData.value.find(cat => cat.id === categoryId)
-  if (category && category.subcategories) {
-    subcategoryOptions.value = category.subcategories.map(sub => ({
-      label: sub.name,
-      value: sub.id
-    }))
-  } else {
-    subcategoryOptions.value = []
-  }
-  editForm.value.subcategory = null
-}
 
 const submitEditExpense = async () => {
   try {
@@ -1159,11 +1056,7 @@ const submitEditExpense = async () => {
 
     // Validate form
     if (!editForm.value.description || !editForm.value.amount || !editForm.value.category || !editForm.value.date) {
-      $q.notify({
-        type: 'warning',
-        message: 'Compila tutti i campi obbligatori',
-        position: 'top'
-      })
+      snackbar.warning('Compila tutti i campi obbligatori')
       return
     }
 
@@ -1184,11 +1077,7 @@ const submitEditExpense = async () => {
     const response = await api.updateExpense(editingExpense.value.id, expenseData)
     console.log('✅ Expense updated:', response)
 
-    $q.notify({
-      type: 'positive',
-      message: 'Spesa modificata con successo!',
-      position: 'top'
-    })
+    snackbar.success('Spesa modificata con successo!')
 
     closeEditForm()
 
@@ -1209,67 +1098,129 @@ const submitEditExpense = async () => {
       errorMessage = error.message
     }
 
-    $q.notify({
-      type: 'negative',
-      message: errorMessage,
-      position: 'top'
-    })
+    snackbar.error(errorMessage)
   } finally {
     saving.value = false
   }
 }
 
 // Delete expense function
-const deleteExpense = async (expense) => {
-  $q.dialog({
-    title: 'Conferma Eliminazione',
-    message: `Sei sicuro di voler eliminare la spesa "${expense.description}"?`,
-    cancel: true,
-    persistent: false,
-    ok: {
-      label: 'Elimina',
-      color: 'negative',
-      unelevated: true
-    },
-    cancel: {
-      label: 'Annulla',
-      color: 'grey-7',
-      flat: true
+const deleteExpense = (expense) => {
+  expenseToDelete.value = expense
+  showDeleteModal.value = true
+}
+
+const confirmDeleteExpense = async () => {
+  if (!expenseToDelete.value) return
+
+  deleting.value = true
+  try {
+    await api.deleteExpense(expenseToDelete.value.id)
+
+    snackbar.success('Spesa eliminata con successo')
+
+    // Ricarica le spese
+    const currentFilters = {}
+    if (selectedCategoryFilter.value !== null) {
+      currentFilters.category = selectedCategoryFilter.value
     }
-  }).onOk(async () => {
-    try {
-      await api.deleteExpense(expense.id)
+    await loadExpenses(currentFilters)
 
-      $q.notify({
-        type: 'positive',
-        message: 'Spesa eliminata con successo',
-        position: 'top'
-      })
+    // Chiudi la modale
+    showDeleteModal.value = false
+    expenseToDelete.value = null
 
-      // Ricarica le spese
-      const currentFilters = {}
-      if (selectedCategoryFilter.value !== null) {
-        currentFilters.category = selectedCategoryFilter.value
-      }
-      await loadExpenses(currentFilters)
+  } catch (error) {
+    console.error('❌ Error deleting expense:', error)
 
-    } catch (error) {
-      console.error('❌ Error deleting expense:', error)
-
-      let errorMessage = 'Errore durante l\'eliminazione della spesa'
-      if (error.response?.data?.detail) {
-        errorMessage = error.response.data.detail
-      } else if (error.message) {
-        errorMessage = error.message
-      }
-
-      $q.notify({
-        type: 'negative',
-        message: errorMessage,
-        position: 'top'
-      })
+    let errorMessage = 'Errore durante l\'eliminazione della spesa'
+    if (error.response?.data?.detail) {
+      errorMessage = error.response.data.detail
+    } else if (error.message) {
+      errorMessage = error.message
     }
-  })
+
+    snackbar.error(errorMessage)
+  } finally {
+    deleting.value = false
+  }
+}
+
+const cancelDeleteExpense = () => {
+  showDeleteModal.value = false
+  expenseToDelete.value = null
+}
+
+
+
+// Quick expense methods
+const openQuickExpense = () => {
+  // Reset form
+  quickExpense.value = {
+    description: '',
+    amount: null
+  }
+  showQuickForm.value = true
+}
+
+const closeQuickForm = () => {
+  showQuickForm.value = false
+  quickExpense.value = {
+    description: '',
+    amount: null
+  }
+}
+
+const submitQuickExpense = async () => {
+  try {
+    saving.value = true
+
+    // Validate form
+    if (!quickExpense.value.description || !quickExpense.value.amount) {
+      snackbar.warning('Compila tutti i campi')
+      return
+    }
+
+    console.log('Saving quick expense...', quickExpense.value)
+
+    // Create a temporary expense with default values
+    const expenseData = {
+      description: quickExpense.value.description,
+      amount: quickExpense.value.amount,
+      category: 16, // Categoria "Da Categorizzare"
+      subcategory: null,
+      date: new Date().toISOString().split('T')[0],
+      notes: 'Spesa rapida - da completare',
+      shared_with: [], // Array vuoto invece di null
+      spending_plan: null
+    }
+
+    console.log('Quick expense data to send:', expenseData)
+
+    await api.createExpense(expenseData)
+
+    snackbar.success('Spesa rapida salvata! Ricordati di completarla dopo.')
+
+    // Close form and reload expenses
+    closeQuickForm()
+    await loadExpenses()
+
+  } catch (error) {
+    console.error('Failed to save quick expense:', error)
+
+    let errorMessage = 'Errore nel salvataggio della spesa rapida'
+    if (error.response?.status === 401) {
+      errorMessage = 'Accesso negato. Effettua il login.'
+    } else if (error.response?.data?.detail) {
+      errorMessage = error.response.data.detail
+    } else if (error.message) {
+      errorMessage = error.message
+    }
+
+    snackbar.error(errorMessage)
+  } finally {
+    saving.value = false
+  }
 }
 
 // Lifecycle
@@ -1286,8 +1237,7 @@ onMounted(async () => {
   // Ora carica i dati se autenticato
   if (authStore.isAuthenticated) {
     console.log('✅ User authenticated, loading data...')
-    // Carica prima le categorie e i piani, poi le spese
-    await loadCategories()
+    // Carica prima i piani e poi le spese
     await loadSpendingPlans()
     await loadExpenses()
   } else {
@@ -1533,6 +1483,7 @@ onMounted(async () => {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   width: 100%;
+  cursor: pointer;
 
   @media (min-width: 768px) {
     border-radius: 10px;
@@ -1542,6 +1493,17 @@ onMounted(async () => {
     transform: translateY(-1px);
     box-shadow: var(--mcf-shadow-md);
     border-color: var(--mcf-primary);
+  }
+
+  // Variante per spese rapide - bordo arancione
+  &--quick {
+    border-color: #ff9800;
+    border-width: 1px;
+
+    &:hover {
+      border-color: #f57c00;
+      box-shadow: 0 4px 16px rgba(255, 152, 0, 0.2);
+    }
   }
 }
 
@@ -1842,17 +1804,7 @@ onMounted(async () => {
   }
 }
 
-/* === FAB CUSTOM PALETTE === */
-.mcf-fab-main {
-  background: linear-gradient(135deg, var(--mcf-primary) 0%, var(--mcf-secondary) 100%) !important;
-  color: white !important;
-  box-shadow: 0 4px 16px rgba(35, 157, 176, 0.4) !important;
-
-  &:hover {
-    box-shadow: 0 6px 20px rgba(35, 157, 176, 0.5) !important;
-    transform: translateY(-2px);
-  }
-}
+/* === FAB ACTIONS CUSTOM STYLES === */
 
 .mcf-fab-manual {
   background: var(--mcf-primary) !important;
@@ -1876,125 +1828,31 @@ onMounted(async () => {
   }
 }
 
-:deep(.q-fab__actions) {
-  .q-fab__action {
-    margin-bottom: 12px;
-    transition: all 0.2s ease;
-  }
-
-  .q-fab__action .q-btn {
-    min-width: 52px;
-    min-height: 52px;
-    border-radius: 50%;
-  }
-
-  .q-fab__action .q-btn__content {
-    font-size: 20px;
-  }
-}
-
-:deep(.q-fab__label) {
-  background: linear-gradient(135deg, var(--mcf-text-primary) 0%, var(--mcf-text-secondary) 100%) !important;
+.mcf-fab-quick {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%) !important;
   color: white !important;
-  padding: 6px 12px !important;
-  border-radius: 6px !important;
-  font-size: 13px !important;
-  font-weight: 600 !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
-  backdrop-filter: blur(4px);
-}
-
-/* Animazioni FAB */
-:deep(.q-fab) {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-:deep(.q-fab__action) {
-  transition: all 0.2s ease;
-}
-
-/* === EXPENSE MENU STYLES === */
-.mcf-expense-menu-btn {
-  color: var(--mcf-text-secondary);
-  transition: all 0.2s ease;
+  box-shadow: 0 3px 12px rgba(255, 152, 0, 0.3) !important;
 
   &:hover {
-    color: var(--mcf-primary);
-    background: rgba(35, 157, 176, 0.1);
+    background: linear-gradient(135deg, #f57c00 0%, #e65100 100%) !important;
+    transform: translateY(-1px);
   }
 }
 
-.mcf-expense-menu {
-  min-width: 220px;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  border: 1px solid var(--mcf-border-light);
-  overflow: hidden;
-  background: var(--mcf-bg-surface);
-}
 
-.mcf-menu-list {
-  padding: 8px 0;
-}
 
-.mcf-menu-item {
-  padding: 12px 16px;
+/* === DELETE BUTTON STYLES === */
+.mcf-delete-btn {
+  color: var(--mcf-text-secondary);
   transition: all 0.2s ease;
-  cursor: pointer;
+  opacity: 0.7;
 
   &:hover {
-    background: var(--mcf-bg-hover);
-    transform: translateX(2px);
-  }
-}
-
-.mcf-menu-edit:hover {
-  background: rgba(35, 157, 176, 0.08);
-
-  .mcf-menu-icon {
-    color: var(--mcf-primary);
-  }
-
-  .mcf-menu-title {
-    color: var(--mcf-primary);
-  }
-}
-
-.mcf-menu-delete:hover {
-  background: rgba(239, 68, 68, 0.08);
-
-  .mcf-menu-icon {
     color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    opacity: 1;
+    transform: scale(1.1);
   }
-
-  .mcf-menu-title {
-    color: #ef4444;
-  }
-}
-
-.mcf-menu-icon {
-  font-size: 20px;
-  color: var(--mcf-text-secondary);
-  transition: color 0.2s ease;
-}
-
-.mcf-menu-title {
-  font-weight: 500;
-  font-size: 14px;
-  color: var(--mcf-text-primary);
-  transition: color 0.2s ease;
-}
-
-.mcf-menu-subtitle {
-  font-size: 12px;
-  color: var(--mcf-text-secondary);
-  opacity: 0.8;
-  margin-top: 2px;
-}
-
-.mcf-menu-separator {
-  margin: 4px 0;
-  background: var(--mcf-border-light);
 }
 
 /* === SPENDING PLAN SELECT STYLES === */

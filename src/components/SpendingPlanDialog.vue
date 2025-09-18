@@ -64,8 +64,8 @@
             map-options
           />
 
-          <div class="row q-gutter-md">
-            <div class="col">
+          <div class="mcf-date-fields">
+            <div class="mcf-date-field">
               <q-input
                 v-model="formData.start_date"
                 label="Data Inizio *"
@@ -90,7 +90,7 @@
                 </template>
               </q-input>
             </div>
-            <div class="col">
+            <div class="mcf-date-field">
               <q-input
                 v-model="formData.end_date"
                 label="Data Fine *"
@@ -118,7 +118,7 @@
           </div>
 
           <!-- Toggle condivisione famiglia (solo se l'utente ha una famiglia) -->
-          <q-item v-if="userHasFamily" class="q-px-none">
+          <q-item v-if="userHasFamily" class="q-px-none mcf-family-toggle">
             <q-item-section avatar>
               <q-icon name="group" />
             </q-item-section>
@@ -160,7 +160,6 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { useQuasar } from 'quasar'
 import { useAuthStore } from 'src/stores/auth'
 
 // Locale italiana per il datepicker
@@ -189,7 +188,6 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'submit', 'cancel'])
 
-const $q = useQuasar()
 const authStore = useAuthStore()
 
 // Computed
@@ -314,6 +312,84 @@ const onCancel = () => {
   max-width: 600px;
   margin: 0 auto;
   width: 100%;
+}
+
+/* === DATE FIELDS RESPONSIVE === */
+.mcf-date-fields {
+  display: flex;
+  gap: 8px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+.mcf-date-field {
+  flex: 1;
+
+  @media (max-width: 768px) {
+    flex: none;
+    width: 100%;
+  }
+
+  /* Rimuovi lo spazio del bottom field di Quasar */
+  :deep(.q-field__bottom) {
+    min-height: 0 !important;
+    padding-top: 0 !important;
+    margin-top: 2px !important;
+  }
+}
+
+/* === FAMILY TOGGLE SECTION === */
+.mcf-family-toggle {
+  border: 2px dashed var(--q-primary);
+  border-radius: 8px;
+  padding: 12px 16px !important;
+  margin: 8px 0 8px 12px;
+  background: rgba(var(--q-primary-rgb, 25, 118, 210), 0.05);
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(var(--q-primary-rgb, 25, 118, 210), 0.08);
+    border-color: var(--q-primary-dark, #1976d2);
+  }
+
+  :deep(.q-item__section--avatar) {
+    color: var(--q-primary);
+    min-width: 40px;
+  }
+
+  :deep(.q-item__label) {
+    font-weight: 600;
+    color: var(--q-text-primary);
+  }
+
+  :deep(.q-item__label--caption) {
+    color: var(--q-text-secondary);
+    font-size: 12px;
+    margin-top: 2px;
+  }
+}
+
+/* === DATE FIELDS RESPONSIVE === */
+.mcf-date-fields {
+  display: flex;
+  gap: 16px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+.mcf-date-field {
+  flex: 1;
+
+  @media (max-width: 768px) {
+    flex: none;
+    width: 100%;
+  }
 }
 
 .mcf-dialog-actions {

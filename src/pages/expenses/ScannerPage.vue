@@ -49,22 +49,18 @@
 </template>
 
 <script setup>
-import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
+import { useSnackbar } from 'src/composables/useSnackbar'
 import DocumentScanner from 'components/common/DocumentScanner.vue'
 
-const $q = useQuasar()
 const router = useRouter()
+const snackbar = useSnackbar()
 
 // Event handlers
 const onDocumentScanned = (scanResult) => {
   console.log('📄 Document scanned:', scanResult)
 
-  $q.notify({
-    type: 'positive',
-    message: 'Documento acquisito! Ora estrai i dati.',
-    position: 'top'
-  })
+  snackbar.success('Documento acquisito! Ora estrai i dati.')
 }
 
 const onDataExtracted = (extractedData) => {
@@ -74,21 +70,7 @@ const onDataExtracted = (extractedData) => {
 const onExpenseCreated = (expenseData) => {
   console.log('💰 Expense created:', expenseData)
 
-  $q.notify({
-    type: 'positive',
-    message: `Spesa "${expenseData.merchant || 'Ricevuta'}" salvata nel sistema!`,
-    position: 'top',
-    actions: [
-      {
-        label: 'Vedi Spese',
-        color: 'white',
-        handler: () => {
-          router.push('/')
-        }
-      }
-    ],
-    timeout: 5000
-  })
+  snackbar.success(`Spesa "${expenseData.merchant || 'Ricevuta'}" salvata nel sistema!`)
 
   // Auto-naviga alla dashboard dopo 3 secondi se l'utente non clicca
   setTimeout(() => {

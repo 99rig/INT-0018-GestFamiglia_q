@@ -232,8 +232,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { useQuasar } from 'quasar'
+import { ref } from 'vue'
+import { useSnackbar } from 'src/composables/useSnackbar'
 import { api } from 'src/services/api'
 
 const props = defineProps({
@@ -249,7 +249,8 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'cloned'])
 
-const $q = useQuasar()
+// const $q = useQuasar() - not used yet
+const snackbar = useSnackbar()
 
 // Reactive data
 const clonePreview = ref(null)
@@ -305,27 +306,15 @@ const generatePreview = async () => {
     const response = await api.smartCloneSpendingPlan(props.plan.id, { preview_only: true })
     clonePreview.value = response
 
-    $q.notify({
-      type: 'positive',
-      message: 'Anteprima generata con successo',
-      icon: 'preview'
-    })
+    snackbar.success('Anteprima generata con successo')
   } catch (error) {
     console.error('Error generating preview:', error)
 
     if (error.response?.status === 400) {
       // Piano già esistente
-      $q.notify({
-        type: 'warning',
-        message: error.response.data.detail || 'Piano già esistente per il periodo selezionato',
-        timeout: 5000
-      })
+      snackbar.warning(error.response.data.detail || 'Piano già esistente per il periodo selezionato')
     } else {
-      $q.notify({
-        type: 'negative',
-        message: 'Errore nella generazione dell\'anteprima',
-        icon: 'error'
-      })
+      snackbar.error('Errore nella generazione dell\'anteprima')
     }
   } finally {
     generating.value = false
@@ -345,20 +334,12 @@ const confirmClone = async () => {
     // Emettiamo l'evento con i dati del piano clonato
     emit('cloned', clonePreview.value.cloned_plan)
 
-    $q.notify({
-      type: 'positive',
-      message: `Piano "${clonePreview.value.cloned_plan.name}" clonato con successo!`,
-      icon: 'content_copy'
-    })
+    snackbar.success(`Piano "${clonePreview.value.cloned_plan.name}" clonato con successo!`)
 
     onCancel()
   } catch (error) {
     console.error('Error confirming clone:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Errore nella conferma del clone',
-      icon: 'error'
-    })
+    snackbar.error('Errore nella conferma del clone')
   } finally {
     cloning.value = false
   }

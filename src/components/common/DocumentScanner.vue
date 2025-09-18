@@ -235,14 +235,14 @@
               :hint="extractedData.date ? 'Rilevata automaticamente' : 'Data odierna'"
             />
 
-            <q-select
-              v-model="extractedData.category"
-              :options="categoryOptions"
+            <CategorySelect
+              v-model="categorySelection"
               label="Categoria"
-              outlined
-              dense
+              subcategory-label="Sottocategoria"
+              return-object
               class="q-mb-md"
-              :hint="extractedData.category ? 'Suggerita automaticamente' : 'Seleziona categoria'"
+              @category-changed="onCategoryChanged"
+              @subcategory-changed="onSubcategoryChanged"
             />
 
             <!-- Testo OCR (collassabile) -->
@@ -294,11 +294,13 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useQuasar } from 'quasar'
+import { useSnackbar } from 'src/composables/useSnackbar'
 import { Capacitor } from '@capacitor/core'
 import { DocumentScanner } from '@capacitor-mlkit/document-scanner'
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera'
 import { ocrService } from 'src/services/ocr'
 import { api } from 'src/services/api'
+import CategorySelect from 'components/CategorySelect.vue'
 
 // Props
 const props = defineProps({
@@ -320,6 +322,7 @@ const props = defineProps({
 const emit = defineEmits(['document-scanned', 'data-extracted', 'expense-created'])
 
 const $q = useQuasar()
+const snackbar = useSnackbar()
 
 // State
 const scanning = ref(false)
@@ -328,8 +331,6 @@ const extracting = ref(false)
 const creating = ref(false)
 const extractedData = ref(null)
 const scanningMessage = ref('')
-const loadingCategories = ref(false)
-
 // Platform detection
 const platform = Capacitor.getPlatform()
 const isNativePlatform = ref(platform === 'android' || platform === 'ios')
@@ -359,71 +360,13 @@ const platformInfo = ref({
   isDesktop: isDesktop.value
 })
 
-// Categorie reali dal backend
-const categoryOptions = ref([])
+// Category selection for CategorySelect component
+const categorySelection = ref({ category: null, subcategory: null })
 
-// Carica categorie dal backend
-const loadCategories = async (retryCount = 0) => {
-  try {
-    loadingCategories.value = true
-    console.log('📂 Loading categories...', retryCount > 0 ? `(retry ${retryCount})` : '')
-
-    const response = await api.getCategories()
-    // Verifica se la risposta è un array o un oggetto con risultati
-    const categories = Array.isArray(response) ? response : (response.results || response)
-
-    // Verifica che categories sia effettivamente un array
-    if (!Array.isArray(categories)) {
-      console.error('Categories response is not an array:', response)
-      throw new Error('Invalid categories response format')
-    }
-
-    categoryOptions.value = categories.map(cat => ({
-      label: cat.name || cat.nome,  // Supporta entrambi i nomi dei campi
-      value: cat.id,
-      subcategories: cat.subcategories || []
-    }))
-    console.log('📂 Categories loaded successfully:', categoryOptions.value.length, 'categories')
-    return true
-  } catch (error) {
-    console.error('Failed to load categories:', error.message)
-
-    // Retry automatico fino a 2 volte
-    if (retryCount < 2) {
-      console.log('🔄 Retrying to load categories...')
-      await new Promise(resolve => setTimeout(resolve, 1000)) // Aspetta 1 secondo
-      return await loadCategories(retryCount + 1)
-    }
-
-    // Fallback alle categorie mock dopo 3 tentativi
-    console.log('⚠️ Using fallback categories')
-    categoryOptions.value = [
-      { label: 'Alimentari', value: 'alimentari' },
-      { label: 'Trasporti', value: 'trasporti' },
-      { label: 'Salute', value: 'salute' },
-      { label: 'Intrattenimento', value: 'intrattenimento' },
-      { label: 'Casa', value: 'casa' },
-      { label: 'Altro', value: 'altro' }
-    ]
-    $q.notify({
-      type: 'warning',
-      message: 'Categorie non caricate, uso fallback',
-      position: 'top'
-    })
-  } finally {
-    loadingCategories.value = false
-  }
-}
 
 // Methods
 const startDocumentScan = async () => {
   try {
-    // Assicurati che le categorie siano caricate
-    if (categoryOptions.value.length === 0) {
-      console.log('📂 Categories not loaded, loading them first...')
-      await loadCategories()
-    }
-
     scanning.value = true
     scanningMessage.value = 'Preparazione scanner...'
 
@@ -452,11 +395,7 @@ const startDocumentScan = async () => {
 
       emit('document-scanned', scanResult.value)
 
-      $q.notify({
-        type: 'positive',
-        message: 'Documento scansionato con successo!',
-        position: 'top'
-      })
+      snackbar.success('Documento scansionato con successo!')
     } else {
       throw new Error('Nessun documento rilevato')
     }
@@ -469,11 +408,7 @@ const startDocumentScan = async () => {
       errorMessage = error.message
     }
 
-    $q.notify({
-      type: 'negative',
-      message: errorMessage,
-      position: 'top'
-    })
+    snackbar.error(errorMessage)
   } finally {
     scanning.value = false
     scanningMessage.value = ''
@@ -506,11 +441,7 @@ const startCameraCapture = async () => {
 
     emit('document-scanned', scanResult.value)
 
-    $q.notify({
-      type: 'positive',
-      message: 'Foto acquisita con successo!',
-      position: 'top'
-    })
+    snackbar.success('Foto acquisita con successo!')
 
   } catch (error) {
     console.error('Camera capture error:', error)
@@ -560,18 +491,10 @@ const startCameraCaptureHTML5 = () => {
 
         emit('document-scanned', scanResult.value)
 
-        $q.notify({
-          type: 'positive',
-          message: 'Foto acquisita con successo!',
-          position: 'top'
-        })
+        snackbar.success('Foto acquisita con successo!')
       } catch (error) {
         console.error('File processing error:', error)
-        $q.notify({
-          type: 'negative',
-          message: 'Errore nel processamento file',
-          position: 'top'
-        })
+        snackbar.error('Errore nel processamento file')
       } finally {
         scanning.value = false
         scanningMessage.value = ''
@@ -592,11 +515,7 @@ const startCameraCaptureHTML5 = () => {
 
   } catch (error) {
     console.error('HTML5 camera capture error:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Errore durante la cattura',
-      position: 'top'
-    })
+    snackbar.error('Errore durante la cattura')
     scanning.value = false
     scanningMessage.value = ''
   }
@@ -632,19 +551,11 @@ const selectFromGallery = async () => {
 
     emit('document-scanned', scanResult.value)
 
-    $q.notify({
-      type: 'positive',
-      message: 'Immagine selezionata dalla galleria!',
-      position: 'top'
-    })
+    snackbar.success('Immagine selezionata dalla galleria!')
 
   } catch (error) {
     console.error('Gallery selection error:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Errore durante la selezione',
-      position: 'top'
-    })
+    snackbar.error('Errore durante la selezione')
   } finally {
     scanning.value = false
     scanningMessage.value = ''
@@ -669,22 +580,14 @@ const previewImage = () => {
 
 const extractReceiptData = async () => {
   if (!scanResult.value?.imageUri) {
-    $q.notify({
-      type: 'warning',
-      message: 'Nessuna immagine da processare',
-      position: 'top'
-    })
+    snackbar.warning('Nessuna immagine da processare')
     return
   }
 
   try {
     extracting.value = true
 
-    $q.notify({
-      type: 'info',
-      message: 'Estrazione dati in corso...',
-      position: 'top'
-    })
+    snackbar.info('Estrazione dati in corso...')
 
     // Estrazione OCR
     console.log('🔍 Starting OCR extraction for receipt...')
@@ -706,20 +609,21 @@ const extractReceiptData = async () => {
       amount: parsedData.amount || '',
       merchant: parsedData.merchant || '',
       date: parsedData.date || new Date().toISOString().split('T')[0],
-      category: parsedData.category || null,
       items: parsedData.items || [],
       ocrText: ocrResult.text,
       ocrProvider: ocrResult.provider,
       confidence: ocrResult.confidence || 0
     }
 
+    // Set category selection if available - categorizeByMerchant now returns category name string
+    if (parsedData.category) {
+      // Let CategorySelect handle the category lookup by name
+      categorySelection.value = { category: parsedData.category, subcategory: null }
+    }
+
     emit('data-extracted', extractedData.value)
 
-    $q.notify({
-      type: 'positive',
-      message: `Dati estratti con ${ocrResult.provider}! Controlla e modifica se necessario.`,
-      position: 'top'
-    })
+    snackbar.success(`Dati estratti con ${ocrResult.provider}! Controlla e modifica se necessario.`)
 
   } catch (error) {
     console.error('Data extraction error:', error)
@@ -729,18 +633,15 @@ const extractReceiptData = async () => {
       amount: '',
       merchant: '',
       date: new Date().toISOString().split('T')[0],
-      category: null,
       items: [],
       ocrText: '',
       error: error.message
     }
 
-    $q.notify({
-      type: 'negative',
-      message: `Estrazione automatica fallita: ${error.message}. Inserisci i dati manualmente.`,
-      position: 'top',
-      timeout: 5000
-    })
+    // Reset category selection
+    categorySelection.value = { category: null, subcategory: null }
+
+    snackbar.error(`Estrazione automatica fallita: ${error.message}. Inserisci i dati manualmente.`)
   } finally {
     extracting.value = false
   }
@@ -748,11 +649,7 @@ const extractReceiptData = async () => {
 
 const editData = () => {
   // Form editing is already enabled
-  $q.notify({
-    type: 'info',
-    message: 'Modifica i dati nei campi sopra',
-    position: 'top'
-  })
+  snackbar.info('Modifica i dati nei campi sopra')
 }
 
 const createExpense = async () => {
@@ -760,23 +657,15 @@ const createExpense = async () => {
     creating.value = true
 
     // Validazione dati
-    if (!extractedData.value.amount || !extractedData.value.category) {
-      $q.notify({
-        type: 'warning',
-        message: 'Inserisci almeno importo e categoria',
-        position: 'top'
-      })
+    if (!extractedData.value.amount || !categorySelection.value.category) {
+      snackbar.warning('Inserisci almeno importo e categoria')
       return
     }
 
     // Validazione importo
     const amount = parseFloat(extractedData.value.amount)
     if (isNaN(amount) || amount <= 0) {
-      $q.notify({
-        type: 'warning',
-        message: 'Inserisci un importo valido',
-        position: 'top'
-      })
+      snackbar.warning('Inserisci un importo valido')
       return
     }
 
@@ -786,7 +675,8 @@ const createExpense = async () => {
       descrizione: `Spesa acquisita tramite scanner ricevuta${extractedData.value.ocrProvider ? ` (OCR: ${extractedData.value.ocrProvider})` : ''}`,
       importo: amount.toFixed(2),
       data_spesa: extractedData.value.date,
-      categoria: extractedData.value.category.value || extractedData.value.category,
+      categoria: categorySelection.value.category,
+      sottocategoria: categorySelection.value.subcategory,
       stato: 'effettuata',
       condivisa: false,
       // Aggiungi metadati OCR
@@ -809,12 +699,7 @@ const createExpense = async () => {
 
     emit('expense-created', expenseData)
 
-    $q.notify({
-      type: 'positive',
-      message: `Spesa creata con successo! ID: ${createdExpense.id}`,
-      position: 'top',
-      timeout: 3000
-    })
+    snackbar.success(`Spesa creata con successo! ID: ${createdExpense.id}`)
 
     // Reset dopo un piccolo delay per mostrare il successo
     setTimeout(() => {
@@ -842,12 +727,7 @@ const createExpense = async () => {
       errorMessage = error.message
     }
 
-    $q.notify({
-      type: 'negative',
-      message: errorMessage,
-      position: 'top',
-      timeout: 5000
-    })
+    snackbar.error(errorMessage)
   } finally {
     creating.value = false
   }
@@ -935,11 +815,11 @@ const parseItalianDate = (dateStr) => {
 }
 
 const categorizeByMerchant = (merchant) => {
-  if (!merchant || categoryOptions.value.length === 0) return null
+  if (!merchant) return null
 
   const merchantLower = merchant.toLowerCase()
 
-  // Mapping negozi -> nomi categorie
+  // Mapping negozi -> nomi categorie - restituisce il nome della categoria per CategorySelect
   const categoryMappings = [
     { keywords: ['supermercato', 'supermarket', 'alimentari', 'market', 'coop', 'conad', 'esselunga', 'carrefour'], categoryName: 'Alimentari' },
     { keywords: ['farmacia', 'pharmacy'], categoryName: 'Salute' },
@@ -950,11 +830,7 @@ const categorizeByMerchant = (merchant) => {
 
   for (const mapping of categoryMappings) {
     if (mapping.keywords.some(keyword => merchantLower.includes(keyword))) {
-      // Trova la categoria corrispondente nell'array delle categorie caricate
-      const foundCategory = categoryOptions.value.find(cat =>
-        cat.label.toLowerCase().includes(mapping.categoryName.toLowerCase())
-      )
-      return foundCategory || null
+      return mapping.categoryName
     }
   }
 
@@ -968,13 +844,24 @@ const resetScan = () => {
   extracting.value = false
   creating.value = false
   scanningMessage.value = ''
+  categorySelection.value = { category: null, subcategory: null }
+}
+
+// Methods for CategorySelect component
+const onCategoryChanged = (categoryId) => {
+  if (extractedData.value) {
+    extractedData.value.category = categoryId
+  }
+}
+
+const onSubcategoryChanged = (subcategoryId) => {
+  if (extractedData.value) {
+    extractedData.value.subcategory = subcategoryId
+  }
 }
 
 // Auto start se richiesto
 onMounted(async () => {
-  // Carica categorie all'inizializzazione
-  await loadCategories()
-
   if (props.autoStart && isNativePlatform.value) {
     console.log('🚀 Auto-start document scanner')
     startDocumentScan()

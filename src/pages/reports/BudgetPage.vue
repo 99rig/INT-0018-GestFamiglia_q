@@ -257,10 +257,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
+import { useSnackbar } from 'src/composables/useSnackbar'
 import { api } from 'src/services/api.js'
 import { useAuthStore } from 'stores/auth.js'
 
 const $q = useQuasar()
+const snackbar = useSnackbar()
 
 // Stato reattivo
 const budgets = ref([])
@@ -304,11 +306,7 @@ const loadBudgets = async () => {
     console.log('📊 Budget caricati:', budgets.value.length)
   } catch (error) {
     console.error('Errore nel caricamento dei budget:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Errore nel caricamento dei budget',
-      position: 'top'
-    })
+    snackbar.error('Errore nel caricamento dei budget')
   } finally {
     loading.value = false
   }
@@ -321,11 +319,7 @@ const createBudget = async () => {
   try {
     await api.createBudget(newBudget.value)
 
-    $q.notify({
-      type: 'positive',
-      message: 'Piano di spesa creato con successo!',
-      position: 'top'
-    })
+    snackbar.success('Piano di spesa creato con successo!')
 
     showCreateDialog.value = false
     resetForm()
@@ -341,11 +335,7 @@ const createBudget = async () => {
       errorMessage = error.message
     }
 
-    $q.notify({
-      type: 'negative',
-      message: errorMessage,
-      position: 'top'
-    })
+    snackbar.error(errorMessage)
   } finally {
     saving.value = false
   }
@@ -362,13 +352,10 @@ const resetForm = () => {
   }
 }
 
+// eslint-disable-next-line no-unused-vars
 const editBudget = (budget) => {
   // TODO: Implementare modifica budget
-  $q.notify({
-    type: 'info',
-    message: 'Funzione in sviluppo',
-    position: 'top'
-  })
+  snackbar.info('Funzione in sviluppo')
 }
 
 const deleteBudget = (budget) => {
@@ -381,20 +368,12 @@ const deleteBudget = (budget) => {
     try {
       await api.deleteBudget(budget.id)
 
-      $q.notify({
-        type: 'positive',
-        message: 'Piano di spesa eliminato con successo',
-        position: 'top'
-      })
+      snackbar.success('Piano di spesa eliminato con successo')
 
       await loadBudgets()
     } catch (error) {
       console.error('Errore nell\'eliminazione del budget:', error)
-      $q.notify({
-        type: 'negative',
-        message: 'Errore nell\'eliminazione del budget',
-        position: 'top'
-      })
+      snackbar.error('Errore nell\'eliminazione del budget')
     }
   })
 }

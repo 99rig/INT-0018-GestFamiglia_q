@@ -10,7 +10,7 @@
     :filled="filled"
     :dense="dense"
     :disable="disable"
-    :readonly="readonly"
+    :readonly="props.readonly"
     :rules="rules"
     :error="error"
     :error-message="errorMessage"
@@ -47,7 +47,7 @@
         v-bind="scope.itemProps"
         class="mcf-autocomplete-option"
       >
-        <q-item-section v-if="showIcon && scope.opt.icon" avatar>
+        <q-item-section v-if="scope.opt.icon && scope.opt.icon.length > 0" avatar>
           <q-icon
             :name="scope.opt.icon"
             :color="scope.opt.color || 'primary'"
@@ -135,7 +135,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, readonly } from 'vue'
+import { ref, computed, watch, readonly as vueReadonly } from 'vue'
 import { useQuasar } from 'quasar'
 
 const $q = useQuasar()
@@ -147,7 +147,12 @@ const props = defineProps({
   },
   options: {
     type: Array,
-    required: true
+    required: false
+  },
+  type: {
+    type: String,
+    default: 'default', // 'default', 'category'
+    validator: (value) => ['default', 'category'].includes(value)
   },
   optionValue: {
     type: [String, Function],
@@ -249,8 +254,14 @@ const emit = defineEmits(['update:modelValue', 'input', 'filter', 'clear'])
 
 // Stato interno
 const searchText = ref('')
-const filteredOptions = ref([...props.options])
+const filteredOptions = ref(props.options ? [...props.options] : [])
 const selectRef = ref(null)
+
+// Category-specific variables
+// const categories = ref([]) - not used
+// const categoryOptions = ref([]) - not used
+// const allCategoryOptions = ref([]) - not used
+// const loadingCategories = ref(false) - not used
 
 // Opzione selezionata
 const selectedOption = computed(() => {
@@ -266,6 +277,18 @@ const selectedOption = computed(() => {
     getOptionValue(option) === props.modelValue
   ) || null
 })
+
+// Computed for effective options based on type
+// const effectiveOptions = computed(() => { - not used
+/*
+  if (props.type === 'category') {
+    return searchText.value && searchText.value.trim() !== ''
+      ? allCategoryOptions.value
+      : categoryOptions.value.filter(opt => opt.type === 'category')
+  }
+  return props.options || []
+})
+*/
 
 // Rilevamento mobile per comportamento responsive
 const isMobile = computed(() => {
@@ -361,8 +384,8 @@ defineExpose({
   updateFilter,
   clear,
   closeDialog,
-  searchText: readonly(searchText),
-  filteredOptions: readonly(filteredOptions)
+  searchText: vueReadonly(searchText),
+  filteredOptions: vueReadonly(filteredOptions)
 })
 </script>
 

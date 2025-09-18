@@ -13,6 +13,7 @@
           label="Nuova Spesa"
           @click="goToAddExpense"
         />
+
       </div>
     </div>
 
@@ -199,11 +200,13 @@ import { useQuasar, date } from 'quasar'
 import { useAuthStore } from 'stores/auth'
 import { useExpensesStore } from 'stores/expenses'
 import { api } from 'src/services/api'
+// import { useSnackbar } from 'src/composables/useSnackbar' - not used yet
 
 const $q = useQuasar()
 const router = useRouter()
 const authStore = useAuthStore()
 const expensesStore = useExpensesStore()
+// const snackbar = useSnackbar() - not used yet
 
 // Data
 const userName = ref('Utente')
@@ -392,6 +395,7 @@ const goToExpenses = () => {
 const goToBudget = () => {
   router.push('/planned-expenses')
 }
+
 
 const viewExpense = (expense) => {
   router.push(`/expenses/${expense.id}`)

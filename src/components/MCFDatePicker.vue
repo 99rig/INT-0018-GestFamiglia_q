@@ -76,7 +76,7 @@
 </template>
 
 <script setup>
-import { computed, watch } from 'vue'
+import { computed } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -235,13 +235,14 @@ const displayValue = computed(() => {
       month: '2-digit',
       year: 'numeric'
     })
-  } catch (error) {
+  } catch {
     console.warn('Errore nel display della data:', props.modelValue)
     return ''
   }
 })
 
 // Opzioni per limitare le date selezionabili
+// eslint-disable-next-line no-unused-vars
 const dateOptions = computed(() => {
   if (!props.minDate && !props.maxDate && !props.disablePast && !props.disableFuture) {
     return null
@@ -287,6 +288,7 @@ const dateOptions = computed(() => {
 })
 
 // Limitazioni per la navigazione
+// eslint-disable-next-line no-unused-vars
 const navigationMinYearMonth = computed(() => {
   try {
     if (props.minDate) {
@@ -305,6 +307,7 @@ const navigationMinYearMonth = computed(() => {
   return null
 })
 
+// eslint-disable-next-line no-unused-vars
 const navigationMaxYearMonth = computed(() => {
   try {
     if (props.maxDate) {

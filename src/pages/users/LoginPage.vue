@@ -180,16 +180,16 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useQuasar } from 'quasar'
 import { useAuthStore } from 'stores/auth.js'
+import { useSnackbar } from 'src/composables/useSnackbar'
 import PinSetupModal from 'components/users/PinSetupModal.vue'
 import PinActionModals from 'components/users/PinActionModals.vue'
 
 const router = useRouter()
-const $q = useQuasar()
 const authStore = useAuthStore()
+const snackbar = useSnackbar()
 
 // Removed server info - now in settings page
 
@@ -215,14 +215,6 @@ const setupPinLoading = ref(false)
 // Removed debug info - now in settings page
 
 // Computed
-const userInitials = computed(() => {
-  if (!lastUserEmail.value) return '?'
-  const parts = lastUserEmail.value.split('@')[0].split('.')
-  if (parts.length > 1) {
-    return (parts[0][0] + parts[1][0]).toUpperCase()
-  }
-  return lastUserEmail.value.substring(0, 2).toUpperCase()
-})
 
 // Methods
 const handlePinInput = (index, value) => {
@@ -292,18 +284,10 @@ const loginWithPin = async () => {
     const success = await authStore.loginWithPin(pin.value)
 
     if (success) {
-      $q.notify({
-        type: 'positive',
-        message: 'Accesso riuscito!',
-        position: 'top'
-      })
+      snackbar.success('Accesso riuscito!')
       router.push('/')
     } else {
-      $q.notify({
-        type: 'negative',
-        message: 'PIN non corretto',
-        position: 'top'
-      })
+      snackbar.error('PIN non corretto')
       pin.value = ''
       pinDigits.value = ['', '', '', '']
     }
@@ -327,18 +311,10 @@ const loginWithEmail = async () => {
         return
       }
 
-      $q.notify({
-        type: 'positive',
-        message: 'Accesso riuscito!',
-        position: 'top'
-      })
+      snackbar.success('Accesso riuscito!')
       router.push('/')
     } else {
-      $q.notify({
-        type: 'negative',
-        message: 'Credenziali non valide',
-        position: 'top'
-      })
+      snackbar.error('Credenziali non valide')
     }
   } finally {
     loading.value = false
@@ -354,22 +330,14 @@ const confirmSetupPin = async (pin) => {
   setupPinLoading.value = true
   try {
     await authStore.setupPin(pin)
-    $q.notify({
-      type: 'positive',
-      message: 'PIN configurato con successo!',
-      position: 'top'
-    })
+    snackbar.success('PIN configurato con successo!')
     closePinSetupModal()
 
     // Procedi con il redirect dopo aver configurato il PIN
     router.push('/')
   } catch (error) {
     console.error('Errore setup PIN:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Errore nella configurazione del PIN',
-      position: 'top'
-    })
+    snackbar.error('Errore nella configurazione del PIN')
   } finally {
     setupPinLoading.value = false
   }
@@ -386,6 +354,8 @@ const showWantPinModal = ref(false)
 // Delete PIN Function
 const showDeletePinModal = ref(false)
 
+
+
 const confirmDeletePin = () => {
   showDeletePinModal.value = true
 }
@@ -394,11 +364,7 @@ const handleDeletePin = async () => {
 
   try {
     await authStore.clearPinData()
-    $q.notify({
-      type: 'positive',
-      message: 'PIN cancellato con successo',
-      position: 'top'
-    })
+    snackbar.success('PIN cancellato con successo')
 
     // Aggiorna lo stato locale
     hasPinSetup.value = false
@@ -407,11 +373,7 @@ const handleDeletePin = async () => {
 
   } catch (error) {
     console.error('Errore cancellazione PIN:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Errore nella cancellazione del PIN',
-      position: 'top'
-    })
+    snackbar.error('Errore nella cancellazione del PIN')
   }
 }
 
@@ -428,17 +390,15 @@ const acceptPin = () => {
 const declinePin = () => {
   showWantPinModal.value = false
 
-  $q.notify({
-    type: 'positive',
-    message: 'Accesso riuscito!',
-    position: 'top'
-  })
+  snackbar.success('Accesso riuscito!')
   router.push('/')
 }
 
 const goToRegister = () => {
   router.push('/register')
 }
+
+
 
 // Watchers
 watch(pinDigits, (newVal, oldVal) => {
@@ -568,6 +528,7 @@ onMounted(() => {
     }
   }
 }
+
 
 .mcf-logo-glass-effect {
   position: absolute;
@@ -762,5 +723,11 @@ onMounted(() => {
 .pin-field :deep(.q-field__bottom) {
   display: none !important;
 }
+
+
+
+
+
+
 
 </style>
