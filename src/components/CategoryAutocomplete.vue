@@ -184,7 +184,6 @@ const categoryFilter = (options, searchText) => {
 }
 
 const onCategoryChange = (selectedValue) => {
-  console.log('🔧 onCategoryChange called with:', selectedValue)
   selectedSubcategory.value = null
   subcategoryOptions.value = []
 
@@ -203,13 +202,12 @@ const onCategoryChange = (selectedValue) => {
     // Find category and populate subcategories
     const category = categories.value.find(cat => cat.id === categoryId)
     if (category) {
-      selectedCategory.value = categoryId // ⭐ ANCHE QUI!
+      selectedCategory.value = categoryId
       subcategoryOptions.value = (category.subcategories || []).map(sub => ({
         label: sub.name || sub.nome,
         value: sub.id,
         icon: sub.icon
       }))
-      console.log('🔧 Subcategory options (combo):', subcategoryOptions.value)
       selectedSubcategory.value = subcategoryId
 
       const newValue = { category: categoryId, subcategory: subcategoryId }
@@ -223,16 +221,12 @@ const onCategoryChange = (selectedValue) => {
     const category = categories.value.find(cat => cat.id === categoryId)
 
     if (category) {
-      selectedCategory.value = categoryId // ⭐ QUI ERA IL PROBLEMA!
+      selectedCategory.value = categoryId
       subcategoryOptions.value = (category.subcategories || []).map(sub => ({
         label: sub.name || sub.nome,
         value: sub.id,
         icon: sub.icon
       }))
-      console.log('🔧 CategoryAutocomplete - Categoria selezionata:', category.name)
-      console.log('🔧 CategoryAutocomplete - selectedCategory.value ora è:', selectedCategory.value)
-      console.log('🔧 CategoryAutocomplete - Sottocategorie caricate:', subcategoryOptions.value.length)
-      console.log('🔧 CategoryAutocomplete - Lista sottocategorie:', subcategoryOptions.value)
 
       const newValue = { category: categoryId, subcategory: null }
       emit('update:modelValue', newValue)
@@ -242,8 +236,6 @@ const onCategoryChange = (selectedValue) => {
 }
 
 const onSubcategoryChange = (subcategoryId) => {
-  console.log('🔧 Subcategory changed:', subcategoryId)
-  console.log('🔧 Available subcategory options:', subcategoryOptions.value)
   const newValue = {
     category: selectedCategory.value,
     subcategory: subcategoryId
