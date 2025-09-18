@@ -116,10 +116,11 @@
       </div>
 
       <!-- Loading -->
-      <div v-if="loading" class="text-center q-pa-xl">
-        <q-spinner-dots size="40px" color="grey-5" />
-        <div class="q-mt-md" style="color: #666; font-weight: 400;">Caricamento spese...</div>
-      </div>
+      <MCFLoading
+        v-if="loading"
+        message="Caricamento spese..."
+        submessage="Attendere mentre vengono caricate le spese"
+      />
 
       <!-- Lista spese moderna -->
       <div v-else-if="filteredExpenses.length > 0" class="mcf-expenses-list">
@@ -698,6 +699,7 @@ import MCFDatePicker from 'components/MCFDatePicker.vue'
 import DeleteExpenseModal from 'components/DeleteExpenseModal.vue'
 import MCFDraggableFab from 'components/MCFDraggableFab.vue'
 import CategorySelect from 'components/CategorySelect.vue'
+import MCFLoading from 'components/MCFLoading.vue'
 
 const snackbar = useSnackbar()
 
@@ -1363,19 +1365,28 @@ const submitQuickExpense = async () => {
 
 // Lifecycle
 onMounted(async () => {
-  // Le route guards garantiscono che l'utente sia autenticato
-  console.log('✅ Loading expenses data...')
-  // Carica prima i piani, le categorie e poi le spese
-  await Promise.all([
-    loadSpendingPlans(),
-    loadCategories()
-  ])
-  await loadExpenses()
+  // Imposta loading subito per evitare di mostrare lo stato vuoto
+  loading.value = true
 
-  // Auto-focus sul campo di ricerca dopo il caricamento
-  await nextTick()
-  if (searchInputRef.value) {
-    searchInputRef.value.focus()
+  try {
+    // Le route guards garantiscono che l'utente sia autenticato
+    console.log('✅ Loading expenses data...')
+    // Carica prima i piani, le categorie e poi le spese
+    await Promise.all([
+      loadSpendingPlans(),
+      loadCategories()
+    ])
+    await loadExpenses()
+
+    // Auto-focus sul campo di ricerca dopo il caricamento
+    await nextTick()
+    if (searchInputRef.value) {
+      searchInputRef.value.focus()
+    }
+  } finally {
+    // Il loading viene gestito automaticamente da loadExpenses(),
+    // ma assicuriamoci che sia false se ci sono errori
+    loading.value = false
   }
 })
 </script>
