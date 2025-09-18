@@ -55,14 +55,6 @@
                 <span>Monitora i progressi</span>
               </div>
             </div>
-
-            <q-btn
-              icon="add"
-              label="Crea il Tuo Primo Piano"
-              class="mcf-btn-primary mcf-empty-cta"
-              size="lg"
-              @click="showCreateDialog = true"
-            />
           </div>
         </div>
 

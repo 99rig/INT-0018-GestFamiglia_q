@@ -379,8 +379,8 @@
                     </q-item-section>
                   </q-item>
                 </template>
-                <template v-slot:selected v-if="manualExpense.spending_plan">
-                  <div class="mcf-selected-option">
+                <template v-slot:selected>
+                  <div class="mcf-selected-option" v-if="manualExpense.spending_plan">
                     <q-icon
                       name="event_note"
                       color="primary"
@@ -388,6 +388,15 @@
                       class="q-mr-sm"
                     />
                     {{ getSelectedSpendingPlanLabel(manualExpense.spending_plan) }}
+                  </div>
+                  <div class="mcf-no-plan-selected" v-else>
+                    <q-icon
+                      name="remove_circle_outline"
+                      color="grey-6"
+                      size="sm"
+                      class="q-mr-sm"
+                    />
+                    <span class="text-grey-6">Nessun piano</span>
                   </div>
                 </template>
               </MCFAutocomplete>
@@ -599,8 +608,8 @@
                     </q-item-section>
                   </q-item>
                 </template>
-                <template v-slot:selected v-if="editForm.spending_plan">
-                  <div class="mcf-selected-option">
+                <template v-slot:selected>
+                  <div class="mcf-selected-option" v-if="editForm.spending_plan">
                     <q-icon
                       name="event_note"
                       color="primary"
@@ -608,6 +617,15 @@
                       class="q-mr-sm"
                     />
                     {{ getSelectedSpendingPlanLabel(editForm.spending_plan) }}
+                  </div>
+                  <div class="mcf-no-plan-selected" v-else>
+                    <q-icon
+                      name="remove_circle_outline"
+                      color="grey-6"
+                      size="sm"
+                      class="q-mr-sm"
+                    />
+                    <span class="text-grey-6">Nessun piano</span>
                   </div>
                 </template>
               </MCFAutocomplete>
@@ -1977,6 +1995,29 @@ onMounted(async () => {
 .mcf-menu-separator {
   margin: 4px 0;
   background: var(--mcf-border-light);
+}
+
+/* === SPENDING PLAN SELECT STYLES === */
+.mcf-selected-option {
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.mcf-no-plan-selected {
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+  font-style: italic;
+  opacity: 0.8;
+
+  .q-icon {
+    opacity: 0.6;
+  }
+
+  span {
+    font-size: 14px;
+  }
 }
 
 </style>

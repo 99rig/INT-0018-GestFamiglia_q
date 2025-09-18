@@ -150,6 +150,64 @@
 
             <!-- No Family State -->
             <div v-else class="mcf-no-family">
+              <!-- Received Invitations -->
+              <div v-if="receivedInvitations && receivedInvitations.length > 0" class="mcf-received-invitations">
+                <div class="mcf-invitations-header">
+                  <q-icon name="mail" class="mcf-section-icon" />
+                  <span class="mcf-section-title">Inviti Ricevuti</span>
+                  <q-btn
+                    flat
+                    round
+                    dense
+                    icon="refresh"
+                    @click="loadReceivedInvitations"
+                    :loading="receivedInvitationsLoading"
+                  >
+                    <q-tooltip>Aggiorna inviti ricevuti</q-tooltip>
+                  </q-btn>
+                </div>
+                <div class="mcf-received-invitations-list">
+                  <div
+                    v-for="invitation in receivedInvitations"
+                    :key="invitation.id"
+                    class="mcf-received-invitation-item"
+                  >
+                    <div class="mcf-invitation-info">
+                      <div class="mcf-invitation-family">
+                        <q-icon name="family_restroom" class="text-primary" />
+                        <div class="mcf-invitation-family-info">
+                          <span class="mcf-invitation-family-name">{{ invitation.family.name }}</span>
+                          <span class="mcf-invitation-invited-by">
+                            Invitato da {{ invitation.invited_by_first_name }} {{ invitation.invited_by_last_name }}
+                          </span>
+                        </div>
+                      </div>
+                      <div class="mcf-invitation-details">
+                        <span class="mcf-invitation-role">
+                          <strong>Ruolo:</strong> {{ invitation.family_role }}
+                        </span>
+                        <span class="mcf-invitation-from-detail">
+                          <strong>Da:</strong> {{ invitation.invited_by_first_name }} {{ invitation.invited_by_last_name }}
+                        </span>
+                        <span class="mcf-invitation-code">Codice: {{ invitation.token }}</span>
+                      </div>
+                    </div>
+                    <div class="mcf-invitation-actions">
+                      <q-btn
+                        class="mcf-btn-primary"
+                        icon="check"
+                        label="Accetta"
+                        @click="acceptInvitation(invitation)"
+                        :loading="acceptingInvitation === invitation.id"
+                        no-caps
+                        unelevated
+                        size="sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div class="mcf-no-family-icon">
                 <q-icon name="family_restroom" size="48px" class="text-grey-4" />
               </div>
@@ -730,6 +788,9 @@ const inviteEmail = ref('')
 const joinFamilyCode = ref('')
 const familyInvitations = ref([])
 const invitationsLoading = ref(false)
+const receivedInvitations = ref([])
+const receivedInvitationsLoading = ref(false)
+const acceptingInvitation = ref(null)
 
 // Family forms
 const newFamily = ref({
@@ -797,6 +858,9 @@ onMounted(async () => {
     if (authStore.isAuthenticated && authStore.accessToken) {
       console.log('🔧 Calling loadCurrentFamily...')
       await loadCurrentFamily()
+      // Carica sempre gli inviti ricevuti
+      console.log('🔧 Calling loadReceivedInvitations...')
+      await loadReceivedInvitations()
     } else {
       console.log('🔧 Not calling loadCurrentFamily - auth issue')
     }
@@ -1412,6 +1476,60 @@ const loadFamilyInvitations = async () => {
     })
   } finally {
     invitationsLoading.value = false
+  }
+}
+
+const loadReceivedInvitations = async () => {
+  receivedInvitationsLoading.value = true
+  try {
+    const invitations = await api.getReceivedInvitations()
+    receivedInvitations.value = invitations
+    console.log('✅ Loaded received invitations:', receivedInvitations.value)
+  } catch (error) {
+    console.error('❌ Error loading received invitations:', error)
+    $q.notify({
+      type: 'negative',
+      message: 'Errore nel caricamento degli inviti ricevuti',
+      position: 'top'
+    })
+  } finally {
+    receivedInvitationsLoading.value = false
+  }
+}
+
+const acceptInvitation = async (invitation) => {
+  acceptingInvitation.value = invitation.id
+  try {
+    const response = await api.acceptInvitation(invitation.id)
+
+    $q.notify({
+      type: 'positive',
+      message: response.detail || 'Invito accettato con successo!',
+      position: 'top',
+      timeout: 3000
+    })
+
+    // Rimuovi l'invito dalla lista
+    receivedInvitations.value = receivedInvitations.value.filter(inv => inv.id !== invitation.id)
+
+    // Aggiorna i dati della famiglia dell'utente
+    await authStore.refreshUserData()
+
+    // Ricarica la famiglia corrente
+    await loadCurrentFamily()
+
+  } catch (error) {
+    console.error('❌ Error accepting invitation:', error)
+
+    const errorMessage = error.response?.data?.detail || 'Errore nell\'accettare l\'invito'
+
+    $q.notify({
+      type: 'negative',
+      message: errorMessage,
+      position: 'top'
+    })
+  } finally {
+    acceptingInvitation.value = null
   }
 }
 
@@ -2388,5 +2506,166 @@ onUnmounted(() => {
   font-size: 12px;
   color: var(--mcf-text-tertiary);
   margin-top: 4px;
+}
+
+/* Received Invitations Styles */
+.mcf-received-invitations {
+  margin-bottom: 24px;
+  background: var(--mcf-bg-primary);
+  border: 2px solid var(--mcf-primary);
+  border-radius: 12px;
+  padding: 20px;
+
+  @media (max-width: 600px) {
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+}
+
+.mcf-received-invitations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  @media (max-width: 600px) {
+    gap: 12px;
+  }
+}
+
+.mcf-received-invitation-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20px;
+  background: var(--mcf-bg-surface);
+  border: 1px solid var(--mcf-primary-light);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  min-height: auto;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--mcf-shadow-md);
+    border-color: var(--mcf-primary);
+  }
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+    padding: 16px;
+  }
+}
+
+.mcf-invitation-info {
+  flex: 1;
+  min-width: 0; /* Permette al contenuto di ridursi */
+
+  @media (max-width: 600px) {
+    width: 100%;
+  }
+}
+
+.mcf-invitation-family {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+
+  @media (max-width: 600px) {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+}
+
+.mcf-invitation-family-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.mcf-invitation-family-name {
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--mcf-text-primary);
+  line-height: 1.3;
+
+  @media (max-width: 600px) {
+    font-size: 16px;
+    line-height: 1.4;
+  }
+}
+
+.mcf-invitation-invited-by {
+  font-size: 13px;
+  color: var(--mcf-text-secondary);
+  font-style: italic;
+  line-height: 1.3;
+
+  @media (max-width: 600px) {
+    font-size: 12px;
+  }
+}
+
+.mcf-invitation-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  @media (max-width: 600px) {
+    gap: 10px;
+  }
+}
+
+.mcf-invitation-role {
+  font-size: 14px;
+  color: var(--mcf-text-tertiary);
+  line-height: 1.4;
+
+  @media (max-width: 600px) {
+    font-size: 13px;
+  }
+}
+
+.mcf-invitation-from-detail {
+  font-size: 14px;
+  color: var(--mcf-text-tertiary);
+  line-height: 1.4;
+
+  @media (max-width: 600px) {
+    font-size: 13px;
+  }
+}
+
+.mcf-invitation-code {
+  font-size: 14px;
+  color: var(--mcf-primary);
+  font-weight: 600;
+  font-family: monospace;
+  background: var(--mcf-primary-light);
+  padding: 6px 10px;
+  border-radius: 6px;
+  display: inline-block;
+  word-break: break-all;
+
+  @media (max-width: 600px) {
+    font-size: 13px;
+    padding: 8px 12px;
+    margin-top: 4px;
+  }
+}
+
+.mcf-invitation-actions {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  flex-shrink: 0;
+
+  @media (max-width: 600px) {
+    width: 100%;
+    justify-content: center;
+    gap: 16px;
+  }
 }
 </style>

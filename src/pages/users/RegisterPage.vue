@@ -120,6 +120,21 @@
                 </template>
               </q-input>
 
+              <!-- Family Invitation Code (Optional) -->
+              <q-input
+                v-model="invitationCode"
+                label="Codice Invito Famiglia (opzionale)"
+                type="text"
+                outlined
+                dense
+                class="q-mb-md"
+                hint="Se hai ricevuto un codice invito, inseriscilo qui"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="group_add" />
+                </template>
+              </q-input>
+
               <!-- Terms and Conditions -->
               <q-checkbox
                 v-model="acceptTerms"
@@ -164,6 +179,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useAuthStore } from 'stores/auth.js'
+import { api } from 'src/services/api'
 
 const router = useRouter()
 const $q = useQuasar()
@@ -175,6 +191,7 @@ const lastName = ref('')
 const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
+const invitationCode = ref('')
 const acceptTerms = ref(false)
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
@@ -199,24 +216,67 @@ const register = async () => {
 
   loading.value = true
   try {
-    // TODO: Implement registration API call through authStore
-    // For now, show success and redirect to login
+    // Prepara i dati per la registrazione
+    const userData = {
+      email: email.value,
+      password: password.value,
+      password2: confirmPassword.value,
+      first_name: firstName.value,
+      last_name: lastName.value
+    }
+
+    // Se c'è un codice invito, aggiungilo
+    if (invitationCode.value) {
+      userData.invitation_code = invitationCode.value
+    }
+
+    // Chiama l'API di registrazione
+    const response = await api.register(userData)
 
     $q.notify({
       type: 'positive',
-      message: 'Registrazione completata! Effettua il login per continuare.',
+      message: 'Registrazione completata con successo!',
       position: 'top',
-      timeout: 3000
+      timeout: 2000
     })
 
-    // Redirect to login page
-    router.push('/login')
+    // Se la registrazione include già i token, effettua il login automatico
+    if (response.access && response.refresh) {
+      // Salva i token e i dati utente
+      authStore.accessToken = response.access
+      authStore.refreshToken = response.refresh
+      authStore.user = response.user || { email: email.value }
+
+      // Vai alla dashboard
+      router.push('/dashboard')
+    } else {
+      // Altrimenti vai al login
+      setTimeout(() => {
+        router.push('/login')
+      }, 1500)
+    }
 
   } catch (error) {
     console.error('Errore registrazione:', error)
+
+    // Gestisci errori specifici
+    let errorMessage = 'Errore durante la registrazione. Riprova.'
+
+    if (error.response?.data) {
+      if (error.response.data.email) {
+        errorMessage = 'Email già registrata'
+      } else if (error.response.data.invitation_code) {
+        errorMessage = 'Codice invito non valido'
+      } else if (error.response.data.detail) {
+        errorMessage = error.response.data.detail
+      } else if (error.response.data.non_field_errors) {
+        errorMessage = error.response.data.non_field_errors[0]
+      }
+    }
+
     $q.notify({
       type: 'negative',
-      message: 'Errore durante la registrazione. Riprova.',
+      message: errorMessage,
       position: 'top'
     })
   } finally {

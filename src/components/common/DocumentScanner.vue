@@ -14,7 +14,9 @@
         <div>Platform: {{ platformInfo.platform }}</div>
         <div>Android: {{ platformInfo.isAndroid }}</div>
         <div>iOS: {{ platformInfo.isIOS }}</div>
+        <div>iOS PWA: {{ platformInfo.isIOSPWA }}</div>
         <div><strong>Scanner Available: {{ isNativePlatform }}</strong></div>
+        <div><strong>Camera Method: {{ isIOSPWA ? 'HTML5 File Input' : 'Capacitor Camera' }}</strong></div>
       </q-card-section>
     </q-card>
 
@@ -36,7 +38,9 @@
         <q-btn
           v-if="!isNativePlatform"
           icon="camera_alt"
-          label="Fotografia Ricevuta"
+          :label="isIOSPWA ? 'Scatta Foto (iOS)' :
+                 isDesktop ? 'Seleziona Immagine' :
+                 'Fotografia Ricevuta'"
           @click="startCameraCapture"
           class="mcf-btn-primary mcf-scanner-primary-btn"
           size="lg"
@@ -63,7 +67,10 @@
       <div class="mcf-scanner-help">
         <q-icon name="info" class="mcf-help-icon" />
         <span class="mcf-help-text">
-          {{ isNativePlatform ? 'Inquadra la ricevuta e lascia che il sistema la rilevi automaticamente' : 'Scatta una foto chiara della ricevuta' }}
+          {{ isNativePlatform ? 'Inquadra la ricevuta e lascia che il sistema la rilevi automaticamente' :
+             isIOSPWA ? 'Tocca il pulsante per aprire la camera iOS e scattare una foto della ricevuta' :
+             isDesktop ? 'Seleziona un\'immagine della ricevuta dal tuo computer' :
+             'Scatta una foto chiara della ricevuta' }}
         </span>
       </div>
     </div>
@@ -326,11 +333,30 @@ const loadingCategories = ref(false)
 // Platform detection
 const platform = Capacitor.getPlatform()
 const isNativePlatform = ref(platform === 'android' || platform === 'ios')
+
+// Detect iOS PWA (problematic for Camera API) - safe navigation
+const isIOSPWA = ref(
+  typeof navigator !== 'undefined' &&
+  platform === 'web' &&
+  /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+  typeof window !== 'undefined' &&
+  window.navigator?.standalone === true
+)
+
+// Detect desktop (not mobile)
+const isDesktop = ref(
+  typeof navigator !== 'undefined' &&
+  platform === 'web' &&
+  !(/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
+)
+
 const platformInfo = ref({
   capacitorNative: Capacitor.isNativePlatform(),
   platform: platform,
   isAndroid: platform === 'android',
-  isIOS: platform === 'ios'
+  isIOS: platform === 'ios',
+  isIOSPWA: isIOSPWA.value,
+  isDesktop: isDesktop.value
 })
 
 // Categorie reali dal backend
@@ -455,6 +481,12 @@ const startDocumentScan = async () => {
 }
 
 const startCameraCapture = async () => {
+  // Use HTML5 method for all web platforms (iOS PWA and desktop)
+  if (platform === 'web') {
+    return startCameraCaptureHTML5()
+  }
+
+  // Use Capacitor Camera only for native platforms (Android/iOS app)
   try {
     scanning.value = true
     scanningMessage.value = 'Apertura camera...'
@@ -482,15 +514,102 @@ const startCameraCapture = async () => {
 
   } catch (error) {
     console.error('Camera capture error:', error)
+
+    // Fallback to HTML5 if Capacitor fails
+    console.log('📱 Capacitor camera failed, falling back to HTML5...')
+    return startCameraCaptureHTML5()
+  } finally {
+    scanning.value = false
+    scanningMessage.value = ''
+  }
+}
+
+// HTML5 fallback for web platforms
+const startCameraCaptureHTML5 = () => {
+  try {
+    scanning.value = true
+    scanningMessage.value = isIOSPWA.value ? 'Apertura camera iOS...' : 'Selezione immagine...'
+
+    // Create hidden file input
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'image/*'
+
+    // Use capture only on mobile devices (not desktop)
+    if (!isDesktop.value) {
+      input.capture = 'camera' // Request camera on mobile
+    }
+
+    input.style.display = 'none'
+
+    input.onchange = async (event) => {
+      const file = event.target.files[0]
+      if (!file) {
+        scanning.value = false
+        return
+      }
+
+      try {
+        // Convert file to data URL
+        const dataUrl = await fileToDataUrl(file)
+
+        scanResult.value = {
+          imageUri: dataUrl,
+          pages: [{ imageUri: dataUrl }]
+        }
+
+        emit('document-scanned', scanResult.value)
+
+        $q.notify({
+          type: 'positive',
+          message: 'Foto acquisita con successo!',
+          position: 'top'
+        })
+      } catch (error) {
+        console.error('File processing error:', error)
+        $q.notify({
+          type: 'negative',
+          message: 'Errore nel processamento file',
+          position: 'top'
+        })
+      } finally {
+        scanning.value = false
+        scanningMessage.value = ''
+        // Cleanup
+        input.remove()
+      }
+    }
+
+    input.oncancel = () => {
+      scanning.value = false
+      scanningMessage.value = ''
+      input.remove()
+    }
+
+    // Trigger file picker
+    document.body.appendChild(input)
+    input.click()
+
+  } catch (error) {
+    console.error('HTML5 camera capture error:', error)
     $q.notify({
       type: 'negative',
       message: 'Errore durante la cattura',
       position: 'top'
     })
-  } finally {
     scanning.value = false
     scanningMessage.value = ''
   }
+}
+
+// Helper function to convert File to DataURL
+const fileToDataUrl = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = (e) => resolve(e.target.result)
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
 }
 
 const selectFromGallery = async () => {

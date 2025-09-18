@@ -274,17 +274,31 @@ const loadDashboardData = async () => {
       }
     }
 
-    // Calcola totale del mese
+    // Calcola totale del mese corrente
     const now = new Date()
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
     const monthlyExpenses = expenses.filter(e => new Date(e.date) >= startOfMonth)
     monthExpenses.value = monthlyExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0).toFixed(2)
 
+    // Calcola totale del mese scorso per il trend
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0)
+    const lastMonthExpenses = expenses.filter(e => {
+      const expenseDate = new Date(e.date)
+      return expenseDate >= startOfLastMonth && expenseDate <= endOfLastMonth
+    })
+    const lastMonthTotal = lastMonthExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0)
+
+    // Calcola trend percentage
+    if (lastMonthTotal > 0) {
+      const currentTotal = parseFloat(monthExpenses.value)
+      monthTrend.value = ((currentTotal - lastMonthTotal) / lastMonthTotal) * 100
+    } else {
+      monthTrend.value = 0
+    }
+
     // Carica piani di spesa attivi per calcolare il budget
     await loadActivePlans()
-
-    // Trend (mock per ora)
-    monthTrend.value = Math.random() * 20 - 10 // Random tra -10% e +10%
 
   } catch (error) {
     console.error('Errore caricamento dashboard:', error)

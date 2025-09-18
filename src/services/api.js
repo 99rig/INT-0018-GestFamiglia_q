@@ -48,11 +48,21 @@ export const api = {
     return response.data
   },
 
+  async register(userData) {
+    const response = await apiClient.post('/auth/register/', userData)
+    return response.data
+  },
+
   async logout() {
     await apiClient.post('/auth/logout/')
   },
 
   async getUserProfile() {
+    const response = await apiClient.get('/auth/profile/')
+    return response.data
+  },
+
+  async getCurrentUser() {
     const response = await apiClient.get('/auth/profile/')
     return response.data
   },
@@ -272,6 +282,16 @@ export const api = {
 
   async getFamilyInvitations() {
     const response = await apiClient.get('/family-invitations/')
+    return response.data
+  },
+
+  async getReceivedInvitations() {
+    const response = await apiClient.get('/family-invitations/received/')
+    return response.data
+  },
+
+  async acceptInvitation(invitationId) {
+    const response = await apiClient.post(`/family-invitations/${invitationId}/accept/`)
     return response.data
   },
 

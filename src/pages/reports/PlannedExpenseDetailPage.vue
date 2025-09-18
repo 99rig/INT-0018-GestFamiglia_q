@@ -244,6 +244,7 @@
       persistent
       :full-width="$q.screen.lt.md"
       :full-height="$q.screen.lt.md"
+      maximized
     >
       <q-card :style="$q.screen.lt.md ? '' : 'min-width: 500px; max-width: 600px;'">
         <q-card-section>
@@ -274,11 +275,11 @@
               :rules="[val => val > 0 || 'Importo deve essere maggiore di zero']"
             />
 
-            <div class="row q-gutter-sm">
-              <div class="col">
+            <div class="mcf-form-row">
+              <div class="mcf-form-col">
                 <MCFAutocomplete
                   v-model="newExpense.category"
-                  :options="categories"
+                  :options="categoriesWithIcons"
                   label="Categoria"
                   outlined
                   option-value="id"
@@ -289,7 +290,7 @@
                   prepend-icon="category"
                 />
               </div>
-              <div class="col">
+              <div class="mcf-form-col">
                 <MCFAutocomplete
                   v-model="newExpense.priority"
                   :options="priorityOptions"
@@ -430,7 +431,7 @@
 
             <MCFAutocomplete
               v-model="editExpenseForm.category"
-              :options="categories"
+              :options="categoriesWithIcons"
               option-value="id"
               option-label="name"
               label="Categoria"
@@ -601,6 +602,17 @@ const canEditExpense = computed(() => {
   return editExpenseForm.value.description &&
          editExpenseForm.value.amount &&
          parseFloat(editExpenseForm.value.amount) > 0
+})
+
+// Categorie con icone per MCFAutocomplete
+const categoriesWithIcons = computed(() => {
+  return categories.value.map(category => ({
+    id: category.id,
+    name: category.name,
+    description: category.description,
+    icon: getCategoryIcon(category.name),
+    color: 'primary'
+  }))
 })
 
 // Metodi
@@ -904,6 +916,61 @@ const getEmptyStateText = () => {
     overdue: 'scaduta'
   }
   return texts[activeTab.value] || 'trovata'
+}
+
+const getCategoryIcon = (categoryIdOrName) => {
+  if (!categoryIdOrName) return 'category'
+
+  // Se è un numero (ID), trova il nome della categoria
+  let categoryName = categoryIdOrName
+  if (typeof categoryIdOrName === 'number') {
+    const category = categories.value.find(cat => cat.id === categoryIdOrName)
+    categoryName = category ? category.name : ''
+  }
+
+  if (!categoryName) return 'category'
+
+  const categoryLower = categoryName.toLowerCase()
+
+  if (categoryLower.includes('alimentari')) return 'restaurant'
+  if (categoryLower.includes('trasporti')) return 'directions_car'
+  if (categoryLower.includes('salute')) return 'local_hospital'
+  if (categoryLower.includes('casa')) return 'home'
+  if (categoryLower.includes('intrattenimento')) return 'movie'
+  if (categoryLower.includes('tempo libero')) return 'sports_esports'
+  if (categoryLower.includes('viaggi')) return 'flight'
+  if (categoryLower.includes('abbigliamento')) return 'checkroom'
+  if (categoryLower.includes('elettronica')) return 'devices'
+  if (categoryLower.includes('sport')) return 'fitness_center'
+  if (categoryLower.includes('educazione')) return 'school'
+  if (categoryLower.includes('assicurazioni')) return 'security'
+  if (categoryLower.includes('tasse')) return 'receipt_long'
+  if (categoryLower.includes('regali')) return 'card_giftcard'
+  if (categoryLower.includes('animali')) return 'pets'
+  if (categoryLower.includes('benzina')) return 'local_gas_station'
+  if (categoryLower.includes('carburante')) return 'local_gas_station'
+  if (categoryLower.includes('telefono')) return 'phone'
+  if (categoryLower.includes('internet')) return 'wifi'
+  if (categoryLower.includes('utenze')) return 'electrical_services'
+  if (categoryLower.includes('luce')) return 'lightbulb'
+  if (categoryLower.includes('gas')) return 'local_fire_department'
+  if (categoryLower.includes('acqua')) return 'water_drop'
+  if (categoryLower.includes('spesa')) return 'shopping_cart'
+  if (categoryLower.includes('supermercato')) return 'store'
+  if (categoryLower.includes('farmacia')) return 'local_pharmacy'
+  if (categoryLower.includes('medico')) return 'medical_services'
+  if (categoryLower.includes('dentista')) return 'dentistry'
+  if (categoryLower.includes('palestra')) return 'fitness_center'
+  if (categoryLower.includes('cinema')) return 'theaters'
+  if (categoryLower.includes('ristorante')) return 'restaurant'
+  if (categoryLower.includes('bar')) return 'local_bar'
+  if (categoryLower.includes('caffè')) return 'local_cafe'
+  if (categoryLower.includes('libro')) return 'menu_book'
+  if (categoryLower.includes('giochi')) return 'sports_esports'
+  if (categoryLower.includes('musica')) return 'music_note'
+  if (categoryLower.includes('streaming')) return 'play_circle'
+
+  return 'category'
 }
 
 // Lifecycle
@@ -1497,5 +1564,26 @@ onMounted(async () => {
 .mcf-menu-separator {
   margin: 4px 0;
   background: var(--mcf-border-light);
+}
+
+/* === RESPONSIVE FORM LAYOUT === */
+.mcf-form-row {
+  display: flex;
+  gap: 16px;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+.mcf-form-col {
+  flex: 1;
+  min-width: 0; /* Previene overflow */
+
+  @media (max-width: 600px) {
+    flex: none;
+    width: 100%;
+  }
 }
 </style>

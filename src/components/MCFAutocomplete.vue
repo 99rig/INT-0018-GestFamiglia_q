@@ -25,9 +25,16 @@
     :no-options-text="noOptionsText"
     :no-results-text="noResultsText"
     class="mcf-autocomplete"
-    behavior="menu"
+    :behavior="isMobile ? 'dialog' : 'menu'"
+    :dialog-props="isMobile ? {
+      persistent: false,
+      'no-backdrop-dismiss': false,
+      'no-esc-dismiss': false,
+      'popup-content-class': 'mcf-mobile-select-dialog'
+    } : undefined"
     emit-value
     map-options
+    ref="selectRef"
   >
     <!-- Slot per personalizzare come vengono mostrate le opzioni -->
     <template v-slot:option="scope" v-if="$slots.option">
@@ -109,11 +116,29 @@
     <template v-slot:append v-if="$slots.append">
       <slot name="append" />
     </template>
+
+    <!-- Template per dialog mobile con pulsante X -->
+    <template v-slot:before-options v-if="isMobile">
+      <div class="mcf-mobile-dialog-header">
+        <div class="mcf-dialog-title">{{ label }}</div>
+        <q-btn
+          flat
+          round
+          dense
+          icon="close"
+          class="mcf-close-btn"
+          @click="closeDialog"
+        />
+      </div>
+    </template>
   </q-select>
 </template>
 
 <script setup>
 import { ref, computed, watch, readonly } from 'vue'
+import { useQuasar } from 'quasar'
+
+const $q = useQuasar()
 
 const props = defineProps({
   modelValue: {
@@ -225,6 +250,7 @@ const emit = defineEmits(['update:modelValue', 'input', 'filter', 'clear'])
 // Stato interno
 const searchText = ref('')
 const filteredOptions = ref([...props.options])
+const selectRef = ref(null)
 
 // Opzione selezionata
 const selectedOption = computed(() => {
@@ -239,6 +265,11 @@ const selectedOption = computed(() => {
   return props.options.find(option =>
     getOptionValue(option) === props.modelValue
   ) || null
+})
+
+// Rilevamento mobile per comportamento responsive
+const isMobile = computed(() => {
+  return $q.platform.is.mobile || $q.screen.lt.sm
 })
 
 // Funzioni helper per gestire option-value e option-label
@@ -318,10 +349,18 @@ const clear = () => {
   emit('clear')
 }
 
+// Metodo per chiudere il dialog mobile
+const closeDialog = () => {
+  if (selectRef.value) {
+    selectRef.value.hidePopup()
+  }
+}
+
 // Esponiamo i metodi per l'utilizzo esterno
 defineExpose({
   updateFilter,
   clear,
+  closeDialog,
   searchText: readonly(searchText),
   filteredOptions: readonly(filteredOptions)
 })
@@ -406,6 +445,35 @@ defineExpose({
   :deep(.q-menu) {
     border-radius: 0;
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* === MOBILE DIALOG STYLES === */
+.mcf-mobile-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background: #f8f9fa;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.mcf-dialog-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.mcf-close-btn {
+  color: #666;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: #333;
+    background: rgba(0, 0, 0, 0.1);
   }
 }
 </style>
