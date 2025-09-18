@@ -76,7 +76,11 @@
                 <template v-slot:append>
                   <q-icon name="event" class="cursor-pointer">
                     <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                      <q-date v-model="formData.start_date" mask="YYYY-MM-DD">
+                      <q-date
+                        v-model="formData.start_date"
+                        mask="YYYY-MM-DD"
+                        :locale="italianLocale"
+                      >
                         <div class="row items-center justify-end">
                           <q-btn v-close-popup label="OK" color="primary" flat />
                         </div>
@@ -97,7 +101,11 @@
                 <template v-slot:append>
                   <q-icon name="event" class="cursor-pointer">
                     <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                      <q-date v-model="formData.end_date" mask="YYYY-MM-DD">
+                      <q-date
+                        v-model="formData.end_date"
+                        mask="YYYY-MM-DD"
+                        :locale="italianLocale"
+                      >
                         <div class="row items-center justify-end">
                           <q-btn v-close-popup label="OK" color="primary" flat />
                         </div>
@@ -154,6 +162,15 @@
 import { ref, computed, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useAuthStore } from 'src/stores/auth'
+
+// Locale italiana per il datepicker
+const italianLocale = {
+  days: 'Domenica_Lunedì_Martedì_Mercoledì_Giovedì_Venerdì_Sabato'.split('_'),
+  daysShort: 'Dom_Lun_Mar_Mer_Gio_Ven_Sab'.split('_'),
+  months: 'Gennaio_Febbraio_Marzo_Aprile_Maggio_Giugno_Luglio_Agosto_Settembre_Ottobre_Novembre_Dicembre'.split('_'),
+  monthsShort: 'Gen_Feb_Mar_Apr_Mag_Giu_Lug_Ago_Set_Ott_Nov_Dic'.split('_'),
+  firstDayOfWeek: 1 // Lunedì come primo giorno della settimana
+}
 
 const props = defineProps({
   modelValue: {

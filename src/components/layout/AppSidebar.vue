@@ -21,14 +21,25 @@
             Gestione Spese
             <div v-if="currentUser" class="mcf-user-info">
               {{ currentUser.first_name }} {{ currentUser.last_name }}
-              <q-chip
-                v-if="currentUser.profile?.role"
-                :label="formatRole(currentUser.profile.role)"
-                size="xs"
-                color="primary"
-                text-color="white"
-                class="mcf-role-chip"
-              />
+              <div class="mcf-user-chips">
+                <q-chip
+                  v-if="currentUser.profile?.role"
+                  :label="formatRole(currentUser.profile.role)"
+                  size="xs"
+                  color="primary"
+                  text-color="white"
+                  class="mcf-role-chip"
+                />
+                <q-chip
+                  v-if="currentUser.family?.name || currentUser.family_name"
+                  :label="currentUser.family?.name || currentUser.family_name"
+                  size="xs"
+                  color="secondary"
+                  text-color="white"
+                  class="mcf-family-chip"
+                  icon="family_restroom"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -79,7 +90,10 @@ import { useAuthStore } from 'src/stores/auth'
 
 const authStore = useAuthStore()
 
-const currentUser = computed(() => authStore.user)
+const currentUser = computed(() => {
+  console.log('🔍 Current user data:', authStore.user)
+  return authStore.user
+})
 
 const formatRole = (role) => {
   const roles = {
@@ -201,14 +215,21 @@ const settingsLinks = [
 }
 
 .mcf-user-info {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--mcf-text-muted);
   margin-top: 4px;
-  opacity: 0.8;
-  font-weight: 500;
+  opacity: 0.9;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mcf-user-chips {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+  flex-wrap: wrap;
 }
 
 .mcf-role-chip {
@@ -216,6 +237,19 @@ const settingsLinks = [
     font-size: 9px;
     font-weight: 600;
     padding: 2px 6px;
+  }
+}
+
+.mcf-family-chip {
+  :deep(.q-chip__content) {
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 6px;
+  }
+
+  :deep(.q-chip__icon) {
+    font-size: 12px;
+    margin-right: 2px;
   }
 }
 

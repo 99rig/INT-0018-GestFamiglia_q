@@ -344,6 +344,26 @@ export const useAuthStore = defineStore('auth', {
         console.error('❌ Error updating profile:', error)
         throw error
       }
+    },
+
+    // Ricarica i dati utente correnti dal server
+    async refreshUserData() {
+      try {
+        console.log('🔄 Refreshing user data...')
+        const userData = await api.getCurrentUser()
+
+        // Aggiorna i dati utente nello store
+        this.user = userData
+
+        // Salva nel storage
+        await storage.saveUserData(userData)
+
+        console.log('✅ User data refreshed successfully')
+        return userData
+      } catch (error) {
+        console.error('❌ Error refreshing user data:', error)
+        throw error
+      }
     }
   }
 })

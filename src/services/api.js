@@ -180,6 +180,11 @@ export const api = {
     return response.data
   },
 
+  async smartCloneSpendingPlan(id) {
+    const response = await apiClient.post(`/spending-plans/${id}/smart_clone/`)
+    return response.data
+  },
+
   // Planned Expenses endpoints
   async getPlannedExpenses() {
     const response = await apiClient.get('/planned-expenses/')

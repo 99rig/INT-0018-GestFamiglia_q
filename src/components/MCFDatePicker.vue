@@ -25,6 +25,7 @@
           <q-date
             :model-value="internalValue"
             @update:model-value="onDateChange"
+            :locale="italianLocale"
             class="mcf-date-popup"
             today-btn
             flat
@@ -47,6 +48,7 @@
           </q-date>
           <q-date
             @update:model-value="onDateChange"
+            :locale="italianLocale"
             class="mcf-date-popup"
             today-btn
             flat

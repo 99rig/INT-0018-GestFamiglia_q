@@ -1187,6 +1187,9 @@ const createFamily = async () => {
     const family = await api.createFamily(familyData)
     currentFamily.value = family
 
+    // Aggiorna i dati utente nell'authStore per includere la famiglia appena creata
+    await authStore.refreshUserData()
+
     $q.notify({
       type: 'positive',
       message: 'Famiglia creata con successo!',
@@ -1219,6 +1222,9 @@ const joinFamily = async () => {
 
     const result = await api.joinFamily(joinData)
     await loadCurrentFamily() // Ricarica i dati della famiglia
+
+    // Aggiorna i dati utente nell'authStore per includere la famiglia
+    await authStore.refreshUserData()
 
     $q.notify({
       type: 'positive',

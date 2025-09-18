@@ -47,12 +47,12 @@
                 <span>Organizza per periodo</span>
               </div>
               <div class="mcf-feature-item">
-                <q-icon name="trending_up" class="mcf-feature-icon" />
-                <span>Monitora i progressi</span>
+                <q-icon name="content_copy" class="mcf-feature-icon" />
+                <span>Clona i piani</span>
               </div>
               <div class="mcf-feature-item">
-                <q-icon name="check_circle" class="mcf-feature-icon" />
-                <span>Raggiungi i tuoi obiettivi</span>
+                <q-icon name="trending_up" class="mcf-feature-icon" />
+                <span>Monitora i progressi</span>
               </div>
             </div>
 
@@ -133,6 +133,21 @@
                         <q-item-section class="mcf-menu-text">
                           <q-item-label>Modifica Piano</q-item-label>
                           <q-item-label caption>Cambia nome, date o budget</q-item-label>
+                        </q-item-section>
+                      </q-item>
+
+                      <q-item
+                        clickable
+                        v-close-popup
+                        @click="clonePlan(plan)"
+                        class="mcf-menu-item mcf-menu-item-clone"
+                      >
+                        <q-item-section avatar class="mcf-menu-icon">
+                          <q-icon name="content_copy" />
+                        </q-item-section>
+                        <q-item-section class="mcf-menu-text">
+                          <q-item-label>Clona Piano</q-item-label>
+                          <q-item-label caption>Crea copia intelligente per il periodo successivo</q-item-label>
                         </q-item-section>
                       </q-item>
 
@@ -259,6 +274,13 @@
       @cancel="handlePlanCancel"
     />
 
+    <!-- Dialog Clone Piano Intelligente -->
+    <CloneSpendingPlanDialog
+      v-model="showCloneDialog"
+      :plan="cloningPlan"
+      @cloned="handlePlanCloned"
+    />
+
   </q-page>
 </template>
 
@@ -269,6 +291,7 @@ import { useRouter } from 'vue-router'
 import { api } from 'src/services/api.js'
 import { useAuthStore } from 'stores/auth.js'
 import SpendingPlanDialog from 'components/SpendingPlanDialog.vue'
+import CloneSpendingPlanDialog from 'components/CloneSpendingPlanDialog.vue'
 
 const $q = useQuasar()
 const router = useRouter()
@@ -279,7 +302,9 @@ const loading = ref(false)
 const saving = ref(false)
 const showCreateDialog = ref(false)
 const showEditDialog = ref(false)
+const showCloneDialog = ref(false)
 const editingPlan = ref(null)
+const cloningPlan = ref(null)
 const expandedPlans = ref(new Set())
 
 const authStore = useAuthStore()
@@ -318,8 +343,8 @@ const handlePlanSubmit = async (planData) => {
   try {
     // Se il piano è condiviso, aggiungi tutti gli utenti della famiglia
     // Altrimenti solo l'utente corrente
-    const users = planData.is_shared && authStore.user.family
-      ? authStore.user.family.members.map(m => m.id)
+    const users = planData.is_shared && authStore.user.family_detail
+      ? authStore.user.family_detail.members.map(m => m.id)
       : [authStore.user.id]
 
     const submitData = {
@@ -363,8 +388,8 @@ const handlePlanUpdate = async (planData) => {
   try {
     // Se il piano è condiviso, aggiungi tutti gli utenti della famiglia
     // Altrimenti solo l'utente corrente
-    const users = planData.is_shared && authStore.user.family
-      ? authStore.user.family.members.map(m => m.id)
+    const users = planData.is_shared && authStore.user.family_detail
+      ? authStore.user.family_detail.members.map(m => m.id)
       : [authStore.user.id]
 
     const submitData = {
@@ -443,6 +468,26 @@ const deletePlan = (plan) => {
       })
     }
   })
+}
+
+const clonePlan = (plan) => {
+  cloningPlan.value = plan
+  showCloneDialog.value = true
+}
+
+const handlePlanCloned = async (clonedPlan) => {
+  $q.notify({
+    type: 'positive',
+    message: `Piano "${clonedPlan.name}" clonato con successo!`,
+    position: 'top'
+  })
+
+  // Ricarica la lista dei piani per mostrare il nuovo piano clonato
+  await loadSpendingPlans()
+
+  // Reset state
+  cloningPlan.value = null
+  showCloneDialog.value = false
 }
 
 // Utility functions
@@ -635,28 +680,28 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 40px 20px;
-  min-height: 500px;
+  padding: 24px 20px;
+  min-height: 350px;
 
   @media (min-width: 768px) {
-    padding: 60px 40px;
-    min-height: 600px;
+    padding: 32px 40px;
+    min-height: 400px;
   }
 }
 
 .mcf-empty-illustration {
   position: relative;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
 
   @media (min-width: 768px) {
-    margin-bottom: 40px;
+    margin-bottom: 24px;
   }
 }
 
 .mcf-empty-icon-container {
   position: relative;
-  width: 120px;
-  height: 120px;
+  width: 80px;
+  height: 80px;
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -665,17 +710,17 @@ onMounted(async () => {
   border-radius: 50%;
 
   @media (min-width: 768px) {
-    width: 140px;
-    height: 140px;
+    width: 100px;
+    height: 100px;
   }
 }
 
 .mcf-empty-icon {
-  font-size: 60px;
+  font-size: 40px;
   color: var(--mcf-primary);
 
   @media (min-width: 768px) {
-    font-size: 70px;
+    font-size: 50px;
   }
 }
 
@@ -732,67 +777,67 @@ onMounted(async () => {
 }
 
 .mcf-empty-title {
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--mcf-text-primary);
-  margin: 0 0 16px 0;
+  margin: 0 0 12px 0;
   line-height: 1.2;
 
   @media (min-width: 768px) {
-    font-size: 32px;
-    margin-bottom: 20px;
+    font-size: 26px;
+    margin-bottom: 16px;
   }
 }
 
 .mcf-empty-description {
-  font-size: 16px;
+  font-size: 14px;
   color: var(--mcf-text-secondary);
-  margin: 0 0 32px 0;
-  line-height: 1.5;
+  margin: 0 0 20px 0;
+  line-height: 1.4;
 
   @media (min-width: 768px) {
-    font-size: 18px;
-    margin-bottom: 40px;
+    font-size: 16px;
+    margin-bottom: 24px;
   }
 }
 
 .mcf-empty-features {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-bottom: 40px;
+  gap: 12px;
+  margin-bottom: 24px;
 
   @media (min-width: 768px) {
     flex-direction: row;
     justify-content: center;
-    gap: 32px;
-    margin-bottom: 48px;
+    gap: 24px;
+    margin-bottom: 32px;
   }
 }
 
 .mcf-feature-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
+  gap: 6px;
+  font-size: 13px;
   color: var(--mcf-text-secondary);
   font-weight: 500;
 
   @media (min-width: 768px) {
     flex-direction: column;
     text-align: center;
-    gap: 6px;
-    font-size: 15px;
+    gap: 4px;
+    font-size: 14px;
   }
 }
 
 .mcf-feature-icon {
-  font-size: 20px;
+  font-size: 18px;
   color: var(--mcf-primary);
   flex-shrink: 0;
 
   @media (min-width: 768px) {
-    font-size: 24px;
+    font-size: 20px;
   }
 }
 
@@ -1111,6 +1156,20 @@ onMounted(async () => {
 
     .mcf-menu-text .q-item__label:not(.q-item__label--caption) {
       color: var(--mcf-primary) !important;
+    }
+  }
+}
+
+.mcf-menu-item-clone {
+  &:hover {
+    background: rgba(76, 175, 80, 0.1) !important;
+
+    .mcf-menu-icon .q-icon {
+      color: #4caf50 !important;
+    }
+
+    .mcf-menu-text .q-item__label:not(.q-item__label--caption) {
+      color: #4caf50 !important;
     }
   }
 }
