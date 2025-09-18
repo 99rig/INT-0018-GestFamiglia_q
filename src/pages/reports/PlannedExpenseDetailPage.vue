@@ -411,7 +411,11 @@
               min="0"
               :max="selectedExpense?.remaining_amount"
               prefix="€"
-              :rules="[val => val > 0 && val <= parseFloat(selectedExpense?.remaining_amount || 0) || 'Importo non valido']"
+              :rules="[val => {
+                const numVal = parseFloat(val)
+                const maxAmount = parseFloat(selectedExpense?.remaining_amount || 0)
+                return (!isNaN(numVal) && numVal > 0 && numVal <= maxAmount) || 'Importo non valido'
+              }]"
             />
 
             <q-input
@@ -772,9 +776,13 @@ const canCreateExpense = computed(() => {
 })
 
 const canAddPayment = computed(() => {
+  const amount = parseFloat(newPayment.value.amount)
+  const remainingAmount = parseFloat(selectedExpense.value?.remaining_amount || 0)
   return newPayment.value.amount &&
-         parseFloat(newPayment.value.amount) > 0 &&
-         parseFloat(newPayment.value.amount) <= parseFloat(selectedExpense.value?.remaining_amount || 0)
+         !isNaN(amount) &&
+         amount > 0 &&
+         !isNaN(remainingAmount) &&
+         amount <= remainingAmount
 })
 
 const canEditExpense = computed(() => {
@@ -861,7 +869,7 @@ const createExpense = async () => {
 const openPaymentDialog = (expense) => {
   selectedExpense.value = expense
   newPayment.value = {
-    amount: parseFloat(expense.remaining_amount || 0).toString(),
+    amount: (parseFloat(expense.remaining_amount || 0) || 0).toString(),
     description: `Pagamento per ${expense.description}`,
     date: new Date().toISOString().split('T')[0]
   }
