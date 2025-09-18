@@ -597,7 +597,7 @@ onMounted(() => {
 .mcf-app-title {
   font-family: var(--mcf-logo-font, 'Fredoka One'), cursive;
   font-size: 28px;
-  font-weight: 400;
+  font-weight: bold !important; // Logo sempre bold
   margin: 0 0 4px 0;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 

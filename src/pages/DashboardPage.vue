@@ -209,7 +209,7 @@ import { useRouter } from 'vue-router'
 import { useQuasar, date } from 'quasar'
 import { useAuthStore } from 'stores/auth'
 import { useExpensesStore } from 'stores/expenses'
-import { api } from 'src/services/api'
+import { reportsAPI } from 'src/services/api/reports.js'
 import MCFLoading from 'src/components/MCFLoading.vue'
 // import { useSnackbar } from 'src/composables/useSnackbar' - not used yet
 
@@ -332,7 +332,7 @@ const loadActivePlans = async () => {
     console.log('🔄 Caricamento piani di spesa attivi...')
 
     // Carica piani di spesa attivi (current)
-    const currentPlansResponse = await api.getCurrentSpendingPlans()
+    const currentPlansResponse = await reportsAPI.getCurrentSpendingPlans()
     console.log('📋 Risposta API getCurrentSpendingPlans:', currentPlansResponse)
 
     activePlans.value = currentPlansResponse || []

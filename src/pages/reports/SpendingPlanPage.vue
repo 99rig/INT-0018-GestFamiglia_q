@@ -277,7 +277,7 @@
 import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
-import { api } from 'src/services/api.js'
+import { reportsAPI } from 'src/services/api/reports.js'
 import { useAuthStore } from 'stores/auth.js'
 import { useSnackbar } from 'src/composables/useSnackbar'
 import SpendingPlanDialog from 'components/SpendingPlanDialog.vue'
@@ -314,7 +314,7 @@ const planTypeOptions = [
 const loadSpendingPlans = async () => {
   try {
     loading.value = true
-    const response = await api.getSpendingPlans()
+    const response = await reportsAPI.getSpendingPlans()
     spendingPlans.value = response.results || response || []
     console.log('📋 Piani di spesa caricati:', spendingPlans.value.length)
   } catch (error) {
@@ -340,7 +340,7 @@ const handlePlanSubmit = async (planData) => {
       users
     }
 
-    await api.createSpendingPlan(submitData)
+    await reportsAPI.createSpendingPlan(submitData)
 
     snackbar.success('Piano di spesa creato con successo!')
 
@@ -377,7 +377,7 @@ const handlePlanUpdate = async (planData) => {
       users
     }
 
-    await api.updateSpendingPlan(planData.id, submitData)
+    await reportsAPI.updateSpendingPlan(planData.id, submitData)
 
     snackbar.success('Piano di spesa aggiornato con successo!')
 
@@ -422,7 +422,7 @@ const deletePlan = (plan) => {
     persistent: true
   }).onOk(async () => {
     try {
-      await api.deleteBudget(plan.id)
+      await reportsAPI.deleteBudget(plan.id)
 
       snackbar.success('Piano eliminato con successo')
 

@@ -7,7 +7,7 @@ import { App } from '@capacitor/app'
 import { Filesystem, Directory } from '@capacitor/filesystem'
 import { FileOpener } from '@capacitor-community/file-opener'
 import { Dialog } from 'quasar'
-import { api } from './api'
+import { API } from './api/index.js'
 
 class UpdateService {
   constructor() {
@@ -69,7 +69,7 @@ class UpdateService {
     try {
       console.log('🔍 Checking for updates...')
 
-      const response = await api.checkUpdate(this.currentVersion.code)
+      const response = await API.checkUpdate(this.currentVersion.code)
 
       if (response.has_update) {
         console.log('✨ Update available:', response.latest_version)
@@ -304,7 +304,7 @@ ${updateInfo.is_mandatory ? '\n⚠️ Questo aggiornamento è obbligatorio.' : '
 }
 
 // Aggiungi metodi all'API
-api.checkUpdate = async function(currentVersionCode) {
+API.checkUpdate = async function(currentVersionCode) {
   const response = await this.get(`/updates/check/?version_code=${currentVersionCode}`)
   return response.data
 }

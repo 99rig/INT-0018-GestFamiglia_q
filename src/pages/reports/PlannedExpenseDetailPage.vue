@@ -63,14 +63,14 @@
             </div>
             <div class="progress-container">
               <q-linear-progress
-                :value="progressValue"
+                :value="dynamicProgressValue"
                 size="8px"
                 :color="progressColor"
                 track-color="grey-3"
                 class="progress-bar"
               />
-              <div class="progress-text">
-                {{ Math.round(progressValue * 100) }}% completato
+              <div class="progress-text cursor-pointer" @click="toggleProgressDisplay">
+                {{ progressText }}
               </div>
             </div>
           </div>
@@ -616,7 +616,13 @@
 import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute } from 'vue-router'
-import { api } from 'src/services/api.js'
+// 🚀 Import ottimizzato: solo i moduli API necessari per questa pagina
+import { reportsAPI } from 'src/services/api/reports.js'
+import { expensesAPI } from 'src/services/api/expenses.js'
+
+// Questa pagina gestisce piani di spesa e spese, quindi importiamo solo:
+// - reportsAPI per spending plans e planned expenses
+// - expensesAPI per le spese reali
 import { useSnackbar } from 'src/composables/useSnackbar'
 import MCFDatePicker from 'components/MCFDatePicker.vue'
 import MCFAutocomplete from 'components/MCFAutocomplete.vue'
@@ -650,6 +656,9 @@ const payments = ref([])
 const showDeleteModal = ref(false)
 const expenseToDelete = ref(null)
 const deleting = ref(false)
+
+// Toggle per visualizzare percentuale per numero o per importo
+const showAmountProgress = ref(false)
 
 // Form nuova spesa
 const newExpense = ref({
@@ -724,6 +733,38 @@ const progressColor = computed(() => {
   return 'primary'
 })
 
+// Computed per il testo del progresso
+const progressText = computed(() => {
+  if (!currentPlan.value) return ''
+
+  if (showAmountProgress.value) {
+    // Mostra importi economici
+    const paid = parseFloat(currentPlan.value.completed_expenses_amount || 0)
+    const total = parseFloat(currentPlan.value.total_planned_amount || 0)
+    return `Pagati €${paid.toFixed(2)} su €${total.toFixed(2)}`
+  } else {
+    // Mostra numero di spese
+    const completed = parseInt(currentPlan.value.completed_count || 0)
+    const total = parseInt(currentPlan.value.total_expenses_count || 0)
+    return `Pagate ${completed} su ${total}`
+  }
+})
+
+// Computed per il valore del progresso in base al toggle
+const dynamicProgressValue = computed(() => {
+  if (!currentPlan.value) return 0
+
+  if (showAmountProgress.value) {
+    // Calcola percentuale per importi
+    const paid = parseFloat(currentPlan.value.completed_expenses_amount || 0)
+    const total = parseFloat(currentPlan.value.total_planned_amount || 0)
+    return total > 0 ? paid / total : 0
+  } else {
+    // Usa la percentuale per numero di spese (quella esistente)
+    return progressValue.value
+  }
+})
+
 const canCreateExpense = computed(() => {
   return newExpense.value.description &&
          newExpense.value.amount &&
@@ -751,40 +792,31 @@ const totalPayments = computed(() => {
 const loadPlanData = async () => {
   loading.value = true
   try {
-    // Carica il piano di spesa
-    const spendingPlan = await api.getSpendingPlan(planId.value)
-    currentPlan.value = spendingPlan
+    // 🚀 Usa il nuovo endpoint ottimizzato che carica tutto in una chiamata
+    const response = await reportsAPI.getSpendingPlanDetails(planId.value)
 
-    // Carica le spese pianificate del piano
-    const plannedResponse = await api.getPlannedExpenses()
-    const plannedExpensesData = plannedResponse.results || plannedResponse
-    const filteredPlannedExpenses = plannedExpensesData.filter(exp =>
-      exp.spending_plan === parseInt(planId.value)
-    )
+    currentPlan.value = response.plan
 
-    // Carica anche le spese reali collegate al piano
-    const realExpensesResponse = await api.getExpenses()
-    const realExpensesData = realExpensesResponse.results || realExpensesResponse || []
+    // Le spese pianificate vengono caricate direttamente dal piano
+    const plannedExpensesFromPlan = response.plan.planned_expenses_detail || []
 
-    // Filtra solo le spese reali che appartengono a questo piano
-    const filteredRealExpenses = realExpensesData.filter(exp =>
-      exp.spending_plan === parseInt(planId.value)
-    )
+    // Le spese non pianificate vengono caricate separatamente
+    const unplannedExpenses = response.unplanned_expenses || []
 
-    // Combina spese pianificate e spese reali
+    // Combina spese pianificate e non pianificate
     plannedExpenses.value = [
-      ...filteredPlannedExpenses,
-      ...filteredRealExpenses.map(exp => ({
+      ...plannedExpensesFromPlan,
+      ...unplannedExpenses.map(exp => ({
         ...exp,
-        is_real_expense: true // Flag per distinguere spese reali da pianificate
+        is_real_expense: true // Flag per distinguere spese reali non pianificate
       }))
     ]
 
     console.log('📋 Piano caricato:', currentPlan.value)
-    console.log('💰 Spese pianificate:', filteredPlannedExpenses.length)
-    console.log('💳 Spese reali collegate:', filteredRealExpenses.length)
-    console.log('📝 Piano ID cercato:', parseInt(planId.value))
+    console.log('💰 Spese pianificate:', plannedExpensesFromPlan.length)
+    console.log('💳 Spese non pianificate:', unplannedExpenses.length)
     console.log('💰 Totale spese caricate:', plannedExpenses.value.length)
+    console.log('🚀 Performance: utilizzato endpoint ottimizzato /details/')
 
     // Carica i dati dei pagamenti in background
     loadPaymentsData()
@@ -810,7 +842,7 @@ const createExpense = async () => {
       subcategory: newExpense.value.category?.subcategory || null
     }
 
-    await api.createPlannedExpense(expenseData)
+    await reportsAPI.createPlannedExpense(expenseData)
 
     snackbar.success('Spesa pianificata creata con successo!')
 
@@ -847,7 +879,7 @@ const addPayment = async () => {
       date: newPayment.value.date
     }
 
-    await api.addPaymentToPlannedExpense(selectedExpense.value.id, paymentData)
+    await reportsAPI.addPaymentToPlannedExpense(selectedExpense.value.id, paymentData)
 
     snackbar.success('Pagamento aggiunto con successo!')
 
@@ -895,6 +927,10 @@ const resetEditExpenseForm = () => {
   editingExpense.value = null
 }
 
+const toggleProgressDisplay = () => {
+  showAmountProgress.value = !showAmountProgress.value
+}
+
 const updateExpense = async () => {
   if (!canEditExpense.value || !editingExpense.value) return
 
@@ -908,7 +944,7 @@ const updateExpense = async () => {
       subcategory: editExpenseForm.value.category?.subcategory || null
     }
 
-    await api.updatePlannedExpense(editingExpense.value.id, expenseData)
+    await reportsAPI.updatePlannedExpense(editingExpense.value.id, expenseData)
 
     snackbar.success('Spesa pianificata aggiornata con successo!')
 
@@ -950,7 +986,7 @@ const confirmDeleteExpense = async () => {
 
   deleting.value = true
   try {
-    await api.deletePlannedExpense(expenseToDelete.value.id)
+    await reportsAPI.deletePlannedExpense(expenseToDelete.value.id)
     snackbar.success('Spesa eliminata con successo')
     await loadPlanData()
 
@@ -976,7 +1012,7 @@ const viewPayments = async (expense) => {
 
   try {
     loading.value = true
-    const response = await api.getPlannedExpensePayments(expense.id)
+    const response = await reportsAPI.getPlannedExpensePayments(expense.id)
     payments.value = response.results || response || []
     console.log('📋 Pagamenti caricati:', payments.value.length)
   } catch (error) {
@@ -1086,7 +1122,7 @@ const loadPaymentsData = async () => {
   for (const expense of plannedExpenses.value) {
     if (expense.actual_payments_count > 0) {
       try {
-        const paymentsResponse = await api.getPlannedExpensePayments(expense.id)
+        const paymentsResponse = await reportsAPI.getPlannedExpensePayments(expense.id)
         const paymentsData = paymentsResponse.results || paymentsResponse || []
         expensePaymentsCache.value.set(expense.id, paymentsData)
       } catch (error) {
@@ -1273,6 +1309,20 @@ onMounted(async () => {
   color: var(--mcf-text-secondary);
   text-align: center;
   font-weight: 500;
+  transition: all 0.2s ease;
+
+  &.cursor-pointer {
+    user-select: none;
+
+    &:hover {
+      color: var(--q-primary);
+      transform: scale(1.05);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
 }
 
 // === FILTER TABS ===

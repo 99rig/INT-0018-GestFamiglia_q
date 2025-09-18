@@ -1,42 +1,46 @@
 <template>
-  <MCFAutocomplete
-    v-model="selectedCategory"
-    :options="filteredCategoryOptions"
-    :label="categoryLabel"
-    required
-    outlined
-    option-value="value"
-    option-label="label"
-    @update:model-value="onCategoryChange"
-    :rules="[val => val !== null && val !== undefined || 'Categoria richiesta']"
-    prepend-icon="category"
-    :multiple="false"
-    :custom-filter="categoryFilter"
-    :show-icon="false"
-  />
+  <div class="category-autocomplete">
+    <MCFAutocomplete
+      v-model="selectedCategory"
+      :options="filteredCategoryOptions"
+      :label="categoryLabel"
+      required
+      v-bind="$attrs"
+      option-value="value"
+      option-label="label"
+      @update:model-value="onCategoryChange"
+      :rules="[val => val !== null && val !== undefined || 'Categoria richiesta']"
+      prepend-icon="category"
+      :multiple="false"
+      :custom-filter="categoryFilter"
+      :show-icon="false"
+    />
 
-  <MCFAutocomplete
-    v-if="showSubcategorySelect"
-    v-model="selectedSubcategory"
-    :options="subcategoryOptions"
-    :label="subcategoryLabel"
-    outlined
-    option-value="value"
-    option-label="label"
-    :disable="!selectedCategory || subcategoryOptions.length === 0"
-    clearable
-    prepend-icon="label"
-    :multiple="false"
-    @update:model-value="onSubcategoryChange"
-    :show-icon="false"
-    :placeholder="selectedCategory ? (subcategoryOptions.length > 0 ? 'Seleziona sottocategoria...' : 'Nessuna sottocategoria disponibile') : 'Seleziona prima una categoria'"
-  />
+    <MCFAutocomplete
+      v-if="showSubcategorySelect"
+      v-model="selectedSubcategory"
+      :options="subcategoryOptions"
+      :label="subcategoryLabel"
+      v-bind="$attrs"
+      option-value="value"
+      option-label="label"
+      :disable="!selectedCategory || subcategoryOptions.length === 0"
+      prepend-icon="label"
+      :multiple="false"
+      @update:model-value="onSubcategoryChange"
+      :show-icon="false"
+      :placeholder="selectedCategory ? (subcategoryOptions.length > 0 ? 'Seleziona sottocategoria...' : 'Nessuna sottocategoria disponibile') : 'Seleziona prima una categoria'"
+    />
+  </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { api } from 'src/services/api.js'
+import { categoriesAPI } from 'src/services/api/categories.js'
 import MCFAutocomplete from './MCFAutocomplete.vue'
+
+// Disable automatic attribute inheritance since we handle them manually
+defineOptions({ inheritAttrs: false })
 
 const props = defineProps({
   modelValue: {
@@ -81,7 +85,7 @@ const showSubcategorySelect = computed(() => {
 const loadCategories = async () => {
   try {
     loading.value = true
-    const response = await api.getCategories()
+    const response = await categoriesAPI.getCategories()
     categories.value = response.results || response.data || response
 
     console.log('📂 Categories loaded:', categories.value)

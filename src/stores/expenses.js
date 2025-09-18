@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
-import { api } from 'src/services/api'
+import { expensesAPI } from 'src/services/api/expenses.js'
+import { categoriesAPI } from 'src/services/api/categories.js'
 
 export const useExpensesStore = defineStore('expenses', {
   state: () => ({
@@ -59,7 +60,7 @@ export const useExpensesStore = defineStore('expenses', {
       this.error = null
 
       try {
-        const response = await api.getExpenses()
+        const response = await expensesAPI.getExpenses()
         this.expenses = response.results || response || []
       } catch (error) {
         this.error = error.message
@@ -142,7 +143,7 @@ export const useExpensesStore = defineStore('expenses', {
     // Carica categorie
     async loadCategories() {
       try {
-        const response = await api.getCategories()
+        const response = await categoriesAPI.getCategories()
         this.categories = response.results || response || []
       } catch (error) {
         console.error('Error loading categories:', error)

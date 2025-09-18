@@ -1,0 +1,54 @@
+/**
+ * Expenses API - Gestione spese
+ */
+
+import { apiClient } from './client.js'
+
+export const expensesAPI = {
+  // CRUD Spese
+  async getExpenses(filters = {}) {
+    const params = new URLSearchParams()
+
+    if (filters.search) {
+      params.append('search', filters.search)
+    }
+    if (filters.category) {
+      params.append('category', filters.category)
+    }
+    if (filters.date_from) {
+      params.append('date_from', filters.date_from)
+    }
+    if (filters.date_to) {
+      params.append('date_to', filters.date_to)
+    }
+
+    const url = params.toString() ? `/expenses/?${params.toString()}` : '/expenses/'
+    const response = await apiClient.get(url)
+    return response.data
+  },
+
+  async createExpense(expenseData) {
+    const response = await apiClient.post('/expenses/', expenseData)
+    return response.data
+  },
+
+  async createExpenseWithFile(formData) {
+    const response = await apiClient.post('/expenses/', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+    return response.data
+  },
+
+  async updateExpense(id, expenseData) {
+    const response = await apiClient.put(`/expenses/${id}/`, expenseData)
+    return response.data
+  },
+
+  async deleteExpense(id) {
+    await apiClient.delete(`/expenses/${id}/`)
+  }
+}
+
+export default expensesAPI

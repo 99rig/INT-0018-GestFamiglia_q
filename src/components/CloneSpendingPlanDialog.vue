@@ -234,7 +234,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useSnackbar } from 'src/composables/useSnackbar'
-import { api } from 'src/services/api'
+import { reportsAPI } from 'src/services/api/reports.js'
 
 const props = defineProps({
   modelValue: {
@@ -303,7 +303,7 @@ const generatePreview = async () => {
   generating.value = true
   try {
     // Chiamata API per smart clone in modalità preview
-    const response = await api.smartCloneSpendingPlan(props.plan.id, { preview_only: true })
+    const response = await reportsAPI.smartCloneSpendingPlan(props.plan.id, { preview_only: true })
     clonePreview.value = response
 
     snackbar.success('Anteprima generata con successo')

@@ -199,8 +199,9 @@ const settingsLinks = [
   flex: 1;
 
   .mcf-sidebar-name {
+    font-family: var(--mcf-logo-font, 'Fredoka One'), cursive;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: bold !important; // Logo sempre bold
     color: var(--mcf-text-primary);
     line-height: 1.2;
   }

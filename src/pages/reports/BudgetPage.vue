@@ -255,7 +255,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useSnackbar } from 'src/composables/useSnackbar'
-import { api } from 'src/services/api.js'
+import { reportsAPI } from 'src/services/api/reports.js'
 import { useAuthStore } from 'stores/auth.js'
 import MCFLoading from 'src/components/MCFLoading.vue'
 
@@ -299,7 +299,7 @@ const canCreateBudget = computed(() => {
 const loadBudgets = async () => {
   try {
     loading.value = true
-    const response = await api.getBudgets()
+    const response = await reportsAPI.getBudgets()
     budgets.value = response.results || response || []
     console.log('📊 Budget caricati:', budgets.value.length)
   } catch (error) {
@@ -315,7 +315,7 @@ const createBudget = async () => {
 
   saving.value = true
   try {
-    await api.createBudget(newBudget.value)
+    await reportsAPI.createBudget(newBudget.value)
 
     snackbar.success('Piano di spesa creato con successo!')
 
@@ -364,7 +364,7 @@ const deleteBudget = (budget) => {
     persistent: true
   }).onOk(async () => {
     try {
-      await api.deleteBudget(budget.id)
+      await reportsAPI.deleteBudget(budget.id)
 
       snackbar.success('Piano di spesa eliminato con successo')
 

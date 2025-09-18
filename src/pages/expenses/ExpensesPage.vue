@@ -693,7 +693,9 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useSnackbar } from 'src/composables/useSnackbar'
-import { api } from 'src/services/api.js'
+import { expensesAPI } from 'src/services/api/expenses.js'
+import { reportsAPI } from 'src/services/api/reports.js'
+import { categoriesAPI } from 'src/services/api/categories.js'
 import MCFAutocomplete from 'components/MCFAutocomplete.vue'
 import MCFDatePicker from 'components/MCFDatePicker.vue'
 import DeleteExpenseModal from 'components/DeleteExpenseModal.vue'
@@ -816,7 +818,7 @@ const loadExpenses = async (filters = {}) => {
     loading.value = true
 
     console.log('📊 Loading expenses with filters:', filters)
-    const expensesData = await api.getExpenses(filters)
+    const expensesData = await expensesAPI.getExpenses(filters)
 
     expenses.value = expensesData.results || expensesData || []
     console.log('📊 Expenses loaded:', expenses.value.length)
@@ -905,7 +907,7 @@ const isQuickExpense = (expense) => {
 const loadSpendingPlans = async () => {
   try {
     console.log('📋 Loading spending plans for form...')
-    const response = await api.getSpendingPlans()
+    const response = await reportsAPI.getSpendingPlans()
     const plans = Array.isArray(response) ? response : (response.results || response)
 
     if (!Array.isArray(plans)) {
@@ -1047,9 +1049,9 @@ const submitManualExpense = async () => {
       // Aggiungi il file
       formData.append('receipt_image', manualExpense.value.receiptFile)
 
-      await api.createExpenseWithFile(formData)
+      await expensesAPI.createExpenseWithFile(formData)
     } else {
-      await api.createExpense(expenseData)
+      await expensesAPI.createExpense(expenseData)
     }
 
     snackbar.success('Spesa salvata con successo!')
@@ -1084,7 +1086,7 @@ const submitManualExpense = async () => {
 // Categories functions
 const loadCategories = async () => {
   try {
-    const response = await api.getCategories()
+    const response = await categoriesAPI.getCategories()
     categories.value = response.results || response || []
   } catch (error) {
     console.error('Error loading categories:', error)
@@ -1214,7 +1216,7 @@ const submitEditExpense = async () => {
     }
 
     // Call API to update expense
-    const response = await api.updateExpense(editingExpense.value.id, expenseData)
+    const response = await expensesAPI.updateExpense(editingExpense.value.id, expenseData)
     console.log('✅ Expense updated:', response)
 
     snackbar.success('Spesa modificata con successo!')
@@ -1255,7 +1257,7 @@ const confirmDeleteExpense = async () => {
 
   deleting.value = true
   try {
-    await api.deleteExpense(expenseToDelete.value.id)
+    await expensesAPI.deleteExpense(expenseToDelete.value.id)
 
     snackbar.success('Spesa eliminata con successo')
 
@@ -1337,7 +1339,7 @@ const submitQuickExpense = async () => {
 
     console.log('Quick expense data to send:', expenseData)
 
-    await api.createExpense(expenseData)
+    await expensesAPI.createExpense(expenseData)
 
     snackbar.success('Spesa rapida salvata! Ricordati di completarla dopo.')
 

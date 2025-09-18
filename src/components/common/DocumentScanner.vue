@@ -299,7 +299,7 @@ import { Capacitor } from '@capacitor/core'
 import { DocumentScanner } from '@capacitor-mlkit/document-scanner'
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera'
 import { ocrService } from 'src/services/ocr'
-import { api } from 'src/services/api'
+import { expensesAPI } from 'src/services/api/expenses.js'
 import CategorySelect from 'components/CategorySelect.vue'
 
 // Props
@@ -686,7 +686,7 @@ const createExpense = async () => {
     console.log('💰 Creating expense with payload:', expensePayload)
 
     // Crea spesa tramite API
-    const createdExpense = await api.createExpense(expensePayload)
+    const createdExpense = await expensesAPI.createExpense(expensePayload)
 
     console.log('✅ Expense created:', createdExpense)
 

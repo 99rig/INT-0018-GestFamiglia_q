@@ -6,7 +6,7 @@
 
 // === TYPOGRAPHY SYSTEM ===
 body {
-  font-family: 'Inter', 'SF Pro Display', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  font-family: var(--mcf-app-font, 'Nunito'), 'Inter', 'SF Pro Display', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   background-color: $mcf-bg-primary;
   color: $mcf-text-primary;
   line-height: 1.6;

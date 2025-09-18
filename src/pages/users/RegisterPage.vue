@@ -178,7 +178,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from 'stores/auth.js'
-import { api } from 'src/services/api'
+import { authAPI } from 'src/services/api/auth.js'
 import { useSnackbar } from 'src/composables/useSnackbar'
 
 const router = useRouter()
@@ -231,7 +231,7 @@ const register = async () => {
     }
 
     // Chiama l'API di registrazione
-    const response = await api.register(userData)
+    const response = await authAPI.register(userData)
 
     snackbar.success('Registrazione completata con successo!')
 

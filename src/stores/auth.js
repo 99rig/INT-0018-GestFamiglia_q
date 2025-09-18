@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
-import { api } from 'src/services/api'
+import { authAPI } from 'src/services/api/auth.js'
+import { API } from 'src/services/api/index.js'
 import { storage, STORAGE_KEYS } from 'src/services/storage'
 import CryptoJS from 'crypto-js'
 
@@ -57,7 +58,7 @@ export const useAuthStore = defineStore('auth', {
 
       // Imposta token per API calls e verifica se sono validi
       if (this.accessToken) {
-        api.setAuthToken(this.accessToken)
+        API.setAuthToken(this.accessToken)
 
         // Verifica se il token è ancora valido tentando di refresharlo
         if (this.refreshToken) {
@@ -92,7 +93,7 @@ export const useAuthStore = defineStore('auth', {
         console.log('Login attempt:', email)
 
         // Chiamata API reale
-        const response = await api.login(email, password)
+        const response = await authAPI.login(email, password)
 
         // Controlla che ci siano i token nella risposta
         if (!response.access || !response.refresh) {
@@ -107,7 +108,7 @@ export const useAuthStore = defineStore('auth', {
         this.lastUserEmail = email
 
         // Imposta token per future API calls
-        api.setAuthToken(this.accessToken)
+        API.setAuthToken(this.accessToken)
 
         // Salva nel storage sicuro
         const saveResult = await storage.saveTokens(response.access, response.refresh)
@@ -128,7 +129,7 @@ export const useAuthStore = defineStore('auth', {
 
         // Carica sempre il profilo completo per avere i dati famiglia
         try {
-          const profile = await api.getUserProfile()
+          const profile = await authAPI.getUserProfile()
           this.user = { ...this.user, ...profile }
           await storage.saveUserData(this.user)
         } catch (error) {
@@ -196,7 +197,7 @@ export const useAuthStore = defineStore('auth', {
         // Se abbiamo token salvati e sono validi, usali
         if (this.accessToken && this.refreshToken) {
           console.log('Using existing tokens')
-          api.setAuthToken(this.accessToken)
+          API.setAuthToken(this.accessToken)
           return true
         }
 
@@ -204,7 +205,7 @@ export const useAuthStore = defineStore('auth', {
         if (credentials.password) { // Il password field contiene il refresh token
           try {
             console.log('Refreshing token with stored refresh token...')
-            const response = await api.refreshToken(credentials.password)
+            const response = await authAPI.refreshToken(credentials.password)
 
             // Salva i nuovi token
             this.accessToken = response.access
@@ -213,7 +214,7 @@ export const useAuthStore = defineStore('auth', {
             this.lastUserEmail = credentials.email
 
             // Imposta token per API calls
-            api.setAuthToken(this.accessToken)
+            API.setAuthToken(this.accessToken)
 
             // Salva nel storage
             const saveResult = await storage.saveTokens(this.accessToken, this.refreshToken)
@@ -225,7 +226,7 @@ export const useAuthStore = defineStore('auth', {
 
             // Carica profilo utente completo
             try {
-              const profile = await api.getUserProfile()
+              const profile = await authAPI.getUserProfile()
               this.user = { ...this.user, ...profile }
               await storage.saveUserData(this.user)
             } catch (error) {
@@ -254,7 +255,7 @@ export const useAuthStore = defineStore('auth', {
     async logout() {
       // Prova a fare logout lato server
       try {
-        await api.logout()
+        await authAPI.logout()
       } catch (error) {
         console.log('Server logout failed:', error)
       }
@@ -265,7 +266,7 @@ export const useAuthStore = defineStore('auth', {
       this.refreshToken = null
 
       // Rimuovi token dalle API calls
-      api.setAuthToken(null)
+      API.setAuthToken(null)
 
       // Pulisci storage
       await storage.clearAuth()
@@ -306,7 +307,7 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         console.log('Refreshing token...')
-        const response = await api.refreshToken(this.refreshToken)
+        const response = await authAPI.refreshToken(this.refreshToken)
 
         // Aggiorna token
         this.accessToken = response.access
@@ -315,7 +316,7 @@ export const useAuthStore = defineStore('auth', {
         }
 
         // Imposta nuovo token per API calls
-        api.setAuthToken(this.accessToken)
+        API.setAuthToken(this.accessToken)
 
         // Salva nel storage
         const saveResult = await storage.saveTokens(this.accessToken, this.refreshToken)
@@ -335,7 +336,7 @@ export const useAuthStore = defineStore('auth', {
     // Aggiorna il profilo utente
     async updateProfile(profileData) {
       try {
-        const updatedUser = await api.updateUserProfile(profileData)
+        const updatedUser = await authAPI.updateUserProfile(profileData)
 
         // Aggiorna i dati utente nello store
         this.user = updatedUser
@@ -355,7 +356,7 @@ export const useAuthStore = defineStore('auth', {
     async refreshUserData() {
       try {
         console.log('🔄 Refreshing user data...')
-        const userData = await api.getCurrentUser()
+        const userData = await authAPI.getCurrentUser()
 
         // Aggiorna i dati utente nello store
         this.user = userData

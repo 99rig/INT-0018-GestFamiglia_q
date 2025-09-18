@@ -747,7 +747,7 @@
 import { ref, computed, onUnmounted, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { updateService } from 'src/services/updateService.js'
-import { api } from 'src/services/api.js'
+import { usersAPI } from 'src/services/api/users.js'
 import { useAuthStore } from 'stores/auth.js'
 import { useSnackbar } from 'src/composables/useSnackbar'
 
@@ -1177,7 +1177,7 @@ const loadCurrentFamily = async () => {
 
   try {
     console.log('🔍 Loading families...')
-    const familiesResponse = await api.getFamilies()
+    const familiesResponse = await usersAPI.getFamilies()
     console.log('🔍 Families received:', familiesResponse)
 
     // L'API restituisce un oggetto paginato con results
@@ -1209,7 +1209,7 @@ const createFamily = async () => {
       description: newFamily.value.description
     }
 
-    const family = await api.createFamily(familyData)
+    const family = await usersAPI.createFamily(familyData)
     currentFamily.value = family
 
     // Aggiorna i dati utente nell'authStore per includere la famiglia appena creata
@@ -1237,7 +1237,7 @@ const joinFamily = async () => {
       invite_code: joinFamilyCode.value
     }
 
-    await api.joinFamily(joinData)
+    await usersAPI.joinFamily(joinData)
     await loadCurrentFamily() // Ricarica i dati della famiglia
 
     // Aggiorna i dati utente nell'authStore per includere la famiglia
@@ -1266,7 +1266,7 @@ const generateInviteCode = async () => {
       family_role: 'familiare'  // Default role for new members
     }
 
-    const invitation = await api.createFamilyInvitation(invitationData)
+    const invitation = await usersAPI.createFamilyInvitation(invitationData)
     console.log('🔍 Invitation response:', invitation)
 
     inviteCode.value = invitation.token
@@ -1315,7 +1315,7 @@ const updateFamily = async () => {
 
   familyLoading.value = true
   try {
-    const updatedFamily = await api.updateFamily(currentFamily.value.id, familyEditForm.value)
+    const updatedFamily = await usersAPI.updateFamily(currentFamily.value.id, familyEditForm.value)
     currentFamily.value = updatedFamily
 
     snackbar.success('Famiglia aggiornata con successo!')
@@ -1339,7 +1339,7 @@ const confirmDeleteFamily = () => {
     color: 'negative'
   }).onOk(async () => {
     try {
-      await api.deleteFamily(currentFamily.value.id)
+      await usersAPI.deleteFamily(currentFamily.value.id)
       currentFamily.value = null
 
       snackbar.success('Famiglia eliminata con successo')
@@ -1376,7 +1376,7 @@ const loadFamilyInvitations = async () => {
 
   invitationsLoading.value = true
   try {
-    const invitations = await api.getFamilyInvitations()
+    const invitations = await usersAPI.getFamilyInvitations()
     familyInvitations.value = invitations.results || invitations
     console.log('✅ Loaded family invitations:', familyInvitations.value)
   } catch (error) {
@@ -1390,7 +1390,7 @@ const loadFamilyInvitations = async () => {
 const loadReceivedInvitations = async () => {
   receivedInvitationsLoading.value = true
   try {
-    const invitations = await api.getReceivedInvitations()
+    const invitations = await usersAPI.getReceivedInvitations()
     receivedInvitations.value = invitations
     console.log('✅ Loaded received invitations:', receivedInvitations.value)
   } catch (error) {
@@ -1404,7 +1404,7 @@ const loadReceivedInvitations = async () => {
 const acceptInvitation = async (invitation) => {
   acceptingInvitation.value = invitation.id
   try {
-    const response = await api.acceptInvitation(invitation.id)
+    const response = await usersAPI.acceptInvitation(invitation.id)
 
     snackbar.success(response.detail || 'Invito accettato con successo!')
 
