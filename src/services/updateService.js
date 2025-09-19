@@ -162,8 +162,22 @@ ${updateInfo.is_mandatory ? '\n⚠️ Questo aggiornamento è obbligatorio.' : '
 
       console.log('📥 Downloading update...')
 
-      // Download dell'APK
-      const downloadUrl = `${process.env.API_URL.replace('/api', '')}${updateInfo.download_url}`
+      // Ottieni base URL dall'apiClient o fallback
+      let apiBaseUrl = process.env.API_BASE_URL
+
+      // Se non definito, prova a ricavarlo dall'apiClient
+      if (!apiBaseUrl && API.defaults && API.defaults.baseURL) {
+        apiBaseUrl = API.defaults.baseURL.replace('/api', '')
+      }
+
+      // Fallback finale
+      if (!apiBaseUrl) {
+        apiBaseUrl = window.location.origin
+      }
+
+      const downloadUrl = `${apiBaseUrl}/api${updateInfo.download_url}`
+      console.log('Download URL:', downloadUrl)
+
       const response = await fetch(downloadUrl, {
         headers: {
           'Authorization': `Bearer ${this.getAuthToken()}`
