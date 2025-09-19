@@ -134,6 +134,11 @@ export const reportsAPI = {
   async generateRecurringInstallments(plannedExpenseId) {
     const response = await apiClient.post(`/planned-expenses/${plannedExpenseId}/generate_recurring/`)
     return response.data
+  },
+
+  async updatePlannedExpenseInstallment(plannedExpenseId, installmentNumber, data) {
+    const response = await apiClient.patch(`/planned-expenses/${plannedExpenseId}/installments/${installmentNumber}/`, data)
+    return response.data
   }
 }
 

@@ -375,7 +375,27 @@
             >
               <div class="recurring-header">
                 <q-icon name="repeat" color="orange" />
-                <span class="recurring-title">Rate del piano ricorrente</span>
+                <span class="recurring-title">Rate del piano</span>
+
+                <!-- Desktop Summary -->
+                <div v-if="$q.screen.gt.sm && expense.recurring_installments_summary" class="recurring-summary-desktop">
+                  <span class="summary-item">
+                    Totale rate: <strong>€{{ expense.recurring_installments_summary.total_amount }}</strong>
+                  </span>
+                  <span class="summary-item">
+                    Rate pagate: <strong>€{{ expense.recurring_installments_summary.completed_amount }}</strong>
+                  </span>
+                  <span class="summary-item">
+                    Rate da pagare: <strong>€{{ expense.recurring_installments_summary.pending_amount }}</strong>
+                  </span>
+                </div>
+
+                <!-- Mobile Summary (only numbers) -->
+                <div v-else-if="expense.recurring_installments_summary" class="recurring-summary-mobile">
+                  <span class="summary-numbers">
+                    €{{ expense.recurring_installments_summary.completed_amount }}/€{{ expense.recurring_installments_summary.total_amount }}/€{{ expense.recurring_installments_summary.pending_amount }}
+                  </span>
+                </div>
               </div>
               <div class="recurring-installments-grid">
                 <div
@@ -390,6 +410,7 @@
                       size="sm"
                       :color="getInstallmentCheckboxColor(installment, expense.installment_number)"
                       class="installment-checkbox-mobile"
+                      @click="toggleInstallmentEdit(expense.id, installment.installment_number)"
                     />
                     <div class="installment-number">{{ installment.installment_number }}</div>
                     <div
@@ -399,7 +420,52 @@
                       {{ getInstallmentStatus(installment) }}
                     </div>
                   </div>
-                  <div class="installment-amount">€{{ installment.amount }}</div>
+
+                  <!-- Installment Amount - Editable -->
+                  <div class="installment-amount-container">
+                    <!-- Normal View -->
+                    <div
+                      v-if="!isInstallmentEditing(expense.id, installment.installment_number)"
+                      class="installment-amount"
+                      @click="toggleInstallmentEdit(expense.id, installment.installment_number)"
+                    >
+                      €{{ installment.amount }}
+                      <q-icon name="edit" size="xs" class="edit-hint-icon" />
+                    </div>
+
+                    <!-- Edit Mode -->
+                    <div
+                      v-else
+                      class="installment-edit-container"
+                    >
+                      <q-input
+                        v-model="editingInstallmentAmount"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        dense
+                        outlined
+                        autofocus
+                        prefix="€"
+                        class="installment-edit-input"
+                        @keyup.enter="saveInstallmentAmount(expense.id, installment.installment_number)"
+                        @keyup.escape="cancelInstallmentEdit()"
+                      />
+                      <q-btn
+                        flat
+                        round
+                        dense
+                        icon="save"
+                        size="sm"
+                        color="primary"
+                        class="save-installment-btn"
+                        @click="saveInstallmentAmount(expense.id, installment.installment_number)"
+                        :loading="savingInstallment"
+                      >
+                        <q-tooltip>Salva Rata</q-tooltip>
+                      </q-btn>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1562,6 +1628,100 @@ const getInstallmentCheckboxColor = (installment, currentInstallmentNumber) => {
   }
 }
 
+// Installment Edit Logic
+const editingInstallments = ref(new Set())
+const editingInstallmentAmount = ref('')
+const savingInstallment = ref(false)
+
+const isInstallmentEditing = (expenseId, installmentNumber) => {
+  return editingInstallments.value.has(`${expenseId}-${installmentNumber}`)
+}
+
+const toggleInstallmentEdit = (expenseId, installmentNumber) => {
+  const key = `${expenseId}-${installmentNumber}`
+
+  if (editingInstallments.value.has(key)) {
+    // Cancel edit
+    editingInstallments.value.delete(key)
+    editingInstallmentAmount.value = ''
+  } else {
+    // Start edit - find current amount
+    const expense = filteredExpenses.value.find(e => e.id === expenseId)
+    if (expense && expense.recurring_installments_status) {
+      const installment = expense.recurring_installments_status.find(
+        i => i.installment_number === installmentNumber
+      )
+      if (installment) {
+        editingInstallmentAmount.value = installment.amount
+        editingInstallments.value.clear() // Only one edit at a time
+        editingInstallments.value.add(key)
+      }
+    }
+  }
+}
+
+const cancelInstallmentEdit = () => {
+  editingInstallments.value.clear()
+  editingInstallmentAmount.value = ''
+}
+
+const saveInstallmentAmount = async (expenseId, installmentNumber) => {
+  try {
+    savingInstallment.value = true
+
+    // Validate amount
+    const amount = parseFloat(editingInstallmentAmount.value)
+    if (isNaN(amount) || amount <= 0) {
+      snackbar.error('Inserisci un importo valido maggiore di 0')
+      return
+    }
+
+    console.log(`💰 Updating installment ${installmentNumber} for expense ${expenseId} to €${amount}`)
+
+    // Call API to update installment amount
+    // Note: This would need a new API endpoint
+    const response = await reportsAPI.updatePlannedExpenseInstallment(expenseId, installmentNumber, {
+      amount: amount
+    })
+
+    // Update local data
+    const expense = filteredExpenses.value.find(e => e.id === expenseId)
+    if (expense && expense.recurring_installments_status) {
+      const installment = expense.recurring_installments_status.find(
+        i => i.installment_number === installmentNumber
+      )
+      if (installment) {
+        installment.amount = amount
+      }
+
+      // Update summary if returned by backend
+      if (response.updated_summary) {
+        expense.recurring_installments_summary = response.updated_summary
+      }
+    }
+
+    snackbar.success(`Rata ${installmentNumber} aggiornata a €${amount}`)
+    cancelInstallmentEdit()
+
+  } catch (error) {
+    console.error('❌ Error updating installment amount:', error)
+
+    let errorMessage = 'Errore durante l\'aggiornamento della rata'
+    if (error.response?.data?.detail) {
+      errorMessage = error.response.data.detail
+    } else if (error.message) {
+      errorMessage = error.message
+    }
+
+    snackbar.error(errorMessage)
+  } finally {
+    savingInstallment.value = false
+  }
+}
+
+// Note: Installment summary calculations are now done in backend
+// via recurring_installments_summary field for better performance
+
 
 // Lifecycle
 onMounted(async () => {
@@ -2384,6 +2544,67 @@ onMounted(async () => {
   padding-top: 8px;
 }
 
+.recurring-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 0 12px;
+
+  @media (min-width: 768px) {
+    padding: 0 16px;
+  }
+}
+
+.recurring-title {
+  font-weight: 600;
+  color: var(--mcf-text-primary);
+  font-size: 14px;
+
+  @media (min-width: 768px) {
+    font-size: 15px;
+  }
+}
+
+/* Desktop Summary */
+.recurring-summary-desktop {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: auto;
+  font-size: 13px;
+
+  @media (min-width: 768px) {
+    gap: 20px;
+    font-size: 14px;
+  }
+}
+
+.summary-item {
+  color: var(--mcf-text-secondary);
+  white-space: nowrap;
+
+  strong {
+    color: var(--mcf-primary);
+    font-weight: 600;
+  }
+}
+
+/* Mobile Summary */
+.recurring-summary-mobile {
+  margin-left: auto;
+}
+
+.summary-numbers {
+  background: var(--mcf-primary-light);
+  color: var(--mcf-primary);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: monospace;
+}
+
 .installment-item-mobile {
   display: flex;
   align-items: center;
@@ -2442,6 +2663,100 @@ onMounted(async () => {
 .mcf-desktop-toggle-btn {
   width: 32px;
   height: 32px;
+}
+
+/* Installment amount editing styles */
+.installment-amount-container {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+}
+
+.installment-amount {
+  font-weight: 600;
+  color: var(--mcf-text-secondary);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &:hover {
+    background-color: var(--mcf-bg-secondary);
+    color: var(--mcf-primary);
+
+    .edit-hint-icon {
+      opacity: 1;
+    }
+  }
+}
+
+.edit-hint-icon {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  color: var(--mcf-text-muted);
+}
+
+.installment-edit-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 140px;
+}
+
+.installment-edit-input {
+  flex: 1;
+  min-width: 80px;
+
+  :deep(.q-field__control) {
+    min-height: 32px;
+    padding: 0 8px;
+  }
+
+  :deep(.q-field__native) {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  :deep(.q-field__prefix) {
+    color: var(--mcf-primary);
+    font-weight: 600;
+  }
+}
+
+.save-installment-btn {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  flex-shrink: 0;
+
+  &:hover {
+    background-color: var(--mcf-primary-light);
+  }
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 600px) {
+  .installment-edit-container {
+    max-width: 120px;
+  }
+
+  .installment-edit-input {
+    min-width: 70px;
+
+    :deep(.q-field__native) {
+      font-size: 12px;
+    }
+  }
+
+  .save-installment-btn {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+  }
 }
 
 /* Removed media query - detailed view now available on both mobile and desktop */
