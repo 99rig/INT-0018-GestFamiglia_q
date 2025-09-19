@@ -46,13 +46,13 @@ export default defineConfig((ctx) => {
       },
 
       vueRouterMode: 'hash', // available values: 'hash', 'history'
-      // vueRouterBase,
+      vueRouterBase: '/app/',
       // vueDevtools,
       // vueOptionsAPI: false,
 
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
 
-      // publicPath: '/',
+      publicPath: '/app/',
       // analyze: true,
       env: {
         API_BASE_URL: ctx.dev
@@ -185,8 +185,8 @@ export default defineConfig((ctx) => {
         json.orientation = 'portrait-primary'
         json.background_color = '#239db0'
         json.theme_color = '#239db0'
-        json.start_url = '/?utm_source=pwa'
-        json.scope = '/'
+        json.start_url = '/app/?utm_source=pwa'
+        json.scope = '/app/'
         json.lang = 'it-IT'
         json.dir = 'ltr'
 
