@@ -129,6 +129,11 @@ export const reportsAPI = {
   async getPlannedExpensePayments(plannedExpenseId) {
     const response = await apiClient.get(`/expenses/?planned_expense=${plannedExpenseId}`)
     return response.data
+  },
+
+  async generateRecurringInstallments(plannedExpenseId) {
+    const response = await apiClient.post(`/planned-expenses/${plannedExpenseId}/generate_recurring/`)
+    return response.data
   }
 }
 

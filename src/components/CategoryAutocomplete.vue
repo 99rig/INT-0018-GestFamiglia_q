@@ -14,6 +14,7 @@
       :multiple="false"
       :custom-filter="categoryFilter"
       :show-icon="false"
+      class="mcf-category-field"
     />
 
     <MCFAutocomplete
@@ -30,6 +31,7 @@
       @update:model-value="onSubcategoryChange"
       :show-icon="false"
       :placeholder="selectedCategory ? (subcategoryOptions.length > 0 ? 'Seleziona sottocategoria...' : 'Nessuna sottocategoria disponibile') : 'Seleziona prima una categoria'"
+      class="mcf-subcategory-field"
     />
   </div>
 </template>
@@ -278,8 +280,36 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .category-autocomplete {
-  width: 100%;
+  /* Rispetta il padding del contenitore padre - solo il padding sinistro mancante */
+  width: calc(100% - 16px) !important;
+  display: flex;
+  flex-direction: column;
+  gap: 16px !important;
+  margin: 0 0 0 16px !important; /* Solo margin sinistro per allineamento */
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Rimuovi tutti gli stili forzati dai campi interni */
+:deep(.mcf-category-field),
+:deep(.mcf-subcategory-field) {
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+
+  .q-field {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .q-field__control {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
 }
 </style>

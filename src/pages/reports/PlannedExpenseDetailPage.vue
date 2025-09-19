@@ -114,6 +114,15 @@
                       <span class="due-date-label">Scad.:</span> {{ formatDate(expense.due_date) }}
                     </span>
                   </div>
+                  <div v-if="expense.is_recurring" class="expense-badges">
+                    <q-badge
+                      color="orange"
+                      text-color="white"
+                      class="recurring-badge"
+                    >
+                      RICORRENTE {{ expense.installment_number }}/{{ expense.total_installments }}
+                    </q-badge>
+                  </div>
                 </div>
               </div>
               <div class="expense-amount">
@@ -202,6 +211,25 @@
                         </q-item-section>
                       </q-item>
 
+                      <!-- Generate Recurring Installments -->
+                      <q-item
+                        v-if="expense.is_recurring && expense.installment_number === 1 && canGenerateRecurring(expense)"
+                        clickable
+                        v-close-popup
+                        @click="generateRecurringInstallments(expense)"
+                        class="mcf-menu-item mcf-menu-recurring"
+                      >
+                        <q-item-section avatar>
+                          <q-icon name="repeat" class="mcf-menu-icon" />
+                        </q-item-section>
+                        <q-item-section>
+                          <q-item-label class="mcf-menu-title">Genera Rate</q-item-label>
+                          <q-item-label caption class="mcf-menu-subtitle">
+                            Crea le {{ (expense.total_installments || 1) - 1 }} rate successive
+                          </q-item-label>
+                        </q-item-section>
+                      </q-item>
+
                       <q-separator class="mcf-menu-separator" />
 
                       <q-item
@@ -221,6 +249,20 @@
                     </q-list>
                   </q-menu>
                 </q-btn>
+
+                <!-- Recurring Installments Dots (Desktop only) -->
+                <div
+                  v-if="expense.is_recurring && expense.recurring_installments_status"
+                  class="recurring-dots-desktop"
+                >
+                  <div
+                    v-for="installment in expense.recurring_installments_status"
+                    :key="installment.installment_number"
+                    class="installment-dot"
+                    :class="getInstallmentDotClass(installment, expense.installment_number)"
+                    :title="`Rata ${installment.installment_number}/${expense.total_installments} - ${getInstallmentStatus(installment)}`"
+                  ></div>
+                </div>
               </template>
 
               <!-- Mobile view with icons only -->
@@ -260,6 +302,18 @@
                   <q-tooltip>Modifica Spesa</q-tooltip>
                 </q-btn>
                 <q-btn
+                  v-if="expense.is_recurring && expense.installment_number === 1 && canGenerateRecurring(expense)"
+                  flat
+                  round
+                  icon="repeat"
+                  size="sm"
+                  color="orange"
+                  class="mcf-mobile-action-btn"
+                  @click="generateRecurringInstallments(expense)"
+                >
+                  <q-tooltip>Genera Rate ({{ (expense.total_installments || 1) - 1 }} rimanenti)</q-tooltip>
+                </q-btn>
+                <q-btn
                   flat
                   round
                   icon="delete"
@@ -270,7 +324,54 @@
                 >
                   <q-tooltip>Elimina Spesa</q-tooltip>
                 </q-btn>
+
+                <!-- Recurring Installments Toggle (Mobile only) -->
+                <q-btn
+                  v-if="expense.is_recurring && expense.recurring_installments_status"
+                  flat
+                  round
+                  :icon="isRecurringExpanded(expense.id) ? 'expand_less' : 'expand_more'"
+                  size="sm"
+                  color="orange"
+                  class="mcf-mobile-action-btn"
+                  @click="toggleRecurringView(expense.id)"
+                >
+                  <q-tooltip>{{ isRecurringExpanded(expense.id) ? 'Nascondi' : 'Mostra' }} Rate</q-tooltip>
+                </q-btn>
               </template>
+            </div>
+
+            <!-- Mobile Recurring Installments Details -->
+            <div
+              v-if="expense.is_recurring && expense.recurring_installments_status && isRecurringExpanded(expense.id)"
+              class="recurring-dots-mobile"
+            >
+              <div class="recurring-header">
+                <q-icon name="repeat" color="orange" />
+                <span class="recurring-title">Rate del piano ricorrente</span>
+              </div>
+              <div class="recurring-installments-grid">
+                <div
+                  v-for="installment in expense.recurring_installments_status"
+                  :key="installment.installment_number"
+                  class="installment-item-mobile"
+                >
+                  <div class="installment-info-mobile">
+                    <div
+                      class="installment-dot-mobile"
+                      :class="getInstallmentDotClass(installment, expense.installment_number)"
+                    ></div>
+                    <div class="installment-number">{{ installment.installment_number }}</div>
+                    <div
+                      class="installment-status"
+                      :class="getInstallmentStatusClass(installment, expense.installment_number)"
+                    >
+                      {{ getInstallmentStatus(installment) }}
+                    </div>
+                  </div>
+                  <div class="installment-amount">€{{ installment.amount }}</div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -328,29 +429,24 @@
               :rules="[val => val > 0 || 'Importo deve essere maggiore di zero']"
             />
 
-            <div class="mcf-form-row">
-              <div class="mcf-form-col">
-                <CategorySelect
-                  v-model="newExpense.category"
-                  label="Categoria"
-                  outlined
-                  clearable
-                  :return-object="true"
-                />
-              </div>
-              <div class="mcf-form-col">
-                <MCFAutocomplete
-                  v-model="newExpense.priority"
-                  :options="priorityOptions"
-                  label="Priorità"
-                  outlined
-                  option-value="value"
-                  option-label="label"
-                  :search-fields="['label']"
-                  prepend-icon="priority_high"
-                />
-              </div>
-            </div>
+            <CategorySelect
+              v-model="newExpense.category"
+              label="Categoria"
+              outlined
+              clearable
+              :return-object="true"
+            />
+
+            <MCFAutocomplete
+              v-model="newExpense.priority"
+              :options="priorityOptions"
+              label="Priorità"
+              outlined
+              option-value="value"
+              option-label="label"
+              :search-fields="['label']"
+              prepend-icon="priority_high"
+            />
 
             <MCFDatePicker
               v-model="newExpense.due_date"
@@ -367,6 +463,62 @@
               rows="2"
               placeholder="Note aggiuntive..."
             />
+
+            <!-- Recurring Expense Section -->
+            <q-separator class="q-my-md" />
+
+            <div class="text-subtitle2 text-weight-medium q-mb-sm">
+              <q-icon name="repeat" class="q-mr-xs" />
+              Spesa Ricorrente
+            </div>
+
+            <q-toggle
+              v-model="newExpense.is_recurring"
+              label="Questa è una spesa ricorrente"
+              color="orange"
+              left-label
+              @update:model-value="onRecurringToggle"
+            />
+
+            <div v-if="newExpense.is_recurring" class="recurring-fields q-mt-md">
+              <div class="mcf-form-row">
+                <div class="mcf-form-col">
+                  <q-input
+                    v-model.number="newExpense.total_installments"
+                    label="Numero Rate Totali *"
+                    required
+                    outlined
+                    type="number"
+                    min="2"
+                    max="60"
+                    :rules="[val => val >= 2 || 'Minimo 2 rate', val => val <= 60 || 'Massimo 60 rate']"
+                    hint="Es: 10 per dentista in 10 rate"
+                  />
+                </div>
+                <div class="mcf-form-col">
+                  <q-select
+                    v-model="newExpense.recurring_frequency"
+                    :options="frequencyOptions"
+                    label="Frequenza *"
+                    required
+                    outlined
+                    option-value="value"
+                    option-label="label"
+                    emit-value
+                    map-options
+                  />
+                </div>
+              </div>
+
+              <q-banner class="bg-orange-1 text-orange-8 q-mt-md" rounded>
+                <template v-slot:avatar>
+                  <q-icon name="info" color="orange" />
+                </template>
+                Questa sarà la <strong>prima rata</strong>.
+                Le altre {{ (newExpense.total_installments || 2) - 1 }} rate verranno generate automaticamente
+                nei mesi successivi quando cliccherai "Genera Rate".
+              </q-banner>
+            </div>
           </q-form>
         </q-card-section>
 
@@ -668,10 +820,15 @@ const showAmountProgress = ref(false)
 const newExpense = ref({
   description: '',
   amount: '',
-  category: { category: null, subcategory: null },
+  category: null, // Conterrà {category: id, subcategory: id}
   priority: 'medium',
   due_date: '',
-  notes: ''
+  notes: '',
+  // Recurring fields
+  is_recurring: false,
+  total_installments: 2,
+  installment_number: 1,
+  recurring_frequency: 'monthly'
 })
 
 // Form nuovo pagamento
@@ -685,7 +842,7 @@ const newPayment = ref({
 const editExpenseForm = ref({
   description: '',
   amount: '',
-  category: null,
+  category: null, // Conterrà {category: id, subcategory: id}
   priority: 'medium',
   due_date: '',
   notes: ''
@@ -697,6 +854,13 @@ const priorityOptions = [
   { label: 'Media', value: 'medium' },
   { label: 'Alta', value: 'high' },
   { label: 'Urgente', value: 'urgent' }
+]
+
+// Options for recurring frequency
+const frequencyOptions = [
+  { label: 'Mensile', value: 'monthly' },
+  { label: 'Bimestrale', value: 'bimonthly' },
+  { label: 'Trimestrale', value: 'quarterly' }
 ]
 
 // Computed
@@ -842,12 +1006,22 @@ const createExpense = async () => {
 
   saving.value = true
   try {
+    // Il CategorySelect restituisce {category: id, subcategory: id}
+    const categoryData = newExpense.value.category
     const expenseData = {
-      ...newExpense.value,
-      spending_plan: parseInt(planId.value),
+      description: newExpense.value.description,
       amount: parseFloat(newExpense.value.amount),
-      category: newExpense.value.category?.category || newExpense.value.category,
-      subcategory: newExpense.value.category?.subcategory || null
+      category: categoryData?.category || null,
+      subcategory: categoryData?.subcategory || null,
+      priority: newExpense.value.priority,
+      due_date: newExpense.value.due_date,
+      notes: newExpense.value.notes,
+      spending_plan: parseInt(planId.value),
+      // Campi ricorrenza
+      is_recurring: newExpense.value.is_recurring,
+      total_installments: newExpense.value.total_installments,
+      installment_number: newExpense.value.installment_number,
+      recurring_frequency: newExpense.value.recurring_frequency
     }
 
     await reportsAPI.createPlannedExpense(expenseData)
@@ -907,10 +1081,15 @@ const resetExpenseForm = () => {
   newExpense.value = {
     description: '',
     amount: '',
-    category: { category: null, subcategory: null },
+    category: null,
     priority: 'medium',
     due_date: '',
-    notes: ''
+    notes: '',
+    // Recurring fields
+    is_recurring: false,
+    total_installments: 2,
+    installment_number: 1,
+    recurring_frequency: 'monthly'
   }
 }
 
@@ -923,11 +1102,27 @@ const resetPaymentForm = () => {
   selectedExpense.value = null
 }
 
+// Recurring expense logic
+const onRecurringToggle = (isRecurring) => {
+  if (!isRecurring) {
+    // Reset recurring fields when toggled off
+    newExpense.value.total_installments = 2
+    newExpense.value.installment_number = 1
+    newExpense.value.recurring_frequency = 'monthly'
+  } else {
+    // Set defaults for recurring expense
+    newExpense.value.installment_number = 1
+    if (!newExpense.value.total_installments || newExpense.value.total_installments < 2) {
+      newExpense.value.total_installments = 2
+    }
+  }
+}
+
 const resetEditExpenseForm = () => {
   editExpenseForm.value = {
     description: '',
     amount: '',
-    category: { category: null, subcategory: null },
+    category: null,
     priority: 'medium',
     due_date: '',
     notes: ''
@@ -944,12 +1139,17 @@ const updateExpense = async () => {
 
   saving.value = true
   try {
+    // Il CategorySelect restituisce {category: id, subcategory: id}
+    const categoryData = editExpenseForm.value.category
     const expenseData = {
-      ...editExpenseForm.value,
-      spending_plan: parseInt(planId.value),
+      description: editExpenseForm.value.description,
       amount: parseFloat(editExpenseForm.value.amount),
-      category: editExpenseForm.value.category?.category || editExpenseForm.value.category,
-      subcategory: editExpenseForm.value.category?.subcategory || null
+      category: categoryData?.category || null,
+      subcategory: categoryData?.subcategory || null,
+      priority: editExpenseForm.value.priority,
+      due_date: editExpenseForm.value.due_date,
+      notes: editExpenseForm.value.notes,
+      spending_plan: parseInt(planId.value)
     }
 
     await reportsAPI.updatePlannedExpense(editingExpense.value.id, expenseData)
@@ -970,13 +1170,20 @@ const updateExpense = async () => {
 
 const editExpense = (expense) => {
   editingExpense.value = expense
+
+  // Costruisci l'oggetto categoria nel formato atteso dal CategorySelect
+  let categoryData = null
+  if (expense.category || expense.subcategory) {
+    categoryData = {
+      category: expense.category,
+      subcategory: expense.subcategory
+    }
+  }
+
   editExpenseForm.value = {
     description: expense.description,
     amount: expense.amount,
-    category: {
-      category: expense.category,
-      subcategory: expense.subcategory || null
-    },
+    category: categoryData,
     priority: expense.priority,
     due_date: expense.due_date,
     notes: expense.notes || ''
@@ -1137,6 +1344,105 @@ const loadPaymentsData = async () => {
         console.warn(`Errore nel caricamento pagamenti per spesa ${expense.id}:`, error)
       }
     }
+  }
+}
+
+// Recurring Installments Logic
+const canGenerateRecurring = (expense) => {
+  // Verifica se ci sono ancora rate da generare
+  if (!expense.is_recurring || !expense.total_installments) return false
+  if (expense.installment_number !== 1) return false
+
+  // Controlla se le rate sono già state generate (indicatore nelle note)
+  if (expense.notes && expense.notes.includes('✅ Rate generate il')) {
+    return false
+  }
+
+  return true
+}
+
+const generateRecurringInstallments = async (expense) => {
+  if (!canGenerateRecurring(expense)) {
+    console.warn('Cannot generate recurring installments for this expense')
+    return
+  }
+
+  try {
+    // Mostra loading
+    $q.loading.show({
+      message: `Generazione delle ${(expense.total_installments || 1) - 1} rate ricorrenti...`,
+      html: true
+    })
+
+    // Chiama l'API per generare le ricorrenze
+    const response = await reportsAPI.generateRecurringInstallments(expense.id)
+
+    console.log('✅ Rate ricorrenti generate:', response)
+
+    // Mostra messaggio di successo
+    snackbar.success(
+      `Generate ${response.created_installments} rate ricorrenti. ` +
+      `Creati ${response.created_plans} nuovi piani.`
+    )
+
+    // Ricarica i dati per mostrare lo stato aggiornato
+    await loadPlanData()
+
+  } catch (error) {
+    console.error('❌ Errore durante la generazione delle rate ricorrenti:', error)
+
+    const errorMessage = error.response?.data?.detail ||
+                        error.message ||
+                        'Errore durante la generazione delle rate ricorrenti'
+
+    snackbar.error(errorMessage)
+  } finally {
+    $q.loading.hide()
+  }
+}
+
+// Recurring Installments Visual Logic
+const expandedRecurringExpenses = ref(new Set())
+
+const isRecurringExpanded = (expenseId) => {
+  return expandedRecurringExpenses.value.has(expenseId)
+}
+
+const toggleRecurringView = (expenseId) => {
+  if (expandedRecurringExpenses.value.has(expenseId)) {
+    expandedRecurringExpenses.value.delete(expenseId)
+  } else {
+    expandedRecurringExpenses.value.add(expenseId)
+  }
+}
+
+const getInstallmentDotClass = (installment, currentInstallmentNumber) => {
+  if (installment.is_fully_paid) {
+    return 'installment-paid'
+  } else if (installment.installment_number === currentInstallmentNumber) {
+    return 'installment-current'
+  } else {
+    return 'installment-pending'
+  }
+}
+
+const getInstallmentStatus = (installment) => {
+  if (installment.is_fully_paid) {
+    return 'Pagata'
+  } else if (installment.is_partially_paid) {
+    return 'Parziale'
+  } else {
+    return 'Da pagare'
+  }
+}
+
+const getInstallmentStatusClass = (installment, currentInstallmentNumber) => {
+  if (installment.is_fully_paid) {
+    return 'paid'
+  } else if (installment.installment_number === currentInstallmentNumber) {
+    return 'current'
+  } else {
+    return 'pending'
   }
 }
 
@@ -1432,6 +1738,23 @@ onMounted(async () => {
   gap: 12px;
   font-size: 13px;
   color: var(--mcf-text-secondary);
+}
+
+.expense-badges {
+  margin-top: 8px;
+}
+
+.recurring-badge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.recurring-fields {
+  padding: 16px;
+  background: rgba(255, 152, 0, 0.04);
+  border: 1px solid rgba(255, 152, 0, 0.2);
+  border-radius: 8px;
 }
 
 .expense-category-row {
@@ -1902,5 +2225,110 @@ onMounted(async () => {
 .empty-subtitle {
   font-size: 14px;
   color: var(--mcf-text-secondary);
+}
+
+/* Installment dots styling */
+.recurring-dots-desktop {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+}
+
+.installment-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.installment-dot.installment-paid {
+  background-color: #4caf50;
+  border-color: #4caf50;
+}
+
+.installment-dot.installment-current {
+  background-color: #2196f3;
+  border-color: #2196f3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.3);
+}
+
+.installment-dot.installment-pending {
+  background-color: transparent;
+  border-color: #bdbdbd;
+}
+
+/* Mobile recurring installments styling */
+.recurring-dots-mobile {
+  margin-top: 8px;
+  border-top: 1px solid var(--mcf-border-light);
+  padding-top: 8px;
+}
+
+.installment-item-mobile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 13px;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--mcf-border-light);
+  }
+}
+
+.installment-info-mobile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.installment-dot-mobile {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.installment-number {
+  font-weight: 600;
+  color: var(--mcf-text-primary);
+  min-width: 20px;
+}
+
+.installment-status {
+  font-size: 12px;
+  font-weight: 500;
+
+  &.paid {
+    color: #4caf50;
+  }
+
+  &.current {
+    color: #2196f3;
+  }
+
+  &.pending {
+    color: #757575;
+  }
+}
+
+.installment-amount {
+  font-weight: 600;
+  color: var(--mcf-text-secondary);
+}
+
+/* Responsive behavior */
+@media (max-width: 768px) {
+  .recurring-dots-desktop {
+    display: none;
+  }
+}
+
+@media (min-width: 769px) {
+  .recurring-dots-mobile {
+    display: none;
+  }
 }
 </style>

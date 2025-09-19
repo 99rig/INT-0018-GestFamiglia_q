@@ -25,13 +25,8 @@
     :no-options-text="noOptionsText"
     :no-results-text="noResultsText"
     class="mcf-autocomplete"
-    :behavior="isMobile ? 'dialog' : 'menu'"
-    :dialog-props="isMobile ? {
-      persistent: false,
-      'no-backdrop-dismiss': false,
-      'no-esc-dismiss': false,
-      'popup-content-class': 'mcf-mobile-select-dialog'
-    } : undefined"
+    :behavior="selectBehavior"
+    :dialog-props="dialogProps"
     emit-value
     map-options
     ref="selectRef"
@@ -295,6 +290,33 @@ const isMobile = computed(() => {
   return $q.platform.is.mobile || $q.screen.lt.sm
 })
 
+// Comportamento della select basato su contesto
+const selectBehavior = computed(() => {
+  // Desktop: sempre dropdown normale sotto la select
+  if (!isMobile.value) {
+    return 'menu'
+  }
+
+  // Mobile: dialog fullscreen
+  return 'dialog'
+})
+
+// Props del dialog basate su contesto
+const dialogProps = computed(() => {
+  // Desktop: nessun dialog, usa dropdown normale
+  if (!isMobile.value) {
+    return undefined
+  }
+
+  // Mobile: dialog fullscreen
+  return {
+    persistent: false,
+    'no-backdrop-dismiss': false,
+    'no-esc-dismiss': false,
+    'popup-content-class': 'mcf-mobile-select-dialog'
+  }
+})
+
 // Funzioni helper per gestire option-value e option-label
 const getOptionValue = (option) => {
   if (typeof props.optionValue === 'function') {
@@ -398,6 +420,19 @@ defineExpose({
   &.q-field--focused {
     .q-field__control {
       box-shadow: 0 0 0 2px rgba(var(--q-primary-rgb, 25, 118, 210), 0.2);
+    }
+  }
+
+  /* Fix per allineamento campi categoria in modali */
+  &.mcf-category-field,
+  &.mcf-subcategory-field {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+
+    .q-field__control {
+      width: 100% !important;
+      box-sizing: border-box !important;
     }
   }
 }
