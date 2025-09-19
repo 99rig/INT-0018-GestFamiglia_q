@@ -910,19 +910,23 @@ const loadSpendingPlans = async () => {
     const startTime = performance.now()
 
     const response = await reportsAPI.getSpendingPlans()
-    const plans = Array.isArray(response) ? response : (response.results || response)
+    const allPlans = Array.isArray(response) ? response : (response.results || response)
 
-    if (!Array.isArray(plans)) {
+    if (!Array.isArray(allPlans)) {
       console.error('Spending plans response is not an array:', response)
       return
     }
 
-    spendingPlans.value = plans
+    // Filtra i piani nascosti (auto-generati dalle ricorrenze)
+    const visiblePlans = allPlans.filter(plan => !plan.is_hidden)
+    spendingPlans.value = visiblePlans
+
+    console.log(`🔍 [LAZY-LOAD] Filtered ${allPlans.length - visiblePlans.length} hidden plans from dropdown`)
 
     // Create options for spending plans (only active/current ones)
     spendingPlanOptions.value = [
       { label: 'Nessun piano (spesa generica)', value: null },
-      ...plans
+      ...visiblePlans
         .filter(plan => plan.is_current || new Date(plan.end_date) >= new Date()) // Solo piani attivi o futuri
         .map(plan => ({
           label: plan.name,

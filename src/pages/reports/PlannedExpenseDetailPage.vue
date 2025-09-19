@@ -46,11 +46,11 @@
             <div class="summary-stats">
               <div class="stat-item">
                 <div class="stat-value">{{ plannedExpenses.length }}</div>
-                <div class="stat-label">Spese Pianificate</div>
+                <div class="stat-label">Pianificate</div>
               </div>
               <div class="stat-item">
                 <div class="stat-value">€{{ formatAmount(totalPlanned) }}</div>
-                <div class="stat-label">Totale Pianificato</div>
+                <div class="stat-label">Pianificato</div>
               </div>
               <div class="stat-item">
                 <div class="stat-value">€{{ formatAmount(totalPaid) }}</div>

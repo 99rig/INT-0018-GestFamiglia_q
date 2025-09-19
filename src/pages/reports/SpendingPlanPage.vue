@@ -167,7 +167,7 @@
               <div class="stats-row">
                 <div class="stat-item stat-item-clickable" @click.stop="toggleExpanded(plan.id)">
                   <div class="stat-label">
-                    Spese Pianificate
+                    Pianificate
                     <q-icon
                       :name="isExpanded(plan.id) ? 'expand_less' : 'expand_more'"
                       size="16px"
@@ -181,7 +181,7 @@
                   <div class="stat-value completed">{{ plan.completed_count || 0 }}</div>
                 </div>
                 <div class="stat-item">
-                  <div class="stat-label">Totale Stimato</div>
+                  <div class="stat-label">Stimato</div>
                   <div class="stat-value primary">€{{ formatAmount(plan.total_estimated_amount || 0) }}</div>
                 </div>
               </div>
@@ -315,8 +315,15 @@ const loadSpendingPlans = async () => {
   try {
     loading.value = true
     const response = await reportsAPI.getSpendingPlans()
-    spendingPlans.value = response.results || response || []
-    console.log('📋 Piani di spesa caricati:', spendingPlans.value.length)
+    const allPlans = response.results || response || []
+
+    // Filtra i piani nascosti (auto-generati dalle ricorrenze)
+    spendingPlans.value = allPlans.filter(plan => !plan.is_hidden)
+
+    console.log('📋 Piani di spesa caricati:', spendingPlans.value.length, 'di', allPlans.length, 'totali')
+    if (allPlans.length > spendingPlans.value.length) {
+      console.log('🔍 Nascosti', allPlans.length - spendingPlans.value.length, 'piani auto-generati')
+    }
   } catch (error) {
     console.error('Errore nel caricamento dei piani:', error)
     snackbar.error('Errore nel caricamento dei piani di spesa')
