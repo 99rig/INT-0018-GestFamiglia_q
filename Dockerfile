@@ -29,8 +29,11 @@ FROM nginx:1.25.0-alpine AS production-stage
 # ✅ Copia configurazione Nginx custom per PWA
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# ✅ Copia i file buildati PWA in Nginx
-COPY --from=build-stage /app/dist/pwa /usr/share/nginx/html
+# ✅ Copia landing page SEO-friendly nel root
+COPY landing-seo/ /usr/share/nginx/html/
+
+# ✅ Copia i file buildati PWA nella sottocartella app
+COPY --from=build-stage /app/dist/pwa /usr/share/nginx/html/app
 
 # ✅ Aggiungi curl per health check
 RUN apk add --no-cache curl

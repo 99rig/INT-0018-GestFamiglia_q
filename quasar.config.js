@@ -179,15 +179,15 @@ export default defineConfig((ctx) => {
       // Configurazione del manifest base
       extendManifestJson (json) {
         json.name = 'My Crazy Family'
-        json.short_name = 'frontend'
-        json.description = 'Gestione Spese Famigliari'
+        json.short_name = 'CrazyFamily'
+        json.description = 'Gestione Spese Familiari'
         json.display = 'standalone'
         json.orientation = 'portrait-primary'
-        json.background_color = '#874E14'
-        json.theme_color = '#874E14'
+        json.background_color = '#239db0'
+        json.theme_color = '#239db0'
         json.start_url = '/?utm_source=pwa'
         json.scope = '/'
-        json.lang = 'en-US'
+        json.lang = 'it-IT'
         json.dir = 'ltr'
 
         // Categorie dell'app

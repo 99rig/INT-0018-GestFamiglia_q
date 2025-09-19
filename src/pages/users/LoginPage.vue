@@ -285,7 +285,7 @@ const loginWithPin = async () => {
 
     if (success) {
       snackbar.success('Accesso riuscito!')
-      router.push('/')
+      router.push('/dashboard')
     } else {
       snackbar.error('PIN non corretto')
       pin.value = ''
@@ -312,7 +312,7 @@ const loginWithEmail = async () => {
       }
 
       snackbar.success('Accesso riuscito!')
-      router.push('/')
+      router.push('/dashboard')
     } else {
       snackbar.error('Credenziali non valide')
     }
@@ -334,7 +334,7 @@ const confirmSetupPin = async (pin) => {
     closePinSetupModal()
 
     // Procedi con il redirect dopo aver configurato il PIN
-    router.push('/')
+    router.push('/dashboard')
   } catch (error) {
     console.error('Errore setup PIN:', error)
     snackbar.error('Errore nella configurazione del PIN')
@@ -391,7 +391,7 @@ const declinePin = () => {
   showWantPinModal.value = false
 
   snackbar.success('Accesso riuscito!')
-  router.push('/')
+  router.push('/dashboard')
 }
 
 const goToRegister = () => {

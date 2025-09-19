@@ -1,9 +1,9 @@
 {
-  "name": "My Crazy Family - Gestione Spese",
-  "short_name": "MCF Spese",
-  "description": "App per la gestione delle spese familiari condivise",
+  "name": "My Crazy Family",
+  "short_name": "CrazyFamily",
+  "description": "Gestione Spese Familiari",
   "theme_color": "#239db0",
-  "background_color": "#ffffff",
+  "background_color": "#239db0",
   "display": "standalone",
   "orientation": "portrait",
   "scope": "/",

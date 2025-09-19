@@ -245,9 +245,9 @@ const register = async () => {
       // Vai alla dashboard
       router.push('/dashboard')
     } else {
-      // Altrimenti vai al login
+      // Altrimenti vai al dashboard
       setTimeout(() => {
-        router.push('/login')
+        router.push('/dashboard')
       }, 1500)
     }
 

@@ -36,7 +36,7 @@ export default defineRouter(function (/* { store, ssrContext } */) {
   // Route guard per autenticazione
   Router.beforeEach(async (to, from, next) => {
     // Pagine pubbliche che non richiedono autenticazione
-    const publicPages = ['/login', '/register']
+    const publicPages = ['/', '/login', '/register']
     const requiresAuth = !publicPages.includes(to.path)
 
     if (!requiresAuth) {

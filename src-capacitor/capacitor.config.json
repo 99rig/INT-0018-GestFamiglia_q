@@ -3,9 +3,14 @@
   "appName": "My Crazy Family",
   "webDir": "www",
   "bundledWebRuntime": false,
-  "backgroundColor": "#874E14",
+  "backgroundColor": "#239db0",
+  "server": {
+    "url": "https://lacrazyfamily.com/app",
+    "iosScheme": "capacitor",
+    "androidScheme": "https"
+  },
   "ios": {
-    "backgroundColor": "#874E14",
+    "backgroundColor": "#239db0",
     "contentInset": "automatic",
     "preferredContentMode": "mobile",
     "allowsLinkPreview": true,
@@ -13,15 +18,11 @@
     "overrideUserAgent": "My Crazy Family/1.0"
   },
   "android": {
-    "backgroundColor": "#874E14",
+    "backgroundColor": "#239db0",
     "allowMixedContent": false,
     "webContentsDebuggingEnabled": false,
     "minWebViewVersion": 60,
     "flavor": "main"
-  },
-  "server": {
-    "iosScheme": "capacitor",
-    "androidScheme": "https"
   },
   "plugins": {
     "Camera": {
@@ -34,17 +35,17 @@
     },
     "SplashScreen": {
       "launchAutoHide": true,
-      "backgroundColor": "#874E14",
+      "backgroundColor": "#239db0",
       "showSpinner": false,
       "androidSpinnerStyle": "large",
       "iosSpinnerStyle": "small",
-      "spinnerColor": "#999999",
+      "spinnerColor": "#ffffff",
       "splashFullScreen": true,
       "splashImmersive": true
     },
     "StatusBar": {
       "style": "default",
-      "backgroundColor": "#874E14"
+      "backgroundColor": "#239db0"
     }
   }
 }

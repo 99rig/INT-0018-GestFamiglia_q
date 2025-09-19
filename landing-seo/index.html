@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- SEO Meta Tags -->
+    <title>My Crazy Family - App Gestione Spese Familiari | Gratis</title>
+    <meta name="description" content="App gratuita per gestire le spese familiari. Traccia spese, scansiona scontrini, crea budget condivisi. Semplice, sicura e divertente per tutta la famiglia.">
+    <meta name="keywords" content="gestione spese familiari, app spese famiglia, budget familiare, tracciare spese, scontrini digitali, spese condivise">
+    <meta name="author" content="My Crazy Family">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="My Crazy Family - Gestione Spese Familiari">
+    <meta property="og:description" content="App gratuita per gestire le spese familiari. Traccia spese, scansiona scontrini, crea budget condivisi.">
+    <meta property="og:url" content="https://lacrazyfamily.com">
+    <meta property="og:site_name" content="My Crazy Family">
+    <meta property="og:image" content="https://lacrazyfamily.com/images/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="it_IT">
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="My Crazy Family - Gestione Spese Familiari">
+    <meta name="twitter:description" content="App gratuita per gestire le spese familiari. Traccia spese, scansiona scontrini, crea budget condivisi.">
+    <meta name="twitter:image" content="https://lacrazyfamily.com/images/og-image.jpg">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://lacrazyfamily.com">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/app/icons/favicon.svg">
+    <link rel="apple-touch-icon" href="/app/icons/apple-touch-icon.svg">
+
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#239db0">
+
+    <!-- Structured Data - App -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "My Crazy Family",
+        "description": "App gratuita per gestire le spese familiari. Traccia spese, scansiona scontrini, crea budget condivisi.",
+        "url": "https://lacrazyfamily.com",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "Web, iOS, Android",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR"
+        },
+        "screenshot": "https://lacrazyfamily.com/images/app-screenshot.jpg",
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "ratingCount": "250"
+        }
+    }
+    </script>
+
+    <!-- Structured Data - Organization -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "My Crazy Family",
+        "url": "https://lacrazyfamily.com",
+        "logo": "https://lacrazyfamily.com/images/logo.svg",
+        "sameAs": [
+            "https://www.facebook.com/mycrazyfamily",
+            "https://www.instagram.com/mycrazyfamily"
+        ]
+    }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- CSS Styles -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #239db0;
+            --secondary: #1a7d8c;
+            --tertiary: #15656f;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 600px;
+            z-index: 2;
+        }
+
+        .logo-circle {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(145deg,
+                rgba(255, 255, 255, 0.3) 0%,
+                rgba(255, 255, 255, 0.1) 25%,
+                var(--primary) 50%,
+                var(--secondary) 75%,
+                rgba(0, 0, 0, 0.1) 100%
+            );
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 2px 8px rgba(255, 255, 255, 0.3),
+                inset 0 -2px 8px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            fill: white;
+        }
+
+        .hero h1 {
+            font-family: 'Fredoka One', cursive;
+            font-size: 3rem;
+            color: white;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .hero .subtitle {
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 40px;
+            font-weight: 500;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            display: inline-block;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: white;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            text-align: center;
+            color: white;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 100px 0;
+            background: #f8f9fa;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 60px;
+            color: #333;
+            font-weight: 700;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 2rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .feature-card p {
+            color: #666;
+            line-height: 1.7;
+        }
+
+        /* How It Works */
+        .how-it-works {
+            padding: 100px 0;
+            background: white;
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .step {
+            text-align: center;
+            position: relative;
+        }
+
+        .step-number {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 4px 15px rgba(35, 157, 176, 0.3);
+        }
+
+        .step h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .step p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 100px 0;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            text-align: center;
+            color: white;
+        }
+
+        .cta-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .cta-section p {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 40px 0;
+            background: #2c3e50;
+            color: #bdc3c7;
+            text-align: center;
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero .subtitle {
+                font-size: 1.1rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .cta-section h2 {
+                font-size: 2rem;
+            }
+
+            .hero-stats {
+                gap: 20px;
+            }
+
+            .stat-number {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="logo-circle">
+                <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+                </svg>
+            </div>
+
+            <h1>My Crazy Family</h1>
+            <p class="subtitle">La prima app gratuita per gestire le spese familiari in modo semplice e divertente</p>
+
+            <div class="cta-buttons">
+                <a href="/app" class="btn btn-primary">Inizia Gratis</a>
+                <a href="/app/#/login" class="btn btn-secondary">Accedi</a>
+            </div>
+
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-number">1000+</span>
+                    <span class="stat-label">Famiglie Felici</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">€50k+</span>
+                    <span class="stat-label">Risparmi Tracciati</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">4.8⭐</span>
+                    <span class="stat-label">Valutazione</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">Perché scegliere My Crazy Family?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3>Scansiona Scontrini</h3>
+                    <p>Fotografa gli scontrini e l'app estrae automaticamente tutti i dati. Niente più inserimenti manuali!</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">👨‍👩‍👧‍👦</div>
+                    <h3>Condividi in Famiglia</h3>
+                    <p>Tutti i membri della famiglia possono tracciare e vedere le spese in tempo reale. Trasparenza totale!</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3>Budget Intelligenti</h3>
+                    <p>Imposta budget mensili per categoria e ricevi notifiche quando ti avvicini al limite.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Report Dettagliati</h3>
+                    <p>Visualizza grafici e statistiche per capire dove vanno i tuoi soldi e come risparmiare.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Sicuro e Privato</h3>
+                    <p>I tuoi dati sono crittografati e protetti. Accesso con PIN personale per massima sicurezza.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🆓</div>
+                    <h3>100% Gratuito</h3>
+                    <p>Tutte le funzioni sono gratuite per sempre. Nessun costo nascosto, nessun abbonamento.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works">
+        <div class="container">
+            <h2 class="section-title">Come funziona?</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Registrati Gratis</h3>
+                    <p>Crea il tuo account in 30 secondi. È completamente gratuito e senza impegno.</p>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Invita la Famiglia</h3>
+                    <p>Condividi il codice invito con i tuoi familiari per iniziare a gestire le spese insieme.</p>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Traccia le Spese</h3>
+                    <p>Scansiona scontrini o aggiungi spese manualmente. L'app fa tutto il resto automaticamente.</p>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>Risparmia di Più</h3>
+                    <p>Visualizza dove spendi di più e ricevi suggerimenti per risparmiare ogni mese.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>Pronto a prendere il controllo delle tue finanze familiari?</h2>
+            <p>Unisciti a migliaia di famiglie che stanno già risparmiando con My Crazy Family</p>
+            <a href="/app/#/register" class="btn btn-primary">Inizia Subito - È Gratis!</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 My Crazy Family. Tutti i diritti riservati. | Made with ❤️ in Italy</p>
+        </div>
+    </footer>
+
+    <!-- Analytics -->
+    <script>
+        // Google Analytics o altri script di tracking
+        console.log('Landing page loaded');
+
+        // Track CTA clicks
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                console.log('CTA clicked:', this.textContent);
+                // Qui puoi aggiungere tracking analytics
+            });
+        });
+    </script>
+</body>
+</html>
