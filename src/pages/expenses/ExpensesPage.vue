@@ -10,7 +10,7 @@
           dropdown-icon="expand_more"
         >
           <q-list>
-            <q-item clickable v-close-popup @click="showManualForm = true">
+            <q-item clickable v-close-popup @click="openManualForm()">
               <q-item-section avatar>
                 <q-icon name="edit" />
               </q-item-section>
@@ -233,7 +233,7 @@
             label="Inserimento Manuale"
             class="mcf-btn-primary"
             size="lg"
-            @click="showManualForm = true"
+            @click="openManualForm()"
           />
           <q-btn
             icon="document_scanner"
@@ -248,7 +248,7 @@
       <!-- FAB per aggiungere spesa -->
       <MCFDraggableFab>
         <q-fab-action
-          @click="showManualForm = true"
+          @click="openManualForm()"
           icon="edit"
           label="Manuale"
           external-label
@@ -906,7 +906,9 @@ const isQuickExpense = (expense) => {
 
 const loadSpendingPlans = async () => {
   try {
-    console.log('📋 Loading spending plans for form...')
+    console.log('🚀 [LAZY-LOAD] Loading spending plans for form...')
+    const startTime = performance.now()
+
     const response = await reportsAPI.getSpendingPlans()
     const plans = Array.isArray(response) ? response : (response.results || response)
 
@@ -929,9 +931,10 @@ const loadSpendingPlans = async () => {
         }))
     ]
 
-    console.log('📋 Spending plans loaded for form:', spendingPlanOptions.value.length - 1) // -1 per escludere "Nessun piano"
+    const endTime = performance.now()
+    console.log(`✅ [LAZY-LOAD] Spending plans loaded in ${(endTime - startTime).toFixed(2)}ms: ${spendingPlanOptions.value.length - 1} plans`) // -1 per escludere "Nessun piano"
   } catch (error) {
-    console.error('Failed to load spending plans for form:', error)
+    console.error('❌ [LAZY-LOAD] Failed to load spending plans for form:', error)
     // Non mostro errore all'utente perché è un campo opzionale
   }
 }
@@ -979,6 +982,14 @@ const closeManualForm = () => {
   showManualForm.value = false
   inputMethod.value = 'manual' // Reset to default
   resetManualForm()
+}
+
+const openManualForm = async () => {
+  // Carica i piani di spesa solo quando l'utente apre il form
+  if (spendingPlanOptions.value.length === 0) {
+    await loadSpendingPlans()
+  }
+  showManualForm.value = true
 }
 
 // Scanner functions
@@ -1372,13 +1383,17 @@ onMounted(async () => {
 
   try {
     // Le route guards garantiscono che l'utente sia autenticato
-    console.log('✅ Loading expenses data...')
-    // Carica prima i piani, le categorie e poi le spese
+    const startTime = performance.now()
+    console.log('🚀 Loading expenses page data...')
+
+    // Carica solo categorie e spese - i piani di spesa vengono caricati lazy quando necessario
     await Promise.all([
-      loadSpendingPlans(),
-      loadCategories()
+      loadCategories(),
+      loadExpenses()
     ])
-    await loadExpenses()
+
+    const endTime = performance.now()
+    console.log(`✅ Expenses page loaded in ${(endTime - startTime).toFixed(2)}ms (without spending plans)`)
 
     // Auto-focus sul campo di ricerca dopo il caricamento
     await nextTick()
