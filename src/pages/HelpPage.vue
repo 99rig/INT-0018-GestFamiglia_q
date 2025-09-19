@@ -291,6 +291,151 @@
           </div>
         </q-expansion-item>
 
+        <!-- Spese Ricorrenti -->
+        <q-expansion-item
+          icon="repeat"
+          label="Spese Ricorrenti"
+          caption="Gestisci spese a rate con controllo visivo dello stato"
+          class="faq-section"
+          header-class="faq-header"
+        >
+          <div class="faq-content">
+            <q-expansion-item
+              icon="schedule"
+              label="Cosa sono le spese ricorrenti nei piani?"
+              class="faq-item"
+            >
+              <div class="faq-answer">
+                <p>Le spese ricorrenti nei piani di spesa ti permettono di pianificare spese da pagare a rate:</p>
+                <ul>
+                  <li><strong>Acquisti a rate:</strong> Elettrodomestici, mobili, tecnologia</li>
+                  <li><strong>Pagamenti dilazionati:</strong> Corsi, iscrizioni, abbonamenti</li>
+                  <li><strong>Progetti a fasi:</strong> Ristrutturazione, matrimonio, vacanze</li>
+                  <li><strong>Spese stagionali:</strong> Tasse, assicurazioni, rate annuali</li>
+                </ul>
+                <p>Ogni rata ha una data di scadenza e puoi monitorare il progresso dei pagamenti.</p>
+              </div>
+            </q-expansion-item>
+
+            <q-expansion-item
+              icon="add_task"
+              label="Come creo una spesa ricorrente?"
+              class="faq-item"
+            >
+              <div class="faq-answer">
+                <ol>
+                  <li>Vai al piano di spesa desiderato</li>
+                  <li>Clicca "Nuova Spesa Pianificata"</li>
+                  <li>Compila descrizione, importo, categoria e data scadenza</li>
+                  <li>Attiva l'opzione "Spesa ricorrente"</li>
+                  <li>Scegli il numero totale di rate (da 2 a 120)</li>
+                  <li>Seleziona la frequenza (mensile, bimestrale, trimestrale)</li>
+                  <li>Salva la spesa - sarà creata solo la prima rata</li>
+                </ol>
+                <p><strong>Nota:</strong> Inizialmente viene creata solo la prima rata, poi generi le altre quando necessario.</p>
+              </div>
+            </q-expansion-item>
+
+            <q-expansion-item
+              icon="playlist_add"
+              label="Come genero le rate successive?"
+              class="faq-item"
+            >
+              <div class="faq-answer">
+                <p>Dopo aver creato la prima rata, puoi generare tutte le altre:</p>
+                <ol>
+                  <li>Trova la spesa ricorrente nella lista (ha il badge "RICORRENTE 1/X")</li>
+                  <li>Clicca sull'icona arancione "🔄" per generare le rate</li>
+                  <li>L'app creerà automaticamente tutte le rate rimanenti</li>
+                  <li>Ogni rata avrà la data corretta basata sulla frequenza scelta</li>
+                </ol>
+                <p><strong>Desktop:</strong> L'icona 🔄 appare dopo i pulsanti principali</p>
+                <p><strong>Mobile:</strong> L'icona 🔄 appare tra i pulsanti delle azioni</p>
+              </div>
+            </q-expansion-item>
+
+            <q-expansion-item
+              icon="check_box"
+              label="Come funzionano gli indicatori visivi?"
+              class="faq-item"
+            >
+              <div class="faq-answer">
+                <p>Le spese ricorrenti hanno indicatori visivi per controllare lo stato a colpo d'occhio:</p>
+                <div class="visual-indicators">
+                  <div class="indicator-item">
+                    <strong>☑️ Checkbox Verde:</strong> Rate già pagate/completate
+                  </div>
+                  <div class="indicator-item">
+                    <strong>☐ Checkbox Blu:</strong> Rata corrente (in scadenza ora)
+                  </div>
+                  <div class="indicator-item">
+                    <strong>☐ Checkbox Grigia:</strong> Rate future ancora da pagare
+                  </div>
+                </div>
+                <p><strong>Desktop:</strong> Le checkbox appaiono in linea dopo il pulsante chevron</p>
+                <p><strong>Mobile:</strong> Tocca l'icona chevron per espandere e vedere i dettagli</p>
+              </div>
+            </q-expansion-item>
+
+            <q-expansion-item
+              icon="expand_more"
+              label="Come vedo i dettagli delle rate?"
+              class="faq-item"
+            >
+              <div class="faq-answer">
+                <p>Puoi vedere tutti i dettagli delle rate in una vista espandibile:</p>
+                <ol>
+                  <li>Clicca sul pulsante chevron (▽) accanto alle checkbox</li>
+                  <li>Si aprirà una sezione con tutti i dettagli:</li>
+                  <ul>
+                    <li>Numero rata (1, 2, 3...)</li>
+                    <li>Stato (Pagata, Da pagare, Parziale)</li>
+                    <li>Importo di ogni rata</li>
+                    <li>Checkbox colorate per stato visivo</li>
+                  </ul>
+                  <li>Clicca di nuovo il chevron per nascondere i dettagli</li>
+                </ol>
+                <p>Questa vista è disponibile sia su desktop che mobile con lo stesso layout.</p>
+              </div>
+            </q-expansion-item>
+
+            <q-expansion-item
+              icon="edit"
+              label="Posso modificare una spesa ricorrente?"
+              class="faq-item"
+            >
+              <div class="faq-answer">
+                <p>Sì! Nella modale di modifica puoi:</p>
+                <ul>
+                  <li><strong>Attivare la ricorrenza:</strong> Su spese normali già create</li>
+                  <li><strong>Cambiare numero rate:</strong> Aumentare o diminuire le rate totali</li>
+                  <li><strong>Modificare frequenza:</strong> Da mensile a trimestrale, etc.</li>
+                  <li><strong>Disattivare ricorrenza:</strong> Tornare a spesa singola</li>
+                </ul>
+                <p><strong>Attenzione:</strong> Se hai già generato le rate, le modifiche influenzeranno solo la rata corrente. Per cambi importanti, considera di creare una nuova spesa ricorrente.</p>
+              </div>
+            </q-expansion-item>
+
+            <q-expansion-item
+              icon="payment"
+              label="Come marco una rata come pagata?"
+              class="faq-item"
+            >
+              <div class="faq-answer">
+                <p>Per segnare il pagamento di una rata:</p>
+                <ol>
+                  <li>Clicca su "Aggiungi Pagamento" sulla rata corrente</li>
+                  <li>Inserisci l'importo pagato e la data</li>
+                  <li>Conferma il pagamento</li>
+                  <li>La checkbox diventerà verde automaticamente</li>
+                  <li>La prossima rata diventerà blu (corrente)</li>
+                </ol>
+                <p>Il sistema aggiorna automaticamente gli indicatori visivi e il progresso complessivo del piano.</p>
+              </div>
+            </q-expansion-item>
+          </div>
+        </q-expansion-item>
+
         <!-- Report e Analisi -->
         <q-expansion-item
           icon="analytics"

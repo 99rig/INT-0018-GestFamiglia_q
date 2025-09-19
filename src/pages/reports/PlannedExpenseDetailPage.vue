@@ -114,15 +114,6 @@
                       <span class="due-date-label">Scad.:</span> {{ formatDate(expense.due_date) }}
                     </span>
                   </div>
-                  <div v-if="expense.is_recurring" class="expense-badges">
-                    <q-badge
-                      color="orange"
-                      text-color="white"
-                      class="recurring-badge"
-                    >
-                      RICORRENTE {{ expense.installment_number }}/{{ expense.total_installments }}
-                    </q-badge>
-                  </div>
                 </div>
               </div>
               <div class="expense-amount">
@@ -131,6 +122,15 @@
                   <span class="status-badge mobile-status" :class="expense.payment_status">
                     {{ getStatusLabel(expense.payment_status) }}
                   </span>
+                  <div v-if="expense.is_recurring" class="expense-badges q-mt-xs">
+                    <q-badge
+                      color="deep-orange-2"
+                      text-color="deep-orange-9"
+                      class="recurring-badge"
+                    >
+                      RICORRENTE {{ expense.installment_number }}/{{ expense.total_installments }}
+                    </q-badge>
+                  </div>
                 </div>
                 <div class="amount-status">
                   <span class="status-badge" :class="expense.payment_status">
@@ -163,7 +163,47 @@
             <div class="expense-actions">
               <!-- Desktop view with labels -->
               <template v-if="$q.screen.gt.sm">
-                <q-btn
+                <!-- Left side: Recurring elements -->
+                <div class="desktop-actions-left">
+                  <!-- Toggle Detailed View Button (first) -->
+                  <q-btn
+                    v-if="expense.is_recurring && expense.recurring_installments_status"
+                    flat
+                    round
+                    :icon="isRecurringExpanded(expense.id) ? 'expand_less' : 'expand_more'"
+                    size="sm"
+                    color="orange"
+                    class="mcf-desktop-toggle-btn"
+                    @click="toggleRecurringView(expense.id)"
+                  >
+                    <q-tooltip>{{ isRecurringExpanded(expense.id) ? 'Nascondi' : 'Mostra' }} Dettagli Rate</q-tooltip>
+                  </q-btn>
+
+                  <!-- Recurring Installments Checkboxes -->
+                  <div
+                    v-if="expense.is_recurring && expense.recurring_installments_status"
+                    class="recurring-checkboxes-desktop"
+                  >
+                    <q-checkbox
+                      v-for="installment in expense.recurring_installments_status"
+                      :key="installment.installment_number"
+                      :model-value="getInstallmentCheckboxValue(installment, expense.installment_number)"
+                      readonly
+                      size="sm"
+                      :color="getInstallmentCheckboxColor(installment, expense.installment_number)"
+                      class="installment-checkbox"
+                    >
+                      <q-tooltip>
+                        Rata {{ installment.installment_number }}/{{ expense.total_installments }} - {{ getInstallmentStatus(installment) }}
+                        <br>Debug: completed={{ installment.is_completed }}, paid={{ installment.is_fully_paid }}, checkbox={{ getInstallmentCheckboxValue(installment, expense.installment_number) }}
+                      </q-tooltip>
+                    </q-checkbox>
+                  </div>
+                </div>
+
+                <!-- Right side: Action buttons -->
+                <div class="desktop-actions-right">
+                  <q-btn
                   v-if="!expense.is_fully_paid"
                   icon="payment"
                   label="Aggiungi Pagamento"
@@ -213,7 +253,7 @@
 
                       <!-- Generate Recurring Installments -->
                       <q-item
-                        v-if="expense.is_recurring && expense.installment_number === 1 && canGenerateRecurring(expense)"
+                        v-if="expense.is_recurring && canGenerateRecurring(expense)"
                         clickable
                         v-close-popup
                         @click="generateRecurringInstallments(expense)"
@@ -249,19 +289,6 @@
                     </q-list>
                   </q-menu>
                 </q-btn>
-
-                <!-- Recurring Installments Dots (Desktop only) -->
-                <div
-                  v-if="expense.is_recurring && expense.recurring_installments_status"
-                  class="recurring-dots-desktop"
-                >
-                  <div
-                    v-for="installment in expense.recurring_installments_status"
-                    :key="installment.installment_number"
-                    class="installment-dot"
-                    :class="getInstallmentDotClass(installment, expense.installment_number)"
-                    :title="`Rata ${installment.installment_number}/${expense.total_installments} - ${getInstallmentStatus(installment)}`"
-                  ></div>
                 </div>
               </template>
 
@@ -302,7 +329,7 @@
                   <q-tooltip>Modifica Spesa</q-tooltip>
                 </q-btn>
                 <q-btn
-                  v-if="expense.is_recurring && expense.installment_number === 1 && canGenerateRecurring(expense)"
+                  v-if="expense.is_recurring && canGenerateRecurring(expense)"
                   flat
                   round
                   icon="repeat"
@@ -316,9 +343,9 @@
                 <q-btn
                   flat
                   round
-                  icon="delete"
+                  icon="close"
                   size="sm"
-                  color="red-5"
+                  color="red"
                   class="mcf-mobile-action-btn"
                   @click="deleteExpense(expense)"
                 >
@@ -341,10 +368,10 @@
               </template>
             </div>
 
-            <!-- Mobile Recurring Installments Details -->
+            <!-- Recurring Installments Details (Mobile & Desktop) -->
             <div
               v-if="expense.is_recurring && expense.recurring_installments_status && isRecurringExpanded(expense.id)"
-              class="recurring-dots-mobile"
+              class="recurring-dots-detailed"
             >
               <div class="recurring-header">
                 <q-icon name="repeat" color="orange" />
@@ -357,10 +384,13 @@
                   class="installment-item-mobile"
                 >
                   <div class="installment-info-mobile">
-                    <div
-                      class="installment-dot-mobile"
-                      :class="getInstallmentDotClass(installment, expense.installment_number)"
-                    ></div>
+                    <q-checkbox
+                      :model-value="getInstallmentCheckboxValue(installment, expense.installment_number)"
+                      readonly
+                      size="sm"
+                      :color="getInstallmentCheckboxColor(installment, expense.installment_number)"
+                      class="installment-checkbox-mobile"
+                    />
                     <div class="installment-number">{{ installment.installment_number }}</div>
                     <div
                       class="installment-status"
@@ -665,6 +695,47 @@
               outlined
               rows="3"
             />
+
+            <!-- Recurring Fields -->
+            <div class="q-mt-md">
+              <q-separator />
+              <div class="text-subtitle1 q-mt-md q-mb-sm">
+                <q-icon name="repeat" class="q-mr-sm" />
+                Ricorrenza
+              </div>
+
+              <q-toggle
+                v-model="editExpenseForm.is_recurring"
+                label="Spesa ricorrente"
+                color="primary"
+                @update:model-value="onRecurringToggle"
+              />
+
+              <div v-if="editExpenseForm.is_recurring" class="q-mt-md q-gutter-md">
+                <q-input
+                  v-model="editExpenseForm.total_installments"
+                  label="Numero totale di rate *"
+                  type="number"
+                  min="2"
+                  max="120"
+                  outlined
+                  :rules="[
+                    val => !editExpenseForm.is_recurring || (val && parseInt(val) >= 2) || 'Minimo 2 rate per spese ricorrenti'
+                  ]"
+                />
+
+                <MCFAutocomplete
+                  v-model="editExpenseForm.recurring_frequency"
+                  :options="frequencyOptions"
+                  label="Frequenza ricorrenza"
+                  outlined
+                  option-value="value"
+                  option-label="label"
+                  :search-fields="['label']"
+                  prepend-icon="schedule"
+                />
+              </div>
+            </div>
           </q-form>
         </q-card-section>
 
@@ -845,7 +916,10 @@ const editExpenseForm = ref({
   category: null, // Conterrà {category: id, subcategory: id}
   priority: 'medium',
   due_date: '',
-  notes: ''
+  notes: '',
+  is_recurring: false,
+  total_installments: 2,
+  recurring_frequency: 'monthly'
 })
 
 // Opzioni priorità
@@ -1105,15 +1179,30 @@ const resetPaymentForm = () => {
 // Recurring expense logic
 const onRecurringToggle = (isRecurring) => {
   if (!isRecurring) {
-    // Reset recurring fields when toggled off
-    newExpense.value.total_installments = 2
-    newExpense.value.installment_number = 1
-    newExpense.value.recurring_frequency = 'monthly'
-  } else {
-    // Set defaults for recurring expense
-    newExpense.value.installment_number = 1
-    if (!newExpense.value.total_installments || newExpense.value.total_installments < 2) {
+    // Reset recurring fields when toggled off for new expense
+    if (newExpense.value) {
       newExpense.value.total_installments = 2
+      newExpense.value.installment_number = 1
+      newExpense.value.recurring_frequency = 'monthly'
+    }
+
+    // Reset recurring fields when toggled off for edit expense
+    if (editExpenseForm.value) {
+      editExpenseForm.value.total_installments = 2
+      editExpenseForm.value.recurring_frequency = 'monthly'
+    }
+  } else {
+    // Set defaults for recurring expense (new)
+    if (newExpense.value) {
+      newExpense.value.installment_number = 1
+      if (!newExpense.value.total_installments || newExpense.value.total_installments < 2) {
+        newExpense.value.total_installments = 2
+      }
+    }
+
+    // Set defaults for recurring expense (edit)
+    if (editExpenseForm.value && (!editExpenseForm.value.total_installments || editExpenseForm.value.total_installments < 2)) {
+      editExpenseForm.value.total_installments = 2
     }
   }
 }
@@ -1125,7 +1214,10 @@ const resetEditExpenseForm = () => {
     category: null,
     priority: 'medium',
     due_date: '',
-    notes: ''
+    notes: '',
+    is_recurring: false,
+    total_installments: 2,
+    recurring_frequency: 'monthly'
   }
   editingExpense.value = null
 }
@@ -1149,7 +1241,10 @@ const updateExpense = async () => {
       priority: editExpenseForm.value.priority,
       due_date: editExpenseForm.value.due_date,
       notes: editExpenseForm.value.notes,
-      spending_plan: parseInt(planId.value)
+      spending_plan: parseInt(planId.value),
+      is_recurring: editExpenseForm.value.is_recurring,
+      total_installments: editExpenseForm.value.is_recurring ? parseInt(editExpenseForm.value.total_installments) : null,
+      recurring_frequency: editExpenseForm.value.is_recurring ? editExpenseForm.value.recurring_frequency : null
     }
 
     await reportsAPI.updatePlannedExpense(editingExpense.value.id, expenseData)
@@ -1186,7 +1281,10 @@ const editExpense = (expense) => {
     category: categoryData,
     priority: expense.priority,
     due_date: expense.due_date,
-    notes: expense.notes || ''
+    notes: expense.notes || '',
+    is_recurring: expense.is_recurring || false,
+    total_installments: expense.total_installments || 2,
+    recurring_frequency: expense.recurring_frequency || 'monthly'
   }
   showEditExpenseDialog.value = true
 }
@@ -1351,7 +1449,6 @@ const loadPaymentsData = async () => {
 const canGenerateRecurring = (expense) => {
   // Verifica se ci sono ancora rate da generare
   if (!expense.is_recurring || !expense.total_installments) return false
-  if (expense.installment_number !== 1) return false
 
   // Controlla se le rate sono già state generate (indicatore nelle note)
   if (expense.notes && expense.notes.includes('✅ Rate generate il')) {
@@ -1443,6 +1540,25 @@ const getInstallmentStatusClass = (installment, currentInstallmentNumber) => {
     return 'current'
   } else {
     return 'pending'
+  }
+}
+
+const getInstallmentCheckboxValue = (installment, currentInstallmentNumber) => {
+  // Checkbox spuntata solo se pagata/completata
+  if (installment.is_completed || installment.is_fully_paid) {
+    return true
+  }
+  // Per test: mostra la rata corrente come checked per vedere se funziona
+  return installment.installment_number === currentInstallmentNumber
+}
+
+const getInstallmentCheckboxColor = (installment, currentInstallmentNumber) => {
+  if (installment.is_completed || installment.is_fully_paid) {
+    return 'green'
+  } else if (installment.installment_number === currentInstallmentNumber) {
+    return 'primary'
+  } else {
+    return 'grey-5'
   }
 }
 
@@ -1865,13 +1981,31 @@ onMounted(async () => {
 
 .expense-actions {
   display: flex;
+  align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+
+  @media (min-width: 769px) {
+    justify-content: space-between;
+  }
 
   @media (max-width: 600px) {
     justify-content: center;
     gap: 12px;
   }
+}
+
+/* Desktop layout containers */
+.desktop-actions-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.desktop-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .mcf-mobile-action-btn {
@@ -2227,40 +2361,24 @@ onMounted(async () => {
   color: var(--mcf-text-secondary);
 }
 
-/* Installment dots styling */
-.recurring-dots-desktop {
+/* Installment checkboxes styling */
+.recurring-checkboxes-desktop {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-left: 8px;
 }
 
-.installment-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  border: 1px solid transparent;
-  transition: all 0.2s ease;
+.installment-checkbox {
+  margin: 0 !important;
 }
 
-.installment-dot.installment-paid {
-  background-color: #4caf50;
-  border-color: #4caf50;
+.installment-checkbox-mobile {
+  margin: 0 !important;
+  margin-right: 8px !important;
 }
 
-.installment-dot.installment-current {
-  background-color: #2196f3;
-  border-color: #2196f3;
-  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.3);
-}
-
-.installment-dot.installment-pending {
-  background-color: transparent;
-  border-color: #bdbdbd;
-}
-
-/* Mobile recurring installments styling */
-.recurring-dots-mobile {
+/* Recurring installments detailed view styling */
+.recurring-dots-detailed {
   margin-top: 8px;
   border-top: 1px solid var(--mcf-border-light);
   padding-top: 8px;
@@ -2284,12 +2402,6 @@ onMounted(async () => {
   gap: 8px;
 }
 
-.installment-dot-mobile {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
 
 .installment-number {
   font-weight: 600;
@@ -2326,9 +2438,11 @@ onMounted(async () => {
   }
 }
 
-@media (min-width: 769px) {
-  .recurring-dots-mobile {
-    display: none;
-  }
+/* Desktop toggle button for detailed view */
+.mcf-desktop-toggle-btn {
+  width: 32px;
+  height: 32px;
 }
+
+/* Removed media query - detailed view now available on both mobile and desktop */
 </style>
