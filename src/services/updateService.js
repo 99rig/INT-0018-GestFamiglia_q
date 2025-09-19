@@ -189,31 +189,57 @@ ${updateInfo.is_mandatory ? '\n⚠️ Questo aggiornamento è obbligatorio.' : '
       }
 
       const blob = await response.blob()
-      const arrayBuffer = await blob.arrayBuffer()
-
-      // Salva il file APK
       const fileName = `MyCrazyFamily-v${updateInfo.version_name}.apk`
-
-      await Filesystem.writeFile({
-        path: fileName,
-        data: this.arrayBufferToBase64(arrayBuffer),
-        directory: Directory.Cache
-      })
-
-      console.log('💾 APK downloaded and saved')
 
       // Chiudi progress dialog
       progressDialog.hide()
 
-      // Mostra dialog di installazione
-      Dialog.create({
-        title: '✅ Download Completato',
-        message: 'L\'aggiornamento è stato scaricato. Vuoi installarlo ora?',
-        ok: 'Installa',
-        cancel: 'Più Tardi'
-      }).onOk(async () => {
-        await this.installApk(fileName)
-      })
+      if (Capacitor.isNativePlatform()) {
+        // MOBILE NATIVO: Salva nel filesystem e installa
+        const arrayBuffer = await blob.arrayBuffer()
+
+        await Filesystem.writeFile({
+          path: fileName,
+          data: this.arrayBufferToBase64(arrayBuffer),
+          directory: Directory.Cache
+        })
+
+        console.log('💾 APK downloaded and saved to device')
+
+        // Mostra dialog di installazione
+        Dialog.create({
+          title: '✅ Download Completato',
+          message: 'L\'aggiornamento è stato scaricato. Vuoi installarlo ora?',
+          ok: 'Installa',
+          cancel: 'Più Tardi'
+        }).onOk(async () => {
+          await this.installApk(fileName)
+        })
+      } else {
+        // WEB/PWA: Download diretto del file
+        console.log('💾 Starting browser download...')
+
+        // Crea link temporaneo per download
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = fileName
+        a.style.display = 'none'
+
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        window.URL.revokeObjectURL(url)
+
+        console.log('📱 Browser download started')
+
+        // Mostra messaggio di successo per web
+        Dialog.create({
+          title: '✅ Download Avviato',
+          message: `Il file ${fileName} è stato scaricato nella cartella Download del browser. Trasferiscilo sul tuo dispositivo Android per installarlo.`,
+          ok: 'OK'
+        })
+      }
 
     } catch (error) {
       console.error('❌ Error downloading update:', error)
