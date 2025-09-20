@@ -65,7 +65,7 @@
         "url": "https://lacrazyfamily.com",
         "applicationCategory": "FinanceApplication",
         "operatingSystem": ["Android", "Windows", "macOS", "Linux", "iOS"],
-        "softwareVersion": "1.0.17",
+        "softwareVersion": "1.0.26",
         "offers": {
             "@type": "Offer",
             "price": "0",
@@ -151,7 +151,10 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'G-RPNT5V2WM7');
+      gtag('config', 'G-RPNT5V2WM7', {
+        cookie_flags: 'SameSite=None;Secure',
+        cookie_expires: 63072000 // 2 anni
+      });
     </script>
 
     <!-- Preconnect for performance -->
@@ -1335,7 +1338,7 @@
                         © 2025 My Crazy Family - Tutti i diritti riservati
                     </div>
                     <div class="version-info">
-                        Versione 1.0.17 • Sviluppato con Vue.js e Quasar
+                        Versione 1.0.26 • Sviluppato con Vue.js e Quasar
                     </div>
                 </div>
             </div>
