@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Allow: /app/
+
+# Sitemap
+Sitemap: https://lacrazyfamily.com/sitemap.xml
+
+# Disallow sensitive paths
+Disallow: /app/#/settings
+Disallow: /app/#/scanner
