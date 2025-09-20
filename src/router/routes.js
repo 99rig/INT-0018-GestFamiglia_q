@@ -1,4 +1,21 @@
 const routes = [
+  // Landing pages Vue (per riferimento sviluppo)
+  {
+    path: '/landing-vue',
+    component: () => import('layouts/LandingLayout.vue'),
+    children: [
+      { path: '', component: () => import('pages/LandingPage.vue') }
+    ]
+  },
+
+  {
+    path: '/landing2-vue',
+    component: () => import('layouts/LandingLayout.vue'),
+    children: [
+      { path: '', component: () => import('pages/LandingPage2.vue') }
+    ]
+  },
+
   // Login route (no layout) - for Vue.js app
   {
     path: '/login',
