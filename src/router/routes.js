@@ -1,17 +1,11 @@
 const routes = [
-  // Landing page (no layout)
-  {
-    path: '/',
-    component: () => import('pages/LandingPage.vue')
-  },
-
-  // Login route (no layout)
+  // Login route (no layout) - for Vue.js app
   {
     path: '/login',
     component: () => import('pages/users/LoginPage.vue')
   },
 
-  // Register route (no layout)
+  // Register route (no layout) - for Vue.js app
   {
     path: '/register',
     component: () => import('pages/users/RegisterPage.vue')
@@ -19,7 +13,7 @@ const routes = [
 
   // Main app routes (with layout)
   {
-    path: '/app',
+    path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { path: '', redirect: '/dashboard' },

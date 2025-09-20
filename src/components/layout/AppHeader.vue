@@ -50,7 +50,7 @@ function toggleSidebar() {
 
 async function logout() {
   await authStore.logout()
-  router.push('/')
+  router.push('/login')
 }
 </script>
 

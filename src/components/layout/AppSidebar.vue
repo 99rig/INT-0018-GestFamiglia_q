@@ -126,7 +126,7 @@ const mainLinks = [
     title: 'Dashboard',
     caption: 'Panoramica generale',
     icon: 'dashboard',
-    link: '/',
+    link: '/dashboard',
   },
   {
     title: 'Spese',
