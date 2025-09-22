@@ -31,8 +31,9 @@ export const reportsAPI = {
   },
 
   // ===== SPENDING PLANS =====
-  async getSpendingPlans() {
-    const response = await apiClient.get('/spending-plans/')
+  async getSpendingPlans(showAll = false) {
+    const params = showAll ? '?show_all=true' : ''
+    const response = await apiClient.get(`/spending-plans/${params}`)
     return response.data
   },
 

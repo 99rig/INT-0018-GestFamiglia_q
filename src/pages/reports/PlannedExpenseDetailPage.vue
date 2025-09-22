@@ -1295,6 +1295,9 @@ const toggleProgressDisplay = () => {
 const updateExpense = async () => {
   if (!canEditExpense.value || !editingExpense.value) return
 
+  console.log('🔍 Updating expense with ID:', editingExpense.value.id)
+  console.log('🔍 Expense data:', editingExpense.value)
+
   saving.value = true
   try {
     // Il CategorySelect restituisce {category: id, subcategory: id}
@@ -1315,15 +1318,42 @@ const updateExpense = async () => {
 
     await reportsAPI.updatePlannedExpense(editingExpense.value.id, expenseData)
 
-    snackbar.success('Spesa pianificata aggiornata con successo!')
+    // Se è stata attivata la ricorrenza, genera automaticamente le rate
+    if (editExpenseForm.value.is_recurring && editExpenseForm.value.total_installments > 1) {
+      try {
+        console.log('🔄 Generating recurring installments...')
+        const recurringResponse = await reportsAPI.generateRecurringInstallments(editingExpense.value.id)
+        console.log('✅ Recurring installments generated:', recurringResponse)
+
+        snackbar.success(`Spesa pianificata aggiornata e generate ${recurringResponse.created_installments || 0} rate ricorrenti!`)
+      } catch (recurringError) {
+        console.error('⚠️ Error generating recurring installments:', recurringError)
+        snackbar.warning('Spesa aggiornata, ma errore nella generazione delle rate ricorrenti')
+      }
+    } else {
+      snackbar.success('Spesa pianificata aggiornata con successo!')
+    }
 
     showEditExpenseDialog.value = false
     resetEditExpenseForm()
     await loadPlanData()
 
   } catch (error) {
-    console.error('Errore nell\'aggiornamento della spesa:', error)
-    snackbar.error('Errore nell\'aggiornamento della spesa')
+    console.error('❌ Errore nell\'aggiornamento della spesa:', error)
+
+    let errorMessage = 'Errore nell\'aggiornamento della spesa'
+
+    if (error.response?.status === 404) {
+      errorMessage = 'Spesa non trovata. Potrebbe essere stata eliminata. Ricaricando i dati...'
+      // Ricarica automaticamente i dati del piano per sincronizzare
+      setTimeout(() => {
+        loadPlanData()
+      }, 2000)
+    } else if (error.response?.data?.detail) {
+      errorMessage = error.response.data.detail
+    }
+
+    snackbar.error(errorMessage)
   } finally {
     saving.value = false
   }
@@ -1531,11 +1561,8 @@ const generateRecurringInstallments = async (expense) => {
   }
 
   try {
-    // Mostra loading
-    $q.loading.show({
-      message: `Generazione delle ${(expense.total_installments || 1) - 1} rate ricorrenti...`,
-      html: true
-    })
+    // Mostra loading con LoadingBar
+    $q.loadingBar.start()
 
     // Chiama l'API per generare le ricorrenze
     const response = await reportsAPI.generateRecurringInstallments(expense.id)
@@ -1560,7 +1587,7 @@ const generateRecurringInstallments = async (expense) => {
 
     snackbar.error(errorMessage)
   } finally {
-    $q.loading.hide()
+    $q.loadingBar.stop()
   }
 }
 

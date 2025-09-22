@@ -100,7 +100,17 @@ export default defineConfig((ctx) => {
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#framework
     framework: {
-      config: {},
+      config: {
+        loading: {
+          delay: 200,
+          message: 'Caricamento...',
+          spinnerSize: 60,
+          spinnerColor: 'primary',
+          messageColor: 'white',
+          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          spinner: 'QSpinnerDots'
+        }
+      },
 
       // iconSet: 'material-icons', // Quasar icon set
       lang: 'it', // Quasar language pack italiano
@@ -118,7 +128,7 @@ export default defineConfig((ctx) => {
         'SessionStorage',
         'AppVisibility',
         'Platform',
-        'Loading',
+        // 'Loading', // Disabilitato - causava loading a schermo intero invasivo
         'LoadingBar',
         'Notify',
         'Dialog',
@@ -183,8 +193,8 @@ export default defineConfig((ctx) => {
         json.description = 'Gestione Spese Familiari'
         json.display = 'standalone'
         json.orientation = 'portrait-primary'
-        json.background_color = '#239db0'
-        json.theme_color = '#239db0'
+        json.background_color = '#ffffff'
+        json.theme_color = '#ffffff'
         json.start_url = '/app/?utm_source=pwa'
         json.scope = '/app/'
         json.lang = 'it-IT'

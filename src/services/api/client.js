@@ -29,6 +29,12 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config
 
+    // Non intercettare errori per le chiamate di auth per evitare loop infiniti
+    if (originalRequest.url?.includes('/auth/logout/') ||
+        originalRequest.url?.includes('/auth/refresh/')) {
+      return Promise.reject(error)
+    }
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         // Metti in coda le richieste fallite durante il refresh
@@ -50,7 +56,13 @@ apiClient.interceptors.response.use(
         const { useAuthStore } = await import('../../stores/auth.js')
         const authStore = useAuthStore()
 
-        const newToken = await authStore.refreshToken()
+        const refreshSuccess = await authStore.refreshAccessToken()
+
+        if (!refreshSuccess || !authStore.accessToken) {
+          throw new Error('Token refresh failed')
+        }
+
+        const newToken = authStore.accessToken
 
         // Processa le richieste in coda
         failedQueue.forEach(({ resolve }) => resolve(newToken))
@@ -65,7 +77,10 @@ apiClient.interceptors.response.use(
 
         const { useAuthStore } = await import('../../stores/auth.js')
         const authStore = useAuthStore()
-        authStore.logout()
+        // Non attendere il logout per evitare potenziali loop
+        authStore.logout().catch(() => {
+          // Ignora errori di logout - l'importante è pulire lo stato locale
+        })
 
         return Promise.reject(refreshError)
       } finally {

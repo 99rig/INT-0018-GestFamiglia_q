@@ -6,5 +6,5 @@ Allow: /app/
 Sitemap: https://lacrazyfamily.com/sitemap.xml
 
 # Disallow sensitive paths
-Disallow: /app/#/settings
-Disallow: /app/#/scanner
+Disallow: /app/#settings
+Disallow: /app/#scanner

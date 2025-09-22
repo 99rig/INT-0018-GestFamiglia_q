@@ -604,6 +604,61 @@
                 type="textarea"
                 rows="3"
               />
+
+              <!-- Sezione Ricorrenza -->
+              <q-separator class="q-my-md" />
+
+              <div class="mcf-recurring-section">
+                <q-toggle
+                  v-model="editForm.is_recurring"
+                  label="Rendi questa spesa ricorrente"
+                  color="primary"
+                  @update:model-value="onRecurringToggle"
+                />
+
+                <div v-if="editForm.is_recurring" class="mcf-recurring-fields q-mt-md q-gutter-md">
+                  <q-select
+                    v-model="editForm.frequency"
+                    :options="frequencyOptions"
+                    label="Frequenza *"
+                    outlined
+                    required
+                    emit-value
+                    map-options
+                  />
+
+                  <MCFDatePicker
+                    v-model="editForm.start_date"
+                    label="Data inizio ricorrenza *"
+                    required
+                    outlined
+                    :rules="[val => val && val.length > 0 || 'Data inizio richiesta']"
+                  />
+
+                  <MCFDatePicker
+                    v-model="editForm.end_date"
+                    label="Data fine ricorrenza (opzionale)"
+                    outlined
+                    hint="Lascia vuoto per ricorrenza senza fine"
+                  />
+
+                  <q-input
+                    v-model.number="editForm.total_installments"
+                    label="Numero rate totali (opzionale)"
+                    outlined
+                    type="number"
+                    min="1"
+                    max="120"
+                    hint="Es: 12 per rate mensili per un anno"
+                  />
+
+                  <q-toggle
+                    v-model="editForm.generate_immediately"
+                    label="Genera spese future immediatamente"
+                    color="primary"
+                  />
+                </div>
+              </div>
             </q-form>
           </q-card-section>
 
@@ -723,6 +778,18 @@ const searchQuery = ref('')
 const searchInputRef = ref(null)
 let searchTimeout = null
 
+// Opzioni per la frequenza di ricorrenza
+const frequencyOptions = [
+  { label: 'Giornaliera', value: 'giornaliera' },
+  { label: 'Settimanale', value: 'settimanale' },
+  { label: 'Bisettimanale', value: 'bisettimanale' },
+  { label: 'Mensile', value: 'mensile' },
+  { label: 'Bimestrale', value: 'bimestrale' },
+  { label: 'Trimestrale', value: 'trimestrale' },
+  { label: 'Semestrale', value: 'semestrale' },
+  { label: 'Annuale', value: 'annuale' }
+]
+
 // Computed properties for category filtering UI
 const visibleCategories = computed(() => {
   if (showAllCategories.value) {
@@ -766,7 +833,14 @@ const editForm = ref({
   subcategory: null,
   date: '',
   notes: '',
-  spending_plan: null
+  spending_plan: null,
+  // Campi per ricorrenza
+  is_recurring: false,
+  frequency: 'mensile',
+  start_date: '',
+  end_date: '',
+  total_installments: null,
+  generate_immediately: true
 })
 
 // Category selection for edit form
@@ -1169,7 +1243,14 @@ const openEditModal = async (expense) => {
     subcategory: expense.subcategory || null,
     date: expense.date,
     notes: expense.notes || '',
-    spending_plan: expense.spending_plan || null
+    spending_plan: expense.spending_plan || null,
+    // Campi ricorrenza
+    is_recurring: false, // Reset sempre a false inizialmente
+    frequency: 'mensile',
+    start_date: expense.date, // Inizializza con la data della spesa
+    end_date: '',
+    total_installments: null,
+    generate_immediately: true
   }
 
   // Populate category selection for CategorySelect component
@@ -1199,11 +1280,32 @@ const closeEditForm = () => {
     subcategory: null,
     date: '',
     notes: '',
-    spending_plan: null
+    spending_plan: null,
+    // Reset campi ricorrenza
+    is_recurring: false,
+    frequency: 'mensile',
+    start_date: '',
+    end_date: '',
+    total_installments: null,
+    generate_immediately: true
   }
 
   // Reset category selection
   editCategorySelection.value = { category: null, subcategory: null }
+}
+
+// Funzione per gestire il toggle ricorrenza
+const onRecurringToggle = (value) => {
+  if (value) {
+    // Quando viene attivata la ricorrenza, imposta valori di default intelligenti
+    if (!editForm.value.start_date) {
+      editForm.value.start_date = editForm.value.date
+    }
+  } else {
+    // Quando viene disattivata, pulisce i campi opzionali
+    editForm.value.end_date = ''
+    editForm.value.total_installments = null
+  }
 }
 
 
@@ -1217,9 +1319,22 @@ const submitEditExpense = async () => {
       return
     }
 
+    // Validazione specifica per ricorrenza
+    if (editForm.value.is_recurring) {
+      if (!editForm.value.start_date || !editForm.value.frequency) {
+        snackbar.warning('Compila tutti i campi obbligatori per la ricorrenza')
+        return
+      }
+
+      if (editForm.value.end_date && editForm.value.start_date >= editForm.value.end_date) {
+        snackbar.warning('La data di fine deve essere successiva alla data di inizio')
+        return
+      }
+    }
+
     console.log('💾 Updating expense...', editForm.value)
 
-    // Prepare expense data for API
+    // Prima aggiorna la spesa normale
     const expenseData = {
       description: editForm.value.description,
       amount: editForm.value.amount,
@@ -1230,11 +1345,27 @@ const submitEditExpense = async () => {
       spending_plan: editForm.value.spending_plan || null
     }
 
-    // Call API to update expense
-    const response = await expensesAPI.updateExpense(editingExpense.value.id, expenseData)
-    console.log('✅ Expense updated:', response)
+    await expensesAPI.updateExpense(editingExpense.value.id, expenseData)
+    console.log('✅ Expense updated')
 
-    snackbar.success('Spesa modificata con successo!')
+    // Se è stata attivata la ricorrenza, converti la spesa
+    if (editForm.value.is_recurring) {
+      console.log('🔄 Converting to recurring...')
+
+      const conversionData = {
+        frequency: editForm.value.frequency,
+        start_date: editForm.value.start_date,
+        end_date: editForm.value.end_date || null,
+        generate_immediately: editForm.value.generate_immediately
+      }
+
+      const recurringResponse = await expensesAPI.convertToRecurring(editingExpense.value.id, conversionData)
+      console.log('✅ Converted to recurring:', recurringResponse)
+
+      snackbar.success(`Spesa convertita in ricorrente! Generate ${recurringResponse.generated_count} spese future.`)
+    } else {
+      snackbar.success('Spesa modificata con successo!')
+    }
 
     closeEditForm()
 
@@ -2117,6 +2248,34 @@ onMounted(async () => {
 
   span {
     font-size: 14px;
+  }
+}
+
+/* === RECURRING SECTION STYLES === */
+.mcf-recurring-section {
+  border: 1px solid var(--mcf-border-light);
+  border-radius: 8px;
+  padding: 16px;
+  background-color: rgba(35, 157, 176, 0.05);
+
+  .q-toggle {
+    margin-bottom: 0;
+  }
+}
+
+.mcf-recurring-fields {
+  border-top: 1px solid var(--mcf-border-light);
+  padding-top: 16px;
+  margin-top: 16px !important;
+
+  .q-field {
+    margin-bottom: 12px;
+  }
+
+  .q-input[type="number"] {
+    :deep(.q-field__native) {
+      text-align: left;
+    }
   }
 }
 

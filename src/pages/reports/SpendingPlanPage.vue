@@ -12,6 +12,34 @@
         />
       </div>
 
+      <!-- Filtri e Controlli -->
+      <div class="mcf-filters-section">
+        <div class="filter-row">
+          <div class="filter-item">
+            <q-toggle
+              v-model="showAllFuturePlans"
+              left-label
+              icon="event"
+              color="primary"
+              @update:model-value="onFilterChange"
+            />
+            <span class="filter-label">
+              {{ showAllFuturePlans ? 'Limita ai prossimi 3 mesi' : 'Mostra tutti i piani futuri' }}
+            </span>
+          </div>
+          <div v-if="filteredPlansCount !== totalPlansCount" class="filter-info">
+            <q-chip
+              color="grey-4"
+              text-color="grey-8"
+              size="sm"
+              icon="filter_list"
+            >
+              {{ filteredPlansCount }} di {{ totalPlansCount }} piani
+            </q-chip>
+          </div>
+        </div>
+      </div>
+
       <!-- Lista Piani di Spesa -->
         <MCFLoading
           v-if="loading"
@@ -19,7 +47,7 @@
           submessage="Recupero pianificazioni e spese future"
         />
 
-        <div v-else-if="spendingPlans.length === 0" class="mcf-empty-state">
+        <div v-else-if="filteredSpendingPlans.length === 0" class="mcf-empty-state">
           <div class="mcf-empty-illustration">
             <div class="mcf-empty-icon-container">
               <q-icon name="event_note" class="mcf-empty-icon" />
@@ -58,7 +86,7 @@
         <!-- Grid dei Piani -->
         <div v-else class="spending-plans-grid">
           <div
-            v-for="plan in spendingPlans"
+            v-for="plan in filteredSpendingPlans"
             :key="plan.id"
             class="spending-plan-card"
             @click="openPlanDetail(plan)"
@@ -274,7 +302,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
 import { reportsAPI } from 'src/services/api/reports.js'
@@ -299,6 +327,9 @@ const editingPlan = ref(null)
 const cloningPlan = ref(null)
 const expandedPlans = ref(new Set())
 
+// Filtri
+const showAllFuturePlans = ref(false)
+
 const authStore = useAuthStore()
 
 // Opzioni per il tipo piano (per le funzioni helper)
@@ -310,17 +341,47 @@ const planTypeOptions = [
   { label: 'Personalizzato', value: 'custom' }
 ]
 
+// Computed Properties
+const filteredSpendingPlans = computed(() => spendingPlans.value)
+const totalPlansCount = computed(() => allPlansCount.value)
+const filteredPlansCount = computed(() => spendingPlans.value.length)
+
+// Contatori
+const allPlansCount = ref(0) // Memorizza il totale dei piani quando showAll è true
+
 // Metodi
+const onFilterChange = async () => {
+  console.log('📅 Filtro piani cambiato:', showAllFuturePlans.value ? 'Tutti i piani' : 'Solo 3 mesi')
+  await loadSpendingPlans()
+}
+
 const loadSpendingPlans = async () => {
   try {
     loading.value = true
-    const response = await reportsAPI.getSpendingPlans()
+    const response = await reportsAPI.getSpendingPlans(showAllFuturePlans.value)
     const allPlans = response.results || response || []
 
     // Filtra i piani nascosti (auto-generati dalle ricorrenze)
     spendingPlans.value = allPlans.filter(plan => !plan.is_hidden)
 
-    console.log('📋 Piani di spesa caricati:', spendingPlans.value.length, 'di', allPlans.length, 'totali')
+    // Se stiamo mostrando tutti i piani, aggiorna il contatore totale
+    if (showAllFuturePlans.value) {
+      allPlansCount.value = spendingPlans.value.length
+    } else {
+      // Se non abbiamo il totale, fai una chiamata rapida per ottenerlo
+      if (allPlansCount.value === 0) {
+        try {
+          const allResponse = await reportsAPI.getSpendingPlans(true)
+          const allAllPlans = allResponse.results || allResponse || []
+          allPlansCount.value = allAllPlans.filter(plan => !plan.is_hidden).length
+        } catch (err) {
+          console.warn('Errore nel caricamento del totale piani:', err)
+        }
+      }
+    }
+
+    console.log('📋 Piani di spesa caricati:', spendingPlans.value.length, 'di', allPlansCount.value, 'totali')
+    console.log('📅 Filtro attivo:', showAllFuturePlans.value ? 'Tutti i piani' : 'Solo 3 mesi')
     if (allPlans.length > spendingPlans.value.length) {
       console.log('🔍 Nascosti', allPlans.length - spendingPlans.value.length, 'piani auto-generati')
     }
@@ -574,6 +635,50 @@ onMounted(async () => {
     justify-content: center;
     width: 100%;
   }
+}
+
+// === FILTERS SECTION ===
+.mcf-filters-section {
+  margin-bottom: 20px;
+
+  @media (min-width: 768px) {
+    margin-bottom: 24px;
+  }
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  background: rgba(var(--q-primary-rgb), 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(var(--q-primary-rgb), 0.1);
+
+  @media (min-width: 768px) {
+    padding: 16px 20px;
+  }
+}
+
+.filter-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.filter-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--q-primary);
+
+  @media (min-width: 768px) {
+    font-size: 15px;
+  }
+}
+
+.filter-info {
+  flex-shrink: 0;
 }
 
 .container {

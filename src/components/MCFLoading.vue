@@ -43,9 +43,10 @@ defineProps({
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px 20px;
-  width: 100%;
-  min-height: 200px;
+  padding: 20px;
+  margin: 20px auto;
+  max-width: 300px;
+  min-height: 80px;
 
   &.mcf-loading-fullscreen {
     position: fixed;
@@ -56,6 +57,10 @@ defineProps({
     background: var(--mcf-bg-surface);
     z-index: 9999;
     min-height: 100vh;
+    max-width: none;
+    width: 100%;
+    margin: 0;
+    padding: 40px 20px;
   }
 }
 
@@ -68,15 +73,16 @@ defineProps({
 
 .mcf-loading-dots {
   display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 6px;
+  margin-bottom: 12px;
 }
 
 .mcf-dot {
-  width: 12px;
-  height: 12px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--mcf-primary);
+  opacity: 0.7;
   animation: mcf-dot-bounce 1.4s ease-in-out infinite both;
 
   &.mcf-dot-1 {
@@ -104,23 +110,23 @@ defineProps({
 }
 
 .mcf-loading-message {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
-  color: var(--mcf-text-primary);
-  margin-bottom: 8px;
+  color: var(--mcf-text-secondary);
+  margin-bottom: 6px;
 
   @media (min-width: 768px) {
-    font-size: 18px;
+    font-size: 15px;
   }
 }
 
 .mcf-loading-submessage {
-  font-size: 14px;
-  color: var(--mcf-text-secondary);
+  font-size: 12px;
+  color: var(--mcf-text-muted);
   opacity: 0.8;
 
   @media (min-width: 768px) {
-    font-size: 15px;
+    font-size: 13px;
   }
 }
 </style>

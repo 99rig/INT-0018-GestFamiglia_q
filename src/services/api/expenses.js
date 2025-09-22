@@ -48,6 +48,12 @@ export const expensesAPI = {
 
   async deleteExpense(id) {
     await apiClient.delete(`/expenses/${id}/`)
+  },
+
+  // Converte una spesa in ricorrente
+  async convertToRecurring(id, conversionData) {
+    const response = await apiClient.post(`/expenses/${id}/convert_to_recurring/`, conversionData)
+    return response.data
   }
 }
 

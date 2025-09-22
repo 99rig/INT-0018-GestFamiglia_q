@@ -26,7 +26,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.svg" />
 
     <!-- Meta PWA -->
-    <meta name="theme-color" content="#239db0" />
+    <meta name="theme-color" content="#ffffff" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -36,119 +36,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Comfortaa:wght@300;400;500;600;700&family=Nunito:wght@300;400;500;600;700;800&family=Quicksand:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-    <!-- Splash Screen Styles -->
-    <style>
-      #app-splash {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(135deg, #239db0 0%, #1a7d8c 100%);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-        transition: opacity 0.3s ease-out;
-      }
-
-      #app-splash .splash-logo {
-        width: 120px;
-        height: 120px;
-        background: linear-gradient(145deg,
-          rgba(255, 255, 255, 0.3) 0%,
-          rgba(255, 255, 255, 0.1) 25%,
-          #239db0 50%,
-          #1a7d8c 75%,
-          rgba(0, 0, 0, 0.1) 100%
-        );
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow:
-          0 8px 32px rgba(0, 0, 0, 0.3),
-          inset 0 2px 8px rgba(255, 255, 255, 0.3),
-          inset 0 -2px 8px rgba(0, 0, 0, 0.2);
-        backdrop-filter: blur(15px);
-        animation: pulse 2s ease-in-out infinite;
-      }
-
-      #app-splash .splash-icon {
-        width: 60px;
-        height: 60px;
-        fill: white;
-      }
-
-      #app-splash .splash-title {
-        font-family: 'Fredoka One', cursive;
-        font-size: 32px;
-        color: white;
-        margin-top: 30px;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-      }
-
-      #app-splash .splash-subtitle {
-        font-family: 'Nunito', sans-serif;
-        font-size: 16px;
-        color: rgba(255, 255, 255, 0.9);
-        margin-top: 8px;
-      }
-
-      #app-splash .splash-loader {
-        margin-top: 40px;
-        width: 40px;
-        height: 40px;
-        border: 3px solid rgba(255, 255, 255, 0.3);
-        border-top-color: white;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-      }
-
-      @keyframes pulse {
-        0%, 100% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.05); opacity: 0.9; }
-      }
-
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-
-      #app-splash.fade-out {
-        opacity: 0;
-      }
-    </style>
+    <!-- Splash Screen rimosso per esperienza più pulita -->
   </head>
   <body>
-    <!-- Splash Screen -->
-    <div id="app-splash">
-      <div class="splash-logo">
-        <svg class="splash-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-          <path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
-        </svg>
-      </div>
-      <h1 class="splash-title">My Crazy Family</h1>
-      <p class="splash-subtitle">Gestione Spese Familiari</p>
-      <div class="splash-loader"></div>
-    </div>
+    <!-- Splash Screen rimosso -->
 
     <!-- quasar:entry-point -->
 
-    <!-- Script to hide splash screen when app is ready -->
-    <script>
-      window.addEventListener('DOMContentLoaded', function() {
-        // Wait for app to be ready
-        setTimeout(function() {
-          const splash = document.getElementById('app-splash');
-          if (splash) {
-            splash.classList.add('fade-out');
-            setTimeout(function() {
-              splash.style.display = 'none';
-            }, 300);
-          }
-        }, 1500); // Adjust timing as needed
-      });
-    </script>
+    <!-- Script splash screen rimosso -->
   </body>
 </html>

@@ -67,8 +67,13 @@ export const useAuthStore = defineStore('auth', {
             await this.refreshAccessToken()
           } catch (error) {
             console.warn('❌ Token refresh failed during initialization:', error)
-            // Se il refresh fallisce, pulisci i token
-            await this.logout()
+            // Se il refresh fallisce, pulisci solo i token locali
+            // Non fare logout al server durante l'inizializzazione per evitare loop
+            this.user = null
+            this.accessToken = null
+            this.refreshToken = null
+            API.setAuthToken(null)
+            await storage.clearAuth()
           }
         }
       }
