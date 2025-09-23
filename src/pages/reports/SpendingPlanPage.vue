@@ -342,7 +342,11 @@ const planTypeOptions = [
 ]
 
 // Computed Properties
-const filteredSpendingPlans = computed(() => spendingPlans.value)
+const filteredSpendingPlans = computed(() => {
+  // La logica di filtraggio ora è gestita dal backend
+  // Questo computed property restituisce sempre i dati caricati
+  return spendingPlans.value
+})
 const totalPlansCount = computed(() => allPlansCount.value)
 const filteredPlansCount = computed(() => spendingPlans.value.length)
 
@@ -358,11 +362,17 @@ const onFilterChange = async () => {
 const loadSpendingPlans = async () => {
   try {
     loading.value = true
+    console.log('🔄 Caricamento piani con parametro show_all:', showAllFuturePlans.value)
+
     const response = await reportsAPI.getSpendingPlans(showAllFuturePlans.value)
+    console.log('🔍 Risposta API ricevuta:', response)
+
     const allPlans = response.results || response || []
+    console.log('📊 Piani dalla API (prima del filtro):', allPlans.length)
 
     // Filtra i piani nascosti (auto-generati dalle ricorrenze)
     spendingPlans.value = allPlans.filter(plan => !plan.is_hidden)
+    console.log('📊 Piani dopo filtro hidden:', spendingPlans.value.length)
 
     // Se stiamo mostrando tutti i piani, aggiorna il contatore totale
     if (showAllFuturePlans.value) {
