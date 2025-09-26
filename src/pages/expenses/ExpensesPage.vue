@@ -983,7 +983,7 @@ const loadSpendingPlans = async () => {
     console.log('🚀 [LAZY-LOAD] Loading spending plans for form...')
     const startTime = performance.now()
 
-    const response = await reportsAPI.getSpendingPlans()
+    const response = await reportsAPI.getSpendingPlansForSelect()
     const allPlans = Array.isArray(response) ? response : (response.results || response)
 
     if (!Array.isArray(allPlans)) {
@@ -991,22 +991,19 @@ const loadSpendingPlans = async () => {
       return
     }
 
-    // Filtra i piani nascosti (auto-generati dalle ricorrenze)
-    const visiblePlans = allPlans.filter(plan => !plan.is_hidden)
-    spendingPlans.value = visiblePlans
+    // La nuova API già filtra solo i piani attivi necessari
+    spendingPlans.value = allPlans
 
-    console.log(`🔍 [LAZY-LOAD] Filtered ${allPlans.length - visiblePlans.length} hidden plans from dropdown`)
+    console.log(`🚀 [OPTIMIZED] Loaded ${allPlans.length} optimized spending plans for select`)
 
-    // Create options for spending plans (only active/current ones)
+    // Create options for spending plans (already filtered by API)
     spendingPlanOptions.value = [
       { label: 'Nessun piano (spesa generica)', value: null },
-      ...visiblePlans
-        .filter(plan => plan.is_current || new Date(plan.end_date) >= new Date()) // Solo piani attivi o futuri
-        .map(plan => ({
-          label: plan.name,
-          value: plan.id,
-          description: `${plan.plan_type} - ${plan.start_date} / ${plan.end_date}`
-        }))
+      ...allPlans.map(plan => ({
+        label: plan.name,
+        value: plan.id,
+        description: plan.plan_type // La nuova API leggera ha solo plan_type senza date
+      }))
     ]
 
     const endTime = performance.now()

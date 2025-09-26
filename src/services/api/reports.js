@@ -37,6 +37,12 @@ export const reportsAPI = {
     return response.data
   },
 
+  // 🚀 Endpoint ottimizzato per select - solo ID e nome
+  async getSpendingPlansForSelect() {
+    const response = await apiClient.get('/spending-plans/select_options/')
+    return response.data
+  },
+
   async getSpendingPlan(id) {
     const response = await apiClient.get(`/spending-plans/${id}/`)
     return response.data
