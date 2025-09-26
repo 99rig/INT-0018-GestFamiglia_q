@@ -132,7 +132,7 @@ body {
 
 .mcf-btn-ghost {
   background-color: transparent !important;
-  color: $mcf-text-secondary !important;
+  color: $mcf-text-primary !important;
   border: none !important;
   border-radius: $mcf-radius-lg !important;
   font-weight: 500 !important;
@@ -153,12 +153,13 @@ body {
 }
 
 // === MODERN INPUT SYSTEM ===
-.mcf-input {
+.mcf-input, .mcf-select, .mcf-autocomplete, .mcf-file, .mcf-datepicker {
   .q-field__control {
     border-radius: $mcf-radius-lg !important;
     border: 1px solid $mcf-border-light !important;
     background: $mcf-bg-surface !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    color: $mcf-text-primary !important;
 
     &:hover {
       border-color: $mcf-border-medium !important;
@@ -168,6 +169,17 @@ body {
       border-color: $mcf-primary !important;
       box-shadow: 0 0 0 3px rgba($mcf-primary, 0.1) !important;
     }
+  }
+
+  // Placeholder styling
+  .q-field__native::placeholder {
+    color: $mcf-text-muted !important;
+    opacity: 1;
+  }
+
+  // Label styling
+  .q-field__label {
+    color: $mcf-text-secondary !important;
   }
 }
 
@@ -183,6 +195,7 @@ body {
     border-radius: $mcf-radius-md;
     margin-bottom: $mcf-space-xs;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    color: $mcf-text-primary;
 
     &:hover {
       background-color: $mcf-bg-secondary;
@@ -191,6 +204,31 @@ body {
     &.q-item--active {
       background-color: $mcf-primary-light;
       color: $mcf-primary;
+      font-weight: 500;
     }
   }
+}
+
+// === IMPROVED CONTRAST OVERRIDES ===
+// Override Quasar's default styles for better contrast
+.q-field--outlined .q-field__control {
+  color: $mcf-text-primary !important;
+}
+
+.q-field__label {
+  color: $mcf-text-secondary !important;
+}
+
+// Better contrast for selections
+.q-item__label {
+  color: $mcf-text-primary !important;
+}
+
+.q-item__label--caption {
+  color: $mcf-text-secondary !important;
+}
+
+// Improved dialog contrast
+.q-dialog .q-card {
+  color: $mcf-text-primary !important;
 }

@@ -615,6 +615,7 @@ onMounted(async () => {
   width: 100%;
   margin: 0;
   padding: 16px;
+  background: white;
   @media (min-width: 768px) {
     padding: 24px;
   }
@@ -934,7 +935,7 @@ onMounted(async () => {
 }
 
 .spending-plan-card {
-  background: var(--mcf-bg-surface);
+  background: #f1f8ff;
   border: 1px solid var(--mcf-border-light);
   border-radius: 16px;
   box-shadow: var(--mcf-shadow-sm);

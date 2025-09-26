@@ -21,6 +21,7 @@ $teal-400: #33ccd4;              // Medium dark teal
 $teal-500: #239db0;              // Base teal
 $teal-600: #1c7d8d;              // Dark teal
 $teal-700: #155e6a;              // Darker teal
+$teal-800: #0f4147;              // Very dark teal
 
 // Blue steel variations
 $steel-50: #f4f7fa;              // Ultra light steel
@@ -31,6 +32,7 @@ $steel-400: #6793b7;             // Medium dark steel
 $steel-500: #2a5f82;             // Base steel blue
 $steel-600: #224c68;             // Dark steel
 $steel-700: #1a394e;             // Darker steel
+$steel-800: #132933;             // Very dark steel
 
 // Purple variations
 $purple-50: #f8f6fa;             // Ultra light purple
@@ -60,11 +62,11 @@ $active-palette: 'modern';
 
 // === MCF DESIGN TOKENS ===
 $mcf-primary: $teal-primary;      // Primary brand color (teal)
-$mcf-primary-hover: $teal-600;    // Primary hover state
+$mcf-primary-hover: $teal-700;    // Primary hover state (darker)
 $mcf-primary-light: $teal-100;    // Primary light tint
 
 $mcf-secondary: $blue-steel;      // Secondary color (steel blue)
-$mcf-secondary-hover: $steel-600; // Secondary hover state
+$mcf-secondary-hover: $steel-700; // Secondary hover state (darker)
 $mcf-secondary-light: $steel-100; // Secondary light tint
 
 $mcf-tertiary: $purple-slate;     // Tertiary color (purple slate)
@@ -84,21 +86,21 @@ $mcf-error-hover: $red-600;       // Error hover state
 $mcf-error-light: $red-50;        // Error light tint
 
 // === BACKGROUND COLORS ===
-$mcf-bg-primary: $teal-50;        // Primary background (very light teal)
+$mcf-bg-primary: #fafcfd;         // Primary background (neutral very light)
 $mcf-bg-secondary: $steel-50;     // Secondary background (very light steel)
 $mcf-bg-surface: #ffffff;         // Card/surface background
 $mcf-bg-overlay: rgba(73, 43, 79, 0.8); // Modal overlay (dark purple)
 
 // === TEXT COLORS ===
-$mcf-text-primary: $purple-dark;  // Primary text (dark purple)
-$mcf-text-secondary: $blue-steel; // Secondary text (steel blue)
-$mcf-text-muted: $steel-400;      // Muted text
+$mcf-text-primary: #1a1a1a;       // Primary text (near black for max contrast)
+$mcf-text-secondary: $steel-700;  // Secondary text (darker steel)
+$mcf-text-muted: $steel-500;      // Muted text (medium steel)
 $mcf-text-inverse: #ffffff;       // Text on dark backgrounds
 
 // === BORDER COLORS ===
-$mcf-border-light: $teal-200;     // Light borders (light teal)
-$mcf-border-medium: $steel-300;   // Medium borders (medium steel)
-$mcf-border-dark: $purple-400;    // Dark borders (medium purple)
+$mcf-border-light: #e2e8f0;       // Light borders (neutral gray)
+$mcf-border-medium: $steel-400;   // Medium borders (medium steel)
+$mcf-border-dark: $steel-600;     // Dark borders (dark steel)
 
 // === QUASAR OVERRIDES ===
 $primary: $mcf-primary;           // Teal primary

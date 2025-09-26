@@ -279,7 +279,7 @@
         persistent
         maximized
       >
-        <q-card>
+        <q-card class="mcf-manual-expense-dialog">
           <q-card-section>
             <div class="text-h6">Nuova Spesa</div>
             <div class="text-caption text-grey-6">Scegli come inserire la spesa</div>
@@ -308,21 +308,19 @@
             <!-- Manual Form -->
             <div v-if="inputMethod === 'manual'">
               <q-form @submit.prevent="submitManualExpense" class="q-gutter-md">
-                <q-input
+                <MCFInput
                 v-model="manualExpense.description"
                 label="Descrizione *"
                 required
-                outlined
                 :rules="[val => val && val.length > 0 || 'Descrizione richiesta']"
               />
 
-              <q-input
+              <MCFInput
                 v-model="manualExpense.amount"
                 label="Importo *"
                 type="number"
                 step="0.01"
                 required
-                outlined
                 prefix="€"
                 :rules="[val => val > 0 || 'Importo deve essere maggiore di 0']"
               />
@@ -332,6 +330,7 @@
                 label="Categoria *"
                 subcategory-label="Sottocategoria"
                 return-object
+                bg-color="white"
                 @category-changed="onCategoryChanged"
                 @subcategory-changed="onSubcategoryChanged"
               />
@@ -341,6 +340,7 @@
                 :options="spendingPlanOptions"
                 label="Piano di Spesa"
                 outlined
+                bg-color="white"
                 option-value="value"
                 option-label="label"
                 clearable
@@ -383,14 +383,14 @@
                 label="Data *"
                 required
                 outlined
+                bg-color="white"
                 :rules="[val => val && val.length > 0 || 'Data richiesta']"
               />
 
-              <q-input
+              <MCFInput
                 v-model="manualExpense.notes"
                 label="Note"
                 type="textarea"
-                outlined
                 rows="3"
               />
 
@@ -402,10 +402,9 @@
                   <span class="mcf-receipt-title">Ricevuta (opzionale)</span>
                 </div>
 
-                <q-file
+                <MCFFile
                   v-model="manualExpense.receiptFile"
                   label="Carica ricevuta"
-                  outlined
                   accept="image/*"
                   max-file-size="5242880"
                   @rejected="onReceiptRejected"
@@ -423,7 +422,7 @@
                       @click.stop.prevent="manualExpense.receiptFile = null"
                     />
                   </template>
-                </q-file>
+                </MCFFile>
 
                 <div v-if="manualExpense.receiptFile" class="mcf-receipt-preview">
                   <q-img
@@ -617,11 +616,10 @@
                 />
 
                 <div v-if="editForm.is_recurring" class="mcf-recurring-fields q-mt-md q-gutter-md">
-                  <q-select
+                  <MCFSelect
                     v-model="editForm.frequency"
                     :options="frequencyOptions"
                     label="Frequenza *"
-                    outlined
                     required
                     emit-value
                     map-options
@@ -751,10 +749,13 @@ import { useSnackbar } from 'src/composables/useSnackbar'
 import { expensesAPI } from 'src/services/api/expenses.js'
 import { reportsAPI } from 'src/services/api/reports.js'
 import { categoriesAPI } from 'src/services/api/categories.js'
-import MCFAutocomplete from 'components/MCFAutocomplete.vue'
+import MCFAutocomplete from 'components/forms/MCFAutocomplete.vue'
+import MCFSelect from 'components/forms/MCFSelect.vue'
 import MCFDatePicker from 'components/MCFDatePicker.vue'
 import DeleteExpenseModal from 'components/DeleteExpenseModal.vue'
 import MCFDraggableFab from 'components/MCFDraggableFab.vue'
+import MCFInput from 'components/forms/MCFInput.vue'
+import MCFFile from 'components/forms/MCFFile.vue'
 import CategorySelect from 'components/CategorySelect.vue'
 import MCFLoading from 'components/MCFLoading.vue'
 
@@ -1846,10 +1847,10 @@ onMounted(async () => {
 }
 
 .mcf-expense-card {
-  background: var(--mcf-bg-surface);
-  border: 1px solid var(--mcf-border-light);
+  background: #f1f8ff;
+  border: 1px solid var(--mcf-border-medium);
   border-radius: 8px;
-  box-shadow: var(--mcf-shadow-sm);
+  box-shadow: var(--mcf-shadow-md);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   width: 100%;
@@ -2274,6 +2275,11 @@ onMounted(async () => {
       text-align: left;
     }
   }
+}
+
+// === MODALE NUOVA SPESA ===
+.mcf-manual-expense-dialog {
+  background: #f8f9fa !important;
 }
 
 </style>

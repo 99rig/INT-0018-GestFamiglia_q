@@ -284,6 +284,7 @@ onMounted(() => {
 .category-autocomplete {
   /* Rispetta il padding del contenitore padre - solo il padding sinistro mancante */
   width: calc(100% - 16px) !important;
+  border-radius: 15px !important;
   display: flex;
   flex-direction: column;
   gap: 16px !important;

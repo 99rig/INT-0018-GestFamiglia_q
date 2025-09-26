@@ -770,7 +770,7 @@ const currentVersion = ref(null)
 const publicIP = ref('Rilevamento...')
 const deviceIP = ref('Rilevamento...')
 const platform = ref('Sconosciuto')
-const appVersion = ref('1.0.29')
+const appVersion = ref('1.0.32')
 const serverStatus = ref({ text: 'Controllo...', color: 'grey' })
 const refreshing = ref(false)
 
@@ -833,7 +833,12 @@ const serverClass = computed(() => {
 
 const isAndroidDevice = computed(() => {
   const userAgent = navigator.userAgent.toLowerCase()
-  return userAgent.includes('android') && (userAgent.includes('mobile') || userAgent.includes('tablet'))
+  // Escludi iOS esplicitamente
+  if (userAgent.includes('iphone') || userAgent.includes('ipad') || userAgent.includes('ipod')) {
+    return false
+  }
+  // Controlla per Android
+  return userAgent.includes('android')
 })
 
 onMounted(async () => {
