@@ -285,7 +285,21 @@ const loginWithPin = async () => {
 
     if (success) {
       snackbar.success('Accesso riuscito!')
-      router.push('/dashboard')
+
+      try {
+        console.log('🔐 loginWithPin - Router push to /dashboard')
+        await router.push('/dashboard')
+        console.log('🔐 loginWithPin - Router push completed successfully')
+      } catch (error) {
+        console.error('🔐 loginWithPin - Router push failed:', error)
+        // Fallback
+        try {
+          await router.replace('/dashboard')
+        } catch (replaceError) {
+          console.error('🔐 loginWithPin - Router replace failed:', replaceError)
+          window.location.href = '/dashboard'
+        }
+      }
     } else {
       snackbar.error('PIN non corretto')
       pin.value = ''
@@ -312,7 +326,21 @@ const loginWithEmail = async () => {
       }
 
       snackbar.success('Accesso riuscito!')
-      router.push('/dashboard')
+
+      try {
+        console.log('🔐 loginWithEmail - Router push to /dashboard')
+        await router.push('/dashboard')
+        console.log('🔐 loginWithEmail - Router push completed successfully')
+      } catch (error) {
+        console.error('🔐 loginWithEmail - Router push failed:', error)
+        // Fallback
+        try {
+          await router.replace('/dashboard')
+        } catch (replaceError) {
+          console.error('🔐 loginWithEmail - Router replace failed:', replaceError)
+          window.location.href = '/dashboard'
+        }
+      }
     } else {
       snackbar.error('Credenziali non valide')
     }
@@ -387,11 +415,30 @@ const acceptPin = () => {
   setupPin()
 }
 
-const declinePin = () => {
+const declinePin = async () => {
+  console.log('🔐 declinePin - Starting redirect to dashboard')
   showWantPinModal.value = false
 
   snackbar.success('Accesso riuscito!')
-  router.push('/dashboard')
+
+  try {
+    console.log('🔐 Router push to /dashboard')
+    await router.push('/dashboard')
+    console.log('🔐 Router push completed successfully')
+  } catch (error) {
+    console.error('🔐 Router push failed:', error)
+    // Fallback: prova con replace
+    try {
+      console.log('🔐 Trying router replace as fallback')
+      await router.replace('/dashboard')
+      console.log('🔐 Router replace completed successfully')
+    } catch (replaceError) {
+      console.error('🔐 Router replace also failed:', replaceError)
+      // Ultimo fallback: ricarica la pagina direttamente
+      console.log('🔐 Final fallback: direct window location change')
+      window.location.href = '/dashboard'
+    }
+  }
 }
 
 const goToRegister = () => {

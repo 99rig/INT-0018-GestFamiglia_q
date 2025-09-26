@@ -936,7 +936,7 @@ onMounted(async () => {
 
 .spending-plan-card {
   background: #f1f8ff;
-  border: 1px solid var(--mcf-border-light);
+  border: 1px dashed var(--mcf-secondary);
   border-radius: 16px;
   box-shadow: var(--mcf-shadow-sm);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);

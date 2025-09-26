@@ -1793,7 +1793,7 @@ onMounted(async () => {
 // === PLAN INFO CARD ===
 .plan-info-card {
   background: #f1f8ff;
-  border: 1px solid var(--mcf-border-light);
+  border: 1px dashed var(--mcf-secondary);
   border-radius: 12px;
   margin-bottom: 16px;
   overflow: hidden;
