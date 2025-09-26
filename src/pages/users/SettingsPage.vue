@@ -320,6 +320,25 @@
                 class="mcf-download-btn"
               />
             </div>
+
+            <!-- Force Refresh for PWA issues -->
+            <div class="mcf-info-card mcf-force-refresh-card">
+              <div class="mcf-info-header">
+                <q-icon name="refresh" class="mcf-info-icon" />
+                <span class="mcf-info-label">Forza Aggiornamento</span>
+              </div>
+              <div class="mcf-info-value">Risolve problemi di cache PWA</div>
+              <q-btn
+                flat
+                dense
+                color="warning"
+                label="Force Refresh"
+                icon="cached"
+                @click="forceAppRefresh"
+                :loading="forceRefreshing"
+                class="mcf-force-refresh-btn"
+              />
+            </div>
           </div>
         </div>
 
@@ -765,6 +784,7 @@ let mediaStream = null
 
 // Update refs
 const updateChecking = ref(false)
+const forceRefreshing = ref(false)
 // Usa versione dallo store
 const appStore = useAppStore()
 const currentVersion = computed(() => appStore.getCurrentVersion)
@@ -773,7 +793,7 @@ const currentVersion = computed(() => appStore.getCurrentVersion)
 const publicIP = ref('Rilevamento...')
 const deviceIP = ref('Rilevamento...')
 const platform = ref('Sconosciuto')
-const appVersion = ref('1.0.37')
+const appVersion = ref('1.0.39')
 const serverStatus = ref({ text: 'Controllo...', color: 'grey' })
 const refreshing = ref(false)
 
@@ -962,6 +982,48 @@ async function checkForUpdates() {
     await updateService.checkForUpdates(true, true) // Forza la visualizzazione anche se già mostrato
   } finally {
     updateChecking.value = false
+  }
+}
+
+// Force refresh per problemi di cache PWA
+async function forceAppRefresh() {
+  forceRefreshing.value = true
+
+  try {
+    // Mostra messaggio informativo
+    $q.notify({
+      message: '🔄 Cancellazione cache e riavvio...',
+      color: 'info',
+      position: 'top',
+      timeout: 2000,
+      icon: 'cached'
+    })
+
+    // Attendi un attimo per mostrare la notifica
+    await new Promise(resolve => setTimeout(resolve, 500))
+
+    // Usa la funzione globale che abbiamo creato nel register-service-worker
+    if (window.forceAppUpdate) {
+      window.forceAppUpdate()
+    } else {
+      // Fallback manuale
+      if ('caches' in window) {
+        const cacheNames = await caches.keys()
+        await Promise.all(cacheNames.map(name => caches.delete(name)))
+      }
+      window.location.reload(true)
+    }
+
+  } catch (error) {
+    console.error('Error during force refresh:', error)
+    $q.notify({
+      message: '❌ Errore durante il refresh forzato',
+      color: 'negative',
+      position: 'top',
+      timeout: 3000
+    })
+  } finally {
+    forceRefreshing.value = false
   }
 }
 
@@ -1741,6 +1803,24 @@ onUnmounted(() => {
 .mcf-download-card {
   border-color: var(--mcf-primary);
   background: linear-gradient(135deg, var(--mcf-primary-light) 0%, var(--mcf-bg-primary) 100%);
+}
+
+.mcf-force-refresh-card {
+  border-color: var(--mcf-warning);
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, var(--mcf-bg-primary) 100%);
+
+  .mcf-info-icon {
+    color: var(--mcf-warning);
+  }
+}
+
+.mcf-force-refresh-btn {
+  color: var(--mcf-warning);
+  border-color: var(--mcf-warning);
+
+  &:hover {
+    background-color: rgba(255, 193, 7, 0.1);
+  }
 }
 
 .mcf-info-header {
