@@ -8,6 +8,7 @@ import { Filesystem, Directory } from '@capacitor/filesystem'
 import { FileOpener } from '@capacitor-community/file-opener'
 import { Dialog } from 'quasar'
 import { API } from './api/index.js'
+import { useAppStore } from '../stores/useAppStore.js'
 
 class UpdateService {
   constructor() {
@@ -17,17 +18,20 @@ class UpdateService {
   }
 
   async init() {
+    const appStore = useAppStore()
+
     if (Capacitor.isNativePlatform()) {
-      // Ottieni info app corrente
+      // Ottieni info app corrente da Capacitor
       const appInfo = await App.getInfo()
       this.currentVersion = {
         name: appInfo.version,
         code: parseInt(appInfo.build) || 1
       }
-      console.log('📱 Current app version:', this.currentVersion)
+      console.log('📱 Current app version (Capacitor):', this.currentVersion)
     } else {
-      // Versione web/dev
-      this.currentVersion = { name: '1.0.0', code: 1 }
+      // Usa la versione dallo store in base al platform
+      this.currentVersion = appStore.getCurrentVersion
+      console.log('🌐 Current version (Store):', this.currentVersion)
     }
   }
 

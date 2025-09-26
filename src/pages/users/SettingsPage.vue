@@ -387,7 +387,7 @@
         </div>
 
         <!-- App Updates Section -->
-        <div class="mcf-settings-section">
+        <div class="mcf-settings-section" v-if="isAndroidDevice">
           <div class="mcf-section-header">
             <q-icon name="system_update" class="mcf-section-icon" />
             <h3 class="mcf-section-title">Aggiornamenti</h3>
@@ -749,6 +749,7 @@ import { useQuasar } from 'quasar'
 import { updateService } from 'src/services/updateService.js'
 import { usersAPI } from 'src/services/api/users.js'
 import { useAuthStore } from 'stores/auth.js'
+import { useAppStore } from 'stores/useAppStore.js'
 import { useSnackbar } from 'src/composables/useSnackbar'
 
 const $q = useQuasar()
@@ -764,7 +765,9 @@ let mediaStream = null
 
 // Update refs
 const updateChecking = ref(false)
-const currentVersion = ref(null)
+// Usa versione dallo store
+const appStore = useAppStore()
+const currentVersion = computed(() => appStore.getCurrentVersion)
 
 // Debug info refs (moved from LoginPage)
 const publicIP = ref('Rilevamento...')
@@ -832,13 +835,21 @@ const serverClass = computed(() => {
 })
 
 const isAndroidDevice = computed(() => {
+  // Verifica se siamo su una piattaforma che può installare APK
   const userAgent = navigator.userAgent.toLowerCase()
-  // Escludi iOS esplicitamente
+
+  // Escludi iOS esplicitamente (iPhone, iPad, iPod)
   if (userAgent.includes('iphone') || userAgent.includes('ipad') || userAgent.includes('ipod')) {
     return false
   }
-  // Controlla per Android
-  return userAgent.includes('android')
+
+  // Escludi Safari su Mac (macintosh)
+  if (userAgent.includes('macintosh') || userAgent.includes('mac os')) {
+    return false
+  }
+
+  // Solo Android reale può installare APK
+  return userAgent.includes('android') && !userAgent.includes('iphone') && !userAgent.includes('ipad')
 })
 
 onMounted(async () => {
