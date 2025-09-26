@@ -770,7 +770,7 @@ const currentVersion = ref(null)
 const publicIP = ref('Rilevamento...')
 const deviceIP = ref('Rilevamento...')
 const platform = ref('Sconosciuto')
-const appVersion = ref('1.0.34')
+const appVersion = ref('1.0.35')
 const serverStatus = ref({ text: 'Controllo...', color: 'grey' })
 const refreshing = ref(false)
 
