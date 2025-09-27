@@ -20,7 +20,26 @@
       </q-card-section>
 
       <q-card-section class="mcf-dialog-content">
-        <q-form @submit="onSubmit" class="q-gutter-md">
+        <!-- Avviso mancanza famiglia -->
+        <q-banner
+          v-if="!authStore.user?.family"
+          class="bg-warning text-white q-mb-md"
+          rounded
+        >
+          <template v-slot:avatar>
+            <q-icon name="warning" />
+          </template>
+          <div class="text-weight-medium">Attenzione: Famiglia richiesta</div>
+          <div class="text-body2 q-mt-xs">
+            Prima di creare un piano di spesa, è necessario
+            <router-link to="/settings" class="text-white text-decoration-underline">
+              creare o unirti a una famiglia
+            </router-link>.
+            I piani di spesa senza famiglia non saranno visibili nell'app.
+          </div>
+        </q-banner>
+
+        <q-form @submit="onSubmit" class="q-gutter-md" :disable="!authStore.user?.family">
 
           <q-input
             v-model="formData.name"
@@ -188,6 +207,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'submit', 'cancel'])
 
+// Store
 const authStore = useAuthStore()
 
 // Computed
@@ -223,7 +243,8 @@ const canSubmit = computed(() => {
   return formData.value.name &&
          formData.value.start_date &&
          formData.value.end_date &&
-         !props.saving
+         !props.saving &&
+         !!authStore.user?.family  // Richiede famiglia
 })
 
 // Methods (defined before watchers to avoid hoisting issues)

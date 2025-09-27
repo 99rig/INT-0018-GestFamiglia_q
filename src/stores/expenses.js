@@ -162,6 +162,11 @@ export const useExpensesStore = defineStore('expenses', {
       this.categories = []
       this.loading = false
       this.error = null
+    },
+
+    // Alias per compatibilità con altri store
+    resetStore() {
+      this.reset()
     }
   }
 })

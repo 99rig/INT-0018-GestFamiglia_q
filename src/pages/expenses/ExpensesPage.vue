@@ -184,6 +184,21 @@
             </div>
 
             <div class="mcf-metadata-right">
+              <!-- Pulsante Paga per spese non pagate -->
+              <q-btn
+                v-if="expense.status !== 'pagata'"
+                flat
+                dense
+                round
+                icon="payments"
+                class="mcf-pay-btn"
+                @click.stop="openPaymentDialog(expense)"
+                size="sm"
+                color="positive"
+              >
+                <q-tooltip>Paga spesa</q-tooltip>
+              </q-btn>
+
               <q-btn
                 flat
                 dense
@@ -393,6 +408,75 @@
                 type="textarea"
                 rows="3"
               />
+
+              <!-- Sezione Metodo di Pagamento -->
+              <q-separator class="q-my-md" />
+
+              <div class="mcf-payment-section">
+                <div class="mcf-payment-header">
+                  <q-icon name="payment" size="20px" color="primary" />
+                  <span class="mcf-payment-title">Metodo di Pagamento</span>
+                </div>
+
+                <div class="row q-gutter-md">
+                  <div class="col-12 col-md-6">
+                    <MCFSelect
+                      v-model="manualExpense.payment_method"
+                      label="Metodo *"
+                      :options="paymentMethodOptions"
+                      option-value="value"
+                      option-label="label"
+                      emit-value
+                      map-options
+                      outlined
+                      bg-color="white"
+                    />
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <MCFSelect
+                      v-model="manualExpense.payment_source"
+                      label="Fonte *"
+                      :options="paymentSourceOptions"
+                      option-value="value"
+                      option-label="label"
+                      emit-value
+                      map-options
+                      outlined
+                      bg-color="white"
+                    />
+                  </div>
+                </div>
+
+                <!-- Avviso per pagamento da contributi -->
+                <q-banner
+                  v-if="manualExpense.payment_source === 'contribution' && familyBalance <= 0"
+                  class="bg-warning text-white q-mt-md"
+                  rounded
+                >
+                  <template v-slot:avatar>
+                    <q-icon name="warning" />
+                  </template>
+                  <div class="text-weight-medium">Attenzione: Bilancio Famiglia Insufficiente</div>
+                  <div class="text-body2">
+                    Il bilancio famiglia attuale è €0.00.
+                    <router-link to="/spending-plans" class="text-white text-decoration-underline">
+                      Aggiungi contributi
+                    </router-link> prima di pagare con questo metodo.
+                  </div>
+                </q-banner>
+
+                <!-- Info bilancio disponibile -->
+                <div v-if="manualExpense.payment_source === 'contribution' && familyBalance > 0" class="q-mt-sm">
+                  <q-chip
+                    color="green"
+                    text-color="white"
+                    icon="account_balance_wallet"
+                    size="sm"
+                  >
+                    Bilancio disponibile: €{{ formatAmount(familyBalance) }}
+                  </q-chip>
+                </div>
+              </div>
 
               <q-separator class="q-my-md" />
 
@@ -731,6 +815,94 @@
         </q-card>
       </q-dialog>
 
+      <!-- Dialog Pagamento Spesa -->
+      <q-dialog v-model="showPaymentDialog" persistent>
+        <q-card style="min-width: 400px; max-width: 500px;">
+          <q-card-section class="bg-primary text-white">
+            <div class="text-h6">
+              <q-icon name="payments" class="q-mr-sm" />
+              Paga Spesa
+            </div>
+          </q-card-section>
+
+          <q-card-section v-if="expenseToPay">
+            <div class="text-h6 q-mb-md">{{ expenseToPay.description }}</div>
+            <div class="text-h4 text-primary q-mb-lg">€{{ formatAmount(expenseToPay.amount) }}</div>
+
+            <!-- Metodo di Pagamento -->
+            <MCFSelect
+              v-model="paymentForm.payment_method"
+              label="Metodo di Pagamento *"
+              :options="paymentMethodOptions"
+              option-value="value"
+              option-label="label"
+              emit-value
+              map-options
+              outlined
+              class="q-mb-md"
+            />
+
+            <!-- Fonte di Pagamento -->
+            <MCFSelect
+              v-model="paymentForm.payment_source"
+              label="Fonte di Pagamento *"
+              :options="paymentSourceOptions"
+              option-value="value"
+              option-label="label"
+              emit-value
+              map-options
+              outlined
+              class="q-mb-md"
+            />
+
+            <!-- Avviso bilancio famiglia -->
+            <q-banner
+              v-if="paymentForm.payment_source === 'contribution' && familyBalance < expenseToPay.amount"
+              class="bg-warning text-white q-mb-md"
+              rounded
+            >
+              <template v-slot:avatar>
+                <q-icon name="warning" />
+              </template>
+              <div class="text-weight-medium">Bilancio insufficiente</div>
+              <div class="text-body2">
+                Bilancio disponibile: €{{ formatAmount(familyBalance) }}
+                <br>Importo richiesto: €{{ formatAmount(expenseToPay.amount) }}
+              </div>
+            </q-banner>
+
+            <!-- Info bilancio disponibile -->
+            <div v-if="paymentForm.payment_source === 'contribution' && familyBalance >= expenseToPay.amount" class="q-mb-md">
+              <q-chip
+                color="green"
+                text-color="white"
+                icon="account_balance_wallet"
+                size="sm"
+              >
+                Bilancio disponibile: €{{ formatAmount(familyBalance) }}
+              </q-chip>
+            </div>
+          </q-card-section>
+
+          <q-card-actions align="right">
+            <q-btn
+              flat
+              label="Annulla"
+              color="grey"
+              @click="closePaymentDialog"
+              :disable="saving"
+            />
+            <q-btn
+              label="Paga Spesa"
+              color="primary"
+              :loading="saving"
+              :disable="!canPayExpense"
+              @click="payExpense"
+            />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
+
       <!-- Delete Expense Modal -->
       <DeleteExpenseModal
         v-model="showDeleteModal"
@@ -748,6 +920,7 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import { useSnackbar } from 'src/composables/useSnackbar'
 import { expensesAPI } from 'src/services/api/expenses.js'
 import { reportsAPI } from 'src/services/api/reports.js'
+import { contributionsAPI } from 'src/services/api/contributions.js'
 import { categoriesAPI } from 'src/services/api/categories.js'
 import MCFAutocomplete from 'components/forms/MCFAutocomplete.vue'
 import MCFSelect from 'components/forms/MCFSelect.vue'
@@ -767,8 +940,10 @@ const expenses = ref([])
 const showManualForm = ref(false)
 const showEditForm = ref(false)
 const showQuickForm = ref(false)
+const showPaymentDialog = ref(false)
 const saving = ref(false)
 const editingExpense = ref(null)
+const expenseToPay = ref(null)
 const inputMethod = ref('manual')
 const spendingPlans = ref([])
 const spendingPlanOptions = ref([])
@@ -778,6 +953,43 @@ const showAllCategories = ref(false)
 const searchQuery = ref('')
 const searchInputRef = ref(null)
 let searchTimeout = null
+
+// Variabili per il sistema di pagamento
+const familyBalance = ref(0)
+const paymentForm = ref({
+  payment_method: 'carta',
+  payment_source: 'personal'
+})
+
+// Opzioni per metodi di pagamento
+const paymentMethodOptions = [
+  { label: 'Carta di Credito/Debito', value: 'carta' },
+  { label: 'Contanti', value: 'contanti' },
+  { label: 'Bonifico', value: 'bonifico' },
+  { label: 'PayPal', value: 'paypal' },
+  { label: 'Apple Pay', value: 'apple_pay' },
+  { label: 'Google Pay', value: 'google_pay' },
+  { label: 'Altro', value: 'altro' }
+]
+
+const paymentSourceOptions = [
+  { label: 'Fondi Personali', value: 'personal' },
+  { label: 'Da Contributo Famiglia', value: 'contribution' }
+]
+
+// Computed per validazione pagamento
+const canPayExpense = computed(() => {
+  if (!expenseToPay.value || !paymentForm.value.payment_method || !paymentForm.value.payment_source) {
+    return false
+  }
+
+  // Se si paga con contributi, verifica che ci sia bilancio sufficiente
+  if (paymentForm.value.payment_source === 'contribution') {
+    return familyBalance.value >= expenseToPay.value.amount
+  }
+
+  return true
+})
 
 // Opzioni per la frequenza di ricorrenza
 const frequencyOptions = [
@@ -821,7 +1033,9 @@ const manualExpense = ref({
   notes: '',
   shared: false,
   spending_plan: null,
-  receiptFile: null
+  receiptFile: null,
+  payment_method: 'carta',
+  payment_source: 'personal'
 })
 
 // Category selection for new component
@@ -1049,7 +1263,9 @@ const resetManualForm = () => {
     notes: '',
     shared: false,
     spending_plan: null,
-    receiptFile: null
+    receiptFile: null,
+    payment_method: 'carta',
+    payment_source: 'personal'
   }
   categorySelection.value = { category: null, subcategory: null }
 }
@@ -1108,6 +1324,18 @@ const submitManualExpense = async () => {
     console.log('💾 Saving manual expense...', manualExpense.value)
     console.log('🏷️ Selected subcategory:', manualExpense.value.subcategory)
 
+    // Validation per pagamento con contributi
+    if (manualExpense.value.payment_source === 'contribution') {
+      if (familyBalance.value <= 0) {
+        snackbar.warning('Bilancio famiglia insufficiente per questo metodo di pagamento')
+        return
+      }
+      if (manualExpense.value.amount > familyBalance.value) {
+        snackbar.warning(`Importo troppo elevato. Bilancio disponibile: €${formatAmount(familyBalance.value)}`)
+        return
+      }
+    }
+
     // Prepare expense data for API
     const expenseData = {
       description: manualExpense.value.description,
@@ -1117,7 +1345,9 @@ const submitManualExpense = async () => {
       date: manualExpense.value.date,
       notes: manualExpense.value.notes || '',
       shared_with: manualExpense.value.shared ? [] : null, // Empty array means shared with all family
-      spending_plan: manualExpense.value.spending_plan || null
+      spending_plan: manualExpense.value.spending_plan || null,
+      payment_method: manualExpense.value.payment_method,
+      payment_source: manualExpense.value.payment_source
     }
 
     console.log('📤 Expense data to send:', expenseData)
@@ -1142,6 +1372,11 @@ const submitManualExpense = async () => {
     }
 
     snackbar.success('Spesa salvata con successo!')
+
+    // Se la spesa è stata pagata con contributi, aggiorna il bilancio famiglia
+    if (manualExpense.value.payment_source === 'contribution') {
+      await loadFamilyBalance()
+    }
 
     // Close form and reload expenses with current filter
     closeManualForm()
@@ -1538,6 +1773,27 @@ onMounted(async () => {
     // ma assicuriamoci che sia false se ci sono errori
     loading.value = false
   }
+})
+
+// Funzioni per il sistema di pagamento
+const loadFamilyBalance = async () => {
+  try {
+    const response = await contributionsAPI.getBalance()
+    const balanceData = response.data || response
+    familyBalance.value = balanceData.current_balance || 0
+  } catch (error) {
+    console.error('Errore nel caricamento del bilancio famiglia:', error)
+    familyBalance.value = 0
+  }
+}
+
+const formatAmount = (amount) => {
+  return parseFloat(amount || 0).toFixed(2)
+}
+
+// Carica il bilancio famiglia quando la pagina viene montata
+onMounted(async () => {
+  await loadFamilyBalance()
 })
 </script>
 
@@ -2275,6 +2531,24 @@ onMounted(async () => {
       text-align: left;
     }
   }
+}
+
+// === SEZIONE METODO DI PAGAMENTO ===
+.mcf-payment-section {
+  margin: 16px 0;
+}
+
+.mcf-payment-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.mcf-payment-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--q-primary);
 }
 
 // === MODALE NUOVA SPESA ===

@@ -155,7 +155,23 @@
               />
               <!-- Payment Details -->
               <div v-if="expense.actual_payments_count > 0" class="payment-details">
-                <span class="payment-by-text">{{ getPaymentByText(expense) }}</span>
+                <div class="payment-info-row">
+                  <!-- Badge con chi ha pagato PRIMA del testo -->
+                  <div v-if="expense.paid_by_users && expense.paid_by_users.length > 0" class="paid-by-badges-inline">
+                    <q-chip
+                      v-for="user in expense.paid_by_users"
+                      :key="user.id"
+                      color="blue-grey-6"
+                      text-color="white"
+                      size="xs"
+                      :label="getUserInitials(user.full_name)"
+                      class="paid-by-chip"
+                    >
+                      <q-tooltip>{{ user.full_name }} - €{{ formatAmount(user.amount_paid) }}</q-tooltip>
+                    </q-chip>
+                  </div>
+                  <span class="payment-by-text">{{ getPaymentByText(expense) }}</span>
+                </div>
               </div>
             </div>
 
@@ -270,6 +286,39 @@
                         </q-item-section>
                       </q-item>
 
+                      <!-- Nascondi/Mostra opzione per spese pagate -->
+                      <q-item
+                        v-if="expense.is_fully_paid && !expense.is_hidden"
+                        clickable
+                        v-close-popup
+                        @click="hideExpense(expense)"
+                        class="mcf-menu-item mcf-menu-hide"
+                      >
+                        <q-item-section avatar>
+                          <q-icon name="visibility_off" class="mcf-menu-icon" />
+                        </q-item-section>
+                        <q-item-section>
+                          <q-item-label class="mcf-menu-title">Nascondi</q-item-label>
+                          <q-item-label caption class="mcf-menu-subtitle">Nascondi questa spesa pagata dalla vista</q-item-label>
+                        </q-item-section>
+                      </q-item>
+
+                      <q-item
+                        v-if="expense.is_hidden"
+                        clickable
+                        v-close-popup
+                        @click="showExpense(expense)"
+                        class="mcf-menu-item mcf-menu-show"
+                      >
+                        <q-item-section avatar>
+                          <q-icon name="visibility" class="mcf-menu-icon" />
+                        </q-item-section>
+                        <q-item-section>
+                          <q-item-label class="mcf-menu-title">Mostra</q-item-label>
+                          <q-item-label caption class="mcf-menu-subtitle">Mostra nuovamente questa spesa</q-item-label>
+                        </q-item-section>
+                      </q-item>
+
                       <q-separator class="mcf-menu-separator" />
 
                       <q-item
@@ -339,6 +388,31 @@
                   @click="generateRecurringInstallments(expense)"
                 >
                   <q-tooltip>Genera Rate ({{ (expense.total_installments || 1) - 1 }} rimanenti)</q-tooltip>
+                </q-btn>
+                <!-- Nascondi/Mostra per spese pagate (mobile) -->
+                <q-btn
+                  v-if="expense.is_fully_paid && !expense.is_hidden"
+                  flat
+                  round
+                  icon="visibility_off"
+                  size="sm"
+                  color="grey-7"
+                  class="mcf-mobile-action-btn"
+                  @click="hideExpense(expense)"
+                >
+                  <q-tooltip>Nascondi Spesa Pagata</q-tooltip>
+                </q-btn>
+                <q-btn
+                  v-if="expense.is_hidden"
+                  flat
+                  round
+                  icon="visibility"
+                  size="sm"
+                  color="grey-7"
+                  class="mcf-mobile-action-btn"
+                  @click="showExpense(expense)"
+                >
+                  <q-tooltip>Mostra Spesa</q-tooltip>
                 </q-btn>
                 <q-btn
                   flat
@@ -679,6 +753,37 @@
               outlined
               clearable
             />
+
+            <q-select
+              v-model="newPayment.payment_method"
+              :options="paymentMethodOptions"
+              label="Metodo di Pagamento"
+              outlined
+              emit-value
+              map-options
+            />
+
+            <q-select
+              v-model="newPayment.payment_source"
+              :options="paymentSourceOptions"
+              label="Fonte di Pagamento"
+              outlined
+              emit-value
+              map-options
+              @update:model-value="onPaymentSourceChange"
+            />
+
+            <div v-if="newPayment.payment_source === 'contribution'" class="text-caption text-grey-6 q-mt-sm">
+              <div class="row items-center q-gutter-xs">
+                <q-icon name="account_balance_wallet" size="16px" />
+                <span>Saldo disponibile: <span v-html="familyBalanceText"></span></span>
+                <q-spinner v-if="loadingBalance" size="14px" />
+              </div>
+              <div v-if="newPayment.amount && parseFloat(newPayment.amount) > familyBalance" class="text-negative">
+                <q-icon name="warning" size="14px" />
+                Importo superiore al saldo disponibile
+              </div>
+            </div>
           </q-form>
         </q-card-section>
 
@@ -851,15 +956,56 @@
             >
               <div class="payment-header">
                 <div class="payment-main">
-                  <div class="payment-description">{{ payment.description }}</div>
-                  <div class="payment-date">{{ formatDate(payment.date) }}</div>
+                  <div class="payment-user-info">
+                    <q-avatar
+                      size="32px"
+                      :color="payment.user ? 'primary' : 'grey-5'"
+                      text-color="white"
+                      class="payment-avatar"
+                    >
+                      {{ getUserInitials(payment.user?.first_name + ' ' + payment.user?.last_name) }}
+                    </q-avatar>
+                    <div class="payment-details">
+                      <div class="payment-description">{{ payment.description }}</div>
+                      <div class="payment-meta">
+                        <span class="payment-user">{{ payment.user?.first_name }} {{ payment.user?.last_name }}</span>
+                        <span class="payment-date">• {{ formatDate(payment.date) }}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <div class="payment-amount">€{{ formatAmount(payment.amount) }}</div>
               </div>
               <div v-if="payment.notes" class="payment-notes">{{ payment.notes }}</div>
             </div>
 
-            <!-- Summary -->
+            <!-- Summary by User -->
+            <div v-if="paymentsByUser.length > 0" class="payments-by-user">
+              <div class="section-title">Pagamenti per utente</div>
+              <div
+                v-for="userPayment in paymentsByUser"
+                :key="userPayment.userId"
+                class="user-payment-summary"
+              >
+                <div class="user-summary-info">
+                  <q-avatar
+                    size="24px"
+                    color="primary"
+                    text-color="white"
+                    class="user-summary-avatar"
+                  >
+                    {{ getUserInitials(userPayment.fullName) }}
+                  </q-avatar>
+                  <span class="user-summary-name">{{ userPayment.fullName }}</span>
+                </div>
+                <div class="user-summary-stats">
+                  <span class="user-summary-count">{{ userPayment.count }} pagamenti</span>
+                  <span class="user-summary-amount">€{{ formatAmount(userPayment.total) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Overall Summary -->
             <div class="payments-summary">
               <div class="summary-row">
                 <span>Totale pagamenti:</span>
@@ -911,11 +1057,11 @@ import { useQuasar } from 'quasar'
 import { useRoute } from 'vue-router'
 // 🚀 Import ottimizzato: solo i moduli API necessari per questa pagina
 import { reportsAPI } from 'src/services/api/reports.js'
-import { expensesAPI } from 'src/services/api/expenses.js'
+import { useContributionsStore } from 'src/stores/contributions.js'
 
 // Questa pagina gestisce piani di spesa e spese, quindi importiamo solo:
 // - reportsAPI per spending plans e planned expenses
-// - expensesAPI per le spese reali
+// - contributionsStore per il balance famiglia con caching
 import { useSnackbar } from 'src/composables/useSnackbar'
 import MCFDatePicker from 'components/MCFDatePicker.vue'
 import MCFAutocomplete from 'components/MCFAutocomplete.vue'
@@ -926,6 +1072,7 @@ import MCFLoading from 'src/components/MCFLoading.vue'
 const $q = useQuasar()
 const route = useRoute()
 const snackbar = useSnackbar()
+const contributionsStore = useContributionsStore()
 
 // Stato reattivo
 const plannedExpenses = ref([])
@@ -972,7 +1119,9 @@ const newExpense = ref({
 const newPayment = ref({
   amount: '',
   description: '',
-  date: new Date().toISOString().split('T')[0]
+  date: new Date().toISOString().split('T')[0],
+  payment_method: 'carta',
+  payment_source: 'personal'
 })
 
 // Form modifica spesa
@@ -1003,9 +1152,48 @@ const frequencyOptions = [
   { label: 'Trimestrale', value: 'quarterly' }
 ]
 
+// Payment options
+const paymentMethodOptions = [
+  { label: 'Carta di Credito/Debito', value: 'carta' },
+  { label: 'Contanti', value: 'contanti' },
+  { label: 'Bonifico Bancario', value: 'bonifico' },
+  { label: 'PayPal', value: 'paypal' },
+  { label: 'Assegno', value: 'assegno' },
+  { label: 'Altro', value: 'altro' }
+]
+
+const paymentSourceOptions = [
+  { label: 'Personale', value: 'personal' },
+  { label: 'Contributi Famiglia', value: 'contribution' }
+]
+
 // Computed
 const planId = computed(() => route.params.id)
+const familyBalance = computed(() => {
+  const balance = contributionsStore.familyBalance
+  return (balance !== null && balance !== undefined) ? balance : 0
+})
 
+const familyTotalContributions = computed(() => {
+  const total = contributionsStore.familyTotalContributions
+  return (total !== null && total !== undefined) ? total : 0
+})
+
+const familyBalanceText = computed(() => {
+  const balance = familyBalance.value
+  const total = familyTotalContributions.value
+
+  console.log('🏦 familyBalanceText computed - balance:', balance, 'total:', total)
+
+  if (total > 0) {
+    return `<span style="font-weight: 600;">€${balance.toFixed(2)}</span><span style="color: #666; margin: 0 2px;">/</span><span style="font-size: 0.85em; color: #888;">€${total.toFixed(2)}</span>`
+  } else {
+    return `€${balance.toFixed(2)}`
+  }
+})
+const loadingBalance = ref(false)
+
+// Computed properties
 const filteredExpenses = computed(() => {
   if (activeTab.value === 'all') return plannedExpenses.value
   return plannedExpenses.value.filter(expense => {
@@ -1082,11 +1270,22 @@ const canCreateExpense = computed(() => {
 const canAddPayment = computed(() => {
   const amount = parseFloat(newPayment.value.amount)
   const remainingAmount = parseFloat(selectedExpense.value?.remaining_amount || 0)
-  return newPayment.value.amount &&
+
+  // Validazione base
+  const basicValidation = newPayment.value.amount &&
          !isNaN(amount) &&
          amount > 0 &&
          !isNaN(remainingAmount) &&
          amount <= remainingAmount
+
+  // Se sta pagando con contributi, verifica che ci sia saldo sufficiente
+  if (newPayment.value.payment_source === 'contribution') {
+    // Debug validazione saldo
+    // console.log('🏦 Validazione saldo:', { amount, familyBalance: familyBalance.value, isValid: amount <= familyBalance.value, basicValidation })
+    return basicValidation && amount <= familyBalance.value
+  }
+
+  return basicValidation
 })
 
 const canEditExpense = computed(() => {
@@ -1097,6 +1296,32 @@ const canEditExpense = computed(() => {
 
 const totalPayments = computed(() => {
   return payments.value.reduce((sum, payment) => sum + parseFloat(payment.amount || 0), 0)
+})
+
+const paymentsByUser = computed(() => {
+  const userMap = new Map()
+
+  payments.value.forEach(payment => {
+    if (payment.user) {
+      const userId = payment.user.id
+      const fullName = `${payment.user.first_name} ${payment.user.last_name}`.trim()
+
+      if (userMap.has(userId)) {
+        const existing = userMap.get(userId)
+        existing.total += parseFloat(payment.amount || 0)
+        existing.count += 1
+      } else {
+        userMap.set(userId, {
+          userId,
+          fullName,
+          total: parseFloat(payment.amount || 0),
+          count: 1
+        })
+      }
+    }
+  })
+
+  return Array.from(userMap.values()).sort((a, b) => b.total - a.total)
 })
 
 
@@ -1140,6 +1365,16 @@ const loadPlanData = async () => {
   }
 }
 
+const loadFamilyBalance = async (forceRefresh = false) => {
+  try {
+    loadingBalance.value = true
+    await contributionsStore.fetchBalance(forceRefresh)
+  } catch (error) {
+    console.error('Errore nel caricamento del saldo famiglia:', error)
+  } finally {
+    loadingBalance.value = false
+  }
+}
 
 const createExpense = async () => {
   if (!canCreateExpense.value) return
@@ -1185,7 +1420,9 @@ const openPaymentDialog = (expense) => {
   newPayment.value = {
     amount: (parseFloat(expense.remaining_amount || 0) || 0).toString(),
     description: `Pagamento per ${expense.description}`,
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0],
+    payment_method: 'carta',
+    payment_source: 'personal'
   }
   showPaymentDialog.value = true
 }
@@ -1198,9 +1435,12 @@ const addPayment = async () => {
     const paymentData = {
       amount: parseFloat(newPayment.value.amount),
       description: newPayment.value.description,
-      date: newPayment.value.date
+      date: newPayment.value.date,
+      payment_method: newPayment.value.payment_method,
+      payment_source: newPayment.value.payment_source
     }
 
+    // Usa l'API esistente per i pagamenti di spese pianificate, ora con supporto per contributi
     await reportsAPI.addPaymentToPlannedExpense(selectedExpense.value.id, paymentData)
 
     snackbar.success('Pagamento aggiunto con successo!')
@@ -1208,6 +1448,12 @@ const addPayment = async () => {
     showPaymentDialog.value = false
     resetPaymentForm()
     await loadPlanData()
+
+    // Ricarica il saldo famiglia se è stato usato un contributo
+    if (paymentData.payment_source === 'contribution') {
+      contributionsStore.invalidateBalanceCache()
+      await loadFamilyBalance(true) // Force refresh dopo uso contributo
+    }
 
   } catch (error) {
     console.error('Errore nell\'aggiunta del pagamento:', error)
@@ -1237,9 +1483,17 @@ const resetPaymentForm = () => {
   newPayment.value = {
     amount: '',
     description: '',
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0],
+    payment_method: 'carta',
+    payment_source: 'personal'
   }
   selectedExpense.value = null
+}
+
+const onPaymentSourceChange = (source) => {
+  if (source === 'contribution') {
+    loadFamilyBalance() // Usa cache se disponibile
+  }
 }
 
 // Recurring expense logic
@@ -1461,6 +1715,13 @@ const formatDate = (dateString) => {
 
 const formatAmount = (amount) => {
   return parseFloat(amount || 0).toFixed(2)
+}
+
+const getUserInitials = (fullName) => {
+  if (!fullName) return '?'
+  const names = fullName.split(' ')
+  if (names.length === 1) return names[0].charAt(0).toUpperCase()
+  return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase()
 }
 
 const getStatusLabel = (status) => {
@@ -1749,11 +2010,62 @@ const saveInstallmentAmount = async (expenseId, installmentNumber) => {
 // Note: Installment summary calculations are now done in backend
 // via recurring_installments_summary field for better performance
 
+// ===== HIDE/SHOW EXPENSE FUNCTIONS =====
+const hideExpense = async (expense) => {
+  try {
+    await reportsAPI.updatePlannedExpense(expense.id, {
+      is_hidden: true
+    })
+
+    // Update local data
+    expense.is_hidden = true
+
+    snackbar.success('Spesa nascosta dalla vista')
+  } catch (error) {
+    console.error('❌ Error hiding expense:', error)
+
+    let errorMessage = 'Errore durante il nascondimento della spesa'
+    if (error.response?.data?.detail) {
+      errorMessage = error.response.data.detail
+    } else if (error.message) {
+      errorMessage = error.message
+    }
+
+    snackbar.error(errorMessage)
+  }
+}
+
+const showExpense = async (expense) => {
+  try {
+    await reportsAPI.updatePlannedExpense(expense.id, {
+      is_hidden: false
+    })
+
+    // Update local data
+    expense.is_hidden = false
+
+    snackbar.success('Spesa mostrata nella vista')
+  } catch (error) {
+    console.error('❌ Error showing expense:', error)
+
+    let errorMessage = 'Errore durante la visualizzazione della spesa'
+    if (error.response?.data?.detail) {
+      errorMessage = error.response.data.detail
+    } else if (error.message) {
+      errorMessage = error.message
+    }
+
+    snackbar.error(errorMessage)
+  }
+}
+
 
 // Lifecycle
 onMounted(async () => {
   // Le route guards garantiscono che l'utente sia autenticato
   await loadPlanData()
+  // Carica il saldo famiglia all'avvio per averlo disponibile
+  await loadFamilyBalance()
 })
 </script>
 
@@ -1976,18 +2288,20 @@ onMounted(async () => {
 
   &.status-completed {
     border-left: 4px solid var(--mcf-accent);
-    opacity: 0.6;
-    background-color: rgba(0, 0, 0, 0.02);
+    /* Rimuovo opacity e background disabilitato - card resta normale */
+    opacity: 1;
+    background-color: #ffffff;
 
     .expense-name,
     .expense-category,
     .amount-main,
     .payment-by-text {
-      color: var(--mcf-text-disabled) !important;
+      /* Testo normale, non disabilitato */
+      color: inherit !important;
     }
 
     .status-badge {
-      opacity: 0.8;
+      opacity: 1;
     }
   }
 
@@ -2164,6 +2478,32 @@ onMounted(async () => {
   font-size: 11px;
   color: var(--mcf-text-secondary);
   font-style: italic;
+}
+
+.payment-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.paid-by-badges-inline {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.paid-by-badges {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.paid-by-chip {
+  min-width: 24px;
+  height: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 10px;
 }
 
 .expense-actions {
@@ -2546,6 +2886,114 @@ onMounted(async () => {
 .empty-subtitle {
   font-size: 14px;
   color: var(--mcf-text-secondary);
+}
+
+/* Payments dialog improvements */
+.payment-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.payment-avatar {
+  flex-shrink: 0;
+}
+
+.payment-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.payment-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--mcf-text-secondary);
+}
+
+.payment-user {
+  font-weight: 500;
+  color: var(--mcf-text-primary);
+}
+
+.payment-date {
+  color: var(--mcf-text-secondary);
+}
+
+/* Payments by user section */
+.payments-by-user {
+  margin: 20px 0;
+  padding: 16px;
+  background: var(--mcf-bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--mcf-border-light);
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--mcf-text-primary);
+  margin-bottom: 12px;
+}
+
+.user-payment-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--mcf-border-light);
+  }
+}
+
+.user-summary-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-summary-avatar {
+  flex-shrink: 0;
+}
+
+.user-summary-name {
+  font-weight: 500;
+  color: var(--mcf-text-primary);
+  font-size: 14px;
+}
+
+.user-summary-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.user-summary-count {
+  font-size: 12px;
+  color: var(--mcf-text-secondary);
+}
+
+.user-summary-amount {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--mcf-text-primary);
+}
+
+@media (max-width: 600px) {
+  .payment-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .user-summary-stats {
+    align-items: flex-end;
+  }
 }
 
 /* Installment checkboxes styling */

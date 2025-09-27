@@ -3,6 +3,8 @@ import { authAPI } from 'src/services/api/auth.js'
 import { API } from 'src/services/api/index.js'
 import { storage, STORAGE_KEYS } from 'src/services/storage'
 import CryptoJS from 'crypto-js'
+import { useContributionsStore } from './contributions'
+import { useExpensesStore } from './expenses'
 
 // Chiave segreta per criptare (in produzione usa una chiave più sicura)
 const SECRET_KEY = 'mcf-2024-secret-key'
@@ -15,7 +17,8 @@ export const useAuthStore = defineStore('auth', {
     pinHash: null,
     lastUserEmail: null,
     encryptedCredentials: null,
-    isInitialized: false
+    isInitialized: false,
+    _refreshPromise: null // Promise per gestire refresh token debounce
   }),
 
   getters: {
@@ -96,6 +99,19 @@ export const useAuthStore = defineStore('auth', {
     async login(email, password) {
       try {
         console.log('Login attempt:', email)
+
+        // Pulisci prima la cache degli store per avere dati freschi
+        console.log('🧹 Pulizia cache pre-login...')
+        const contributionsStore = useContributionsStore()
+        if (contributionsStore) {
+          contributionsStore.resetStore()
+          contributionsStore.invalidateBalanceCache()
+        }
+
+        const expensesStore = useExpensesStore()
+        if (expensesStore) {
+          expensesStore.resetStore()
+        }
 
         // Chiamata API reale
         const response = await authAPI.login(email, password)
@@ -273,6 +289,34 @@ export const useAuthStore = defineStore('auth', {
       // Rimuovi token dalle API calls
       API.setAuthToken(null)
 
+      // Pulisci la cache di tutti gli store
+      console.log('🧹 Pulizia cache degli store...')
+
+      // Pulisci lo store dei contributi
+      const contributionsStore = useContributionsStore()
+      if (contributionsStore) {
+        contributionsStore.resetStore()
+        contributionsStore.invalidateBalanceCache()
+      }
+
+      // Pulisci lo store delle spese
+      const expensesStore = useExpensesStore()
+      if (expensesStore) {
+        expensesStore.resetStore()
+      }
+
+      // Pulisci localStorage eccetto PIN data
+      const pinData = localStorage.getItem('pinData')
+      const keysToKeep = ['pinData']
+
+      Object.keys(localStorage).forEach(key => {
+        if (!keysToKeep.includes(key)) {
+          localStorage.removeItem(key)
+        }
+      })
+
+      console.log('✅ Cache pulita al logout')
+
       // Pulisci storage
       await storage.clearAuth()
     },
@@ -306,12 +350,33 @@ export const useAuthStore = defineStore('auth', {
       console.log('PIN data cleared')
     },
 
-    // Refresh token
+    // Refresh token con debounce per evitare chiamate multiple simultanee
     async refreshAccessToken() {
       if (!this.refreshToken) return false
 
+      // Se c'è già un refresh in corso, aspetta che finisca
+      if (this._refreshPromise) {
+        console.log('🔄 Refresh già in corso, aspettando...')
+        return await this._refreshPromise
+      }
+
+      // Crea una nuova promise di refresh
+      this._refreshPromise = this._performTokenRefresh()
+
       try {
-        console.log('Refreshing token...')
+        const result = await this._refreshPromise
+        return result
+      } finally {
+        // Pulisci la promise dopo 1 secondo per permettere nuovi refresh se necessario
+        setTimeout(() => {
+          this._refreshPromise = null
+        }, 1000)
+      }
+    },
+
+    async _performTokenRefresh() {
+      try {
+        console.log('🔄 Performing token refresh...')
         const response = await authAPI.refreshToken(this.refreshToken)
 
         // Aggiorna token
@@ -330,9 +395,10 @@ export const useAuthStore = defineStore('auth', {
           console.log('🔄 Refresh token save result:', saveResult)
         }
 
+        console.log('✅ Token refresh successful')
         return true
       } catch (error) {
-        console.error('Token refresh failed:', error)
+        console.error('❌ Token refresh failed:', error)
         await this.logout()
         return false
       }

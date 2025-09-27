@@ -134,7 +134,7 @@ export const reportsAPI = {
   },
 
   async getPlannedExpensePayments(plannedExpenseId) {
-    const response = await apiClient.get(`/expenses/?planned_expense=${plannedExpenseId}`)
+    const response = await apiClient.get(`/planned-expenses/${plannedExpenseId}/payments/`)
     return response.data
   },
 

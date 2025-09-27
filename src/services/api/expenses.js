@@ -50,9 +50,25 @@ export const expensesAPI = {
     await apiClient.delete(`/expenses/${id}/`)
   },
 
+  async payExpense(id, paymentData) {
+    const response = await apiClient.post(`/expenses/${id}/pay_expense/`, paymentData)
+    return response.data
+  },
+
   // Converte una spesa in ricorrente
   async convertToRecurring(id, conversionData) {
     const response = await apiClient.post(`/expenses/${id}/convert_to_recurring/`, conversionData)
+    return response.data
+  },
+
+  // Carica expenses per multiple planned expenses in batch (ottimizzato)
+  async getBatchByPlannedExpenses(plannedExpenseIds) {
+    if (!plannedExpenseIds || plannedExpenseIds.length === 0) {
+      return { expenses_by_planned_expense: {}, total_expenses: 0 }
+    }
+
+    const idsString = plannedExpenseIds.join(',')
+    const response = await apiClient.get(`/expenses/batch_by_planned_expenses/?planned_expense_ids=${idsString}`)
     return response.data
   }
 }

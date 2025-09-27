@@ -2,14 +2,71 @@
   <q-page class="mcf-page-container-fullwidth">
     <div class="spending-plan-page-content">
 
-      <!-- Action Button -->
+      <!-- Action Buttons -->
       <div class="mcf-action-header">
-        <q-btn
-          icon="add"
-          label="Nuovo Piano di Spesa"
-          class="mcf-btn-primary mcf-btn-fullwidth"
-          @click="showCreateDialog = true"
-        />
+        <div class="action-buttons-grid">
+          <q-btn
+            icon="event_note"
+            label="Nuovo Piano di Spesa"
+            class="mcf-btn-primary"
+            @click="showCreateDialog = true"
+            :disable="!authStore.user?.family"
+          />
+          <q-btn
+            icon="account_balance_wallet"
+            label="Aggiungi Contributo"
+            class="mcf-btn-secondary"
+            @click="showContributionDialog = true"
+            :disable="!authStore.user?.family"
+          />
+        </div>
+      </div>
+
+      <!-- Avviso mancanza famiglia -->
+      <q-banner
+        v-if="!authStore.user?.family"
+        class="bg-warning text-white q-mb-md"
+        rounded
+      >
+        <template v-slot:avatar>
+          <q-icon name="warning" />
+        </template>
+        <div class="text-weight-medium">Attenzione: Famiglia richiesta</div>
+        <div class="text-body2 q-mt-xs">
+          Prima di creare un piano di spesa, è necessario
+          <router-link to="/settings" class="text-white text-decoration-underline">
+            creare o unirti a una famiglia
+          </router-link>.
+          I piani di spesa senza famiglia non saranno visibili nell'app.
+        </div>
+      </q-banner>
+
+      <!-- Bilancio Famiglia -->
+      <div v-if="authStore.user?.family && familyBalanceText !== null" class="mcf-balance-section">
+        <q-card flat bordered class="balance-card">
+          <q-card-section class="balance-content">
+            <div class="balance-info">
+              <div class="balance-icon">
+                <q-icon name="account_balance_wallet" />
+              </div>
+              <div class="balance-details">
+                <div class="balance-label">Bilancio Famiglia Disponibile</div>
+                <div class="balance-amount" v-html="familyBalanceText"></div>
+              </div>
+            </div>
+            <q-btn
+              flat
+              round
+              icon="refresh"
+              size="sm"
+              @click="loadFamilyBalance"
+              :loading="loadingBalance"
+              class="balance-refresh"
+            >
+              <q-tooltip>Aggiorna bilancio</q-tooltip>
+            </q-btn>
+          </q-card-section>
+        </q-card>
       </div>
 
       <!-- Filtri e Controlli -->
@@ -85,192 +142,17 @@
 
         <!-- Grid dei Piani -->
         <div v-else class="spending-plans-grid">
-          <div
+          <CardPianoSpesa2
             v-for="plan in filteredSpendingPlans"
             :key="plan.id"
-            class="spending-plan-card"
-            @click="openPlanDetail(plan)"
-          >
-            <!-- Header della card -->
-            <div class="plan-header">
-              <div class="plan-main">
-                <div class="plan-name-row">
-                  <div class="plan-name">
-                    {{ plan.name }}
-                    <q-icon
-                      v-if="!plan.is_shared"
-                      name="lock"
-                      size="xs"
-                      color="grey-6"
-                      class="q-ml-xs"
-                    >
-                      <q-tooltip>Piano personale</q-tooltip>
-                    </q-icon>
-                  </div>
-                  <q-chip
-                    :color="getPlanTypeColor(plan.plan_type)"
-                    text-color="white"
-                    size="sm"
-                    :label="getPlanTypeLabel(plan.plan_type)"
-                    class="plan-type-chip"
-                  />
-                </div>
-                <div class="plan-period">
-                  {{ formatDate(plan.start_date) }} - {{ formatDate(plan.end_date) }}
-                </div>
-                <div v-if="plan.description" class="plan-description">
-                  {{ plan.description }}
-                </div>
-              </div>
-              <div class="plan-actions" @click.stop>
-                <q-btn
-                  flat
-                  round
-                  icon="more_vert"
-                  size="sm"
-                  class="text-grey-6 mcf-plan-menu-btn"
-                >
-                  <q-menu
-                    class="mcf-plan-menu"
-                    transition-show="scale"
-                    transition-hide="scale"
-                    anchor="bottom right"
-                    self="top right"
-                  >
-                    <q-list class="mcf-plan-menu-list">
-                      <q-item
-                        clickable
-                        v-close-popup
-                        @click="editPlan(plan)"
-                        class="mcf-menu-item mcf-menu-item-edit"
-                      >
-                        <q-item-section avatar class="mcf-menu-icon">
-                          <q-icon name="edit" />
-                        </q-item-section>
-                        <q-item-section class="mcf-menu-text">
-                          <q-item-label>Modifica Piano</q-item-label>
-                          <q-item-label caption>Cambia nome, date o budget</q-item-label>
-                        </q-item-section>
-                      </q-item>
-
-                      <q-item
-                        clickable
-                        v-close-popup
-                        @click="clonePlan(plan)"
-                        class="mcf-menu-item mcf-menu-item-clone"
-                      >
-                        <q-item-section avatar class="mcf-menu-icon">
-                          <q-icon name="content_copy" />
-                        </q-item-section>
-                        <q-item-section class="mcf-menu-text">
-                          <q-item-label>Clona Piano</q-item-label>
-                          <q-item-label caption>Crea copia intelligente per il periodo successivo</q-item-label>
-                        </q-item-section>
-                      </q-item>
-
-                      <q-separator class="mcf-menu-separator" />
-
-                      <q-item
-                        clickable
-                        v-close-popup
-                        @click="deletePlan(plan)"
-                        class="mcf-menu-item mcf-menu-item-delete"
-                      >
-                        <q-item-section avatar class="mcf-menu-icon">
-                          <q-icon name="delete_outline" />
-                        </q-item-section>
-                        <q-item-section class="mcf-menu-text">
-                          <q-item-label>Elimina Piano</q-item-label>
-                          <q-item-label caption>Rimuovi definitivamente</q-item-label>
-                        </q-item-section>
-                      </q-item>
-                    </q-list>
-                  </q-menu>
-                </q-btn>
-              </div>
-            </div>
-
-            <!-- Statistiche del Piano -->
-            <div class="plan-stats">
-              <div class="stats-row">
-                <div class="stat-item stat-item-clickable" @click.stop="toggleExpanded(plan.id)">
-                  <div class="stat-label">
-                    Pianificate
-                    <q-icon
-                      :name="isExpanded(plan.id) ? 'expand_less' : 'expand_more'"
-                      size="16px"
-                      class="expand-icon"
-                    />
-                  </div>
-                  <div class="stat-value">{{ plan.planned_expenses?.length || 0 }}</div>
-                </div>
-                <div class="stat-item">
-                  <div class="stat-label">Completate</div>
-                  <div class="stat-value completed">{{ plan.completed_count || 0 }}</div>
-                </div>
-                <div class="stat-item">
-                  <div class="stat-label">Stimato</div>
-                  <div class="stat-value primary">€{{ formatAmount(plan.total_estimated_amount || 0) }}</div>
-                </div>
-              </div>
-
-              <!-- Progress Bar -->
-              <div class="progress-container">
-                <q-linear-progress
-                  :value="(plan.completion_percentage || 0) / 100"
-                  size="8px"
-                  :color="getProgressColor(plan)"
-                  track-color="grey-3"
-                  class="progress-bar"
-                />
-                <div class="progress-text">
-                  {{ Math.round(plan.completion_percentage || 0) }}% completato
-                </div>
-              </div>
-            </div>
-
-            <!-- Anteprima Spese Collassabile -->
-            <q-slide-transition>
-              <div v-if="plan.planned_expenses?.length > 0 && isExpanded(plan.id)" class="plan-expenses-preview">
-              <div class="preview-header">Prime {{ Math.min(3, plan.planned_expenses.length) }} spese:</div>
-              <div
-                v-for="expense in plan.planned_expenses.slice(0, 3)"
-                :key="expense.id"
-                class="expense-preview-item"
-              >
-                <div class="expense-info">
-                  <div class="expense-name">{{ expense.description }}</div>
-                  <div class="expense-amount">€{{ formatAmount(expense.amount) }}</div>
-                </div>
-                <q-icon
-                  v-if="expense.is_completed"
-                  name="check_circle"
-                  class="expense-status completed"
-                />
-                <q-chip
-                  v-else
-                  :color="getPriorityColor(expense.priority)"
-                  text-color="white"
-                  size="xs"
-                  :label="getPriorityLabel(expense.priority)"
-                />
-              </div>
-              <div v-if="plan.planned_expenses.length > 3" class="more-expenses">
-                +{{ plan.planned_expenses.length - 3 }} altre spese
-              </div>
-              </div>
-            </q-slide-transition>
-
-            <!-- Badge del tipo -->
-            <div class="plan-badges" v-if="plan.is_current">
-              <q-chip
-                color="green"
-                text-color="white"
-                size="sm"
-                label="Attivo"
-              />
-            </div>
-          </div>
+            :plan="plan"
+            :expanded="isExpanded(plan.id)"
+            @click="openPlanDetail"
+            @edit="editPlan"
+            @clone="clonePlan"
+            @delete="deletePlan"
+            @toggle-expansion="toggleExpanded"
+          />
         </div>
     </div>
 
@@ -298,6 +180,14 @@
       @cloned="handlePlanCloned"
     />
 
+    <!-- Dialog Contributo -->
+    <q-dialog v-model="showContributionDialog" persistent>
+      <ContributionForm
+        @saved="handleContributionSaved"
+        @cancel="showContributionDialog = false"
+      />
+    </q-dialog>
+
   </q-page>
 </template>
 
@@ -306,10 +196,13 @@ import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
 import { reportsAPI } from 'src/services/api/reports.js'
+import { useContributionsStore } from 'src/stores/contributions.js'
 import { useAuthStore } from 'stores/auth.js'
 import { useSnackbar } from 'src/composables/useSnackbar'
 import SpendingPlanDialog from 'components/SpendingPlanDialog.vue'
 import CloneSpendingPlanDialog from 'components/CloneSpendingPlanDialog.vue'
+import ContributionForm from 'src/components/contributions/ContributionForm.vue'
+import CardPianoSpesa2 from 'src/components/CardPianoSpesa2.vue'
 import MCFLoading from 'src/components/MCFLoading.vue'
 
 const $q = useQuasar()
@@ -323,14 +216,39 @@ const saving = ref(false)
 const showCreateDialog = ref(false)
 const showEditDialog = ref(false)
 const showCloneDialog = ref(false)
+const showContributionDialog = ref(false)
 const editingPlan = ref(null)
 const cloningPlan = ref(null)
 const expandedPlans = ref(new Set())
+const familyBalance = computed(() => {
+  const balance = contributionsStore.familyBalance
+  return (balance !== null && balance !== undefined) ? balance : null
+})
+
+const familyTotalContributions = computed(() => {
+  const total = contributionsStore.familyTotalContributions
+  return (total !== null && total !== undefined) ? total : 0
+})
+
+const familyBalanceText = computed(() => {
+  const balance = familyBalance.value
+  const total = familyTotalContributions.value
+
+  if (balance === null) return null
+
+  if (total > 0) {
+    return `<span style="font-weight: 600;">€${formatAmount(balance)}</span><span style="color: #666; margin: 0 2px;">/</span><span style="font-size: 0.85em; color: #888;">€${formatAmount(total)}</span>`
+  } else {
+    return `€${formatAmount(balance)}`
+  }
+})
+const loadingBalance = ref(false)
 
 // Filtri
 const showAllFuturePlans = ref(false)
 
 const authStore = useAuthStore()
+const contributionsStore = useContributionsStore()
 
 // Opzioni per il tipo piano (per le funzioni helper)
 const planTypeOptions = [
@@ -367,34 +285,22 @@ const loadSpendingPlans = async () => {
     const response = await reportsAPI.getSpendingPlans(showAllFuturePlans.value)
     console.log('🔍 Risposta API ricevuta:', response)
 
-    const allPlans = response.results || response || []
-    console.log('📊 Piani dalla API (prima del filtro):', allPlans.length)
-
-    // Filtra i piani nascosti (auto-generati dalle ricorrenze)
-    spendingPlans.value = allPlans.filter(plan => !plan.is_hidden)
-    console.log('📊 Piani dopo filtro hidden:', spendingPlans.value.length)
-
-    // Se stiamo mostrando tutti i piani, aggiorna il contatore totale
-    if (showAllFuturePlans.value) {
-      allPlansCount.value = spendingPlans.value.length
+    // Supporta sia il nuovo formato con metadati che il vecchio formato
+    if (response.results) {
+      // Nuovo formato con metadati - ottimizzato
+      spendingPlans.value = response.results
+      allPlansCount.value = response.total_count || response.results.length
+      console.log('📊 Piani caricati (nuovo formato):', response.results.length, '- Totale:', response.total_count)
     } else {
-      // Se non abbiamo il totale, fai una chiamata rapida per ottenerlo
-      if (allPlansCount.value === 0) {
-        try {
-          const allResponse = await reportsAPI.getSpendingPlans(true)
-          const allAllPlans = allResponse.results || allResponse || []
-          allPlansCount.value = allAllPlans.filter(plan => !plan.is_hidden).length
-        } catch (err) {
-          console.warn('Errore nel caricamento del totale piani:', err)
-        }
-      }
+      // Formato legacy - mantieni compatibilità
+      const allPlans = response || []
+      spendingPlans.value = allPlans.filter(plan => !plan.is_hidden)
+      allPlansCount.value = spendingPlans.value.length
+      console.log('📊 Piani caricati (formato legacy):', spendingPlans.value.length)
     }
 
     console.log('📋 Piani di spesa caricati:', spendingPlans.value.length, 'di', allPlansCount.value, 'totali')
     console.log('📅 Filtro attivo:', showAllFuturePlans.value ? 'Tutti i piani' : 'Solo 3 mesi')
-    if (allPlans.length > spendingPlans.value.length) {
-      console.log('🔍 Nascosti', allPlans.length - spendingPlans.value.length, 'piani auto-generati')
-    }
   } catch (error) {
     console.error('Errore nel caricamento dei piani:', error)
     snackbar.error('Errore nel caricamento dei piani di spesa')
@@ -500,7 +406,7 @@ const deletePlan = (plan) => {
     persistent: true
   }).onOk(async () => {
     try {
-      await reportsAPI.deleteBudget(plan.id)
+      await reportsAPI.deleteSpendingPlan(plan.id)
 
       snackbar.success('Piano eliminato con successo')
 
@@ -528,6 +434,35 @@ const handlePlanCloned = async (clonedPlan) => {
   showCloneDialog.value = false
 }
 
+const handleContributionSaved = async () => {
+  snackbar.success('Contributo aggiunto con successo!')
+  showContributionDialog.value = false
+
+  // Ricarica il bilancio famiglia dopo aver aggiunto un contributo
+  contributionsStore.invalidateBalanceCache()
+  await loadFamilyBalance(true) // Force refresh dopo aggiunta contributo
+}
+
+const loadFamilyBalance = async (forceRefresh = false) => {
+  if (!authStore.user?.family) return
+
+  try {
+    loadingBalance.value = true
+    await contributionsStore.fetchBalance(forceRefresh)
+  } catch (error) {
+    console.error('Errore nel caricamento del bilancio famiglia:', error)
+    // Non mostrare errore per evitare spam se l'API non è disponibile
+  } finally {
+    loadingBalance.value = false
+  }
+}
+
+// Funzione per forzare refresh del cache (se necessario)
+const forceRefreshBalance = async () => {
+  contributionsStore.invalidateBalanceCache()
+  await loadFamilyBalance(true)
+}
+
 // Utility functions
 const formatDate = (dateString) => {
   if (!dateString) return ''
@@ -549,46 +484,6 @@ const formatAmount = (amount) => {
 
 // Funzioni rimosse - ora usiamo i dati calcolati dal backend
 
-const getProgressColor = (plan) => {
-  const progress = (plan.completion_percentage || 0) / 100
-  if (progress >= 1) return 'green'
-  if (progress >= 0.5) return 'orange'
-  return 'primary'
-}
-
-const getPlanTypeLabel = (type) => {
-  const option = planTypeOptions.find(opt => opt.value === type)
-  return option ? option.label : type
-}
-
-const getPlanTypeColor = (type) => {
-  switch (type) {
-    case 'monthly': return 'blue'
-    case 'seasonal': return 'green'
-    case 'event': return 'purple'
-    case 'yearly': return 'orange'
-    default: return 'grey'
-  }
-}
-
-const getPriorityLabel = (priority) => {
-  const labels = {
-    low: 'Bassa',
-    medium: 'Media',
-    high: 'Alta',
-    urgent: 'Urgente'
-  }
-  return labels[priority] || priority
-}
-
-const getPriorityColor = (priority) => {
-  switch (priority) {
-    case 'urgent': return 'red'
-    case 'high': return 'orange'
-    case 'medium': return 'blue'
-    default: return 'grey'
-  }
-}
 
 // Toggle funzioni
 const toggleExpanded = (planId) => {
@@ -606,7 +501,10 @@ const isExpanded = (planId) => {
 // Lifecycle
 onMounted(async () => {
   // Le route guards garantiscono che l'utente sia autenticato
-  await loadSpendingPlans()
+  await Promise.all([
+    loadSpendingPlans(),
+    loadFamilyBalance()
+  ])
 })
 </script>
 
@@ -633,10 +531,21 @@ onMounted(async () => {
   }
 }
 
-.mcf-btn-fullwidth {
+.action-buttons-grid {
+  display: flex;
+  gap: 12px;
+
+  @media (min-width: 768px) {
+    gap: 16px;
+  }
+}
+
+.mcf-btn-primary, .mcf-btn-secondary {
   width: 100%;
   justify-content: center;
   padding: 12px 16px;
+  border-radius: 12px;
+  font-weight: 600;
 
   @media (min-width: 768px) {
     padding: 14px 20px;
@@ -645,6 +554,118 @@ onMounted(async () => {
   :deep(.q-btn__content) {
     justify-content: center;
     width: 100%;
+    gap: 8px;
+  }
+}
+
+.mcf-btn-secondary {
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+  color: white !important;
+
+  &:hover {
+    background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+    color: white !important;
+  }
+
+  &:disabled {
+    background: #e0e0e0;
+    color: #9e9e9e !important;
+  }
+
+  :deep(.q-btn__content) {
+    color: white !important;
+  }
+}
+
+// === BALANCE SECTION ===
+.mcf-balance-section {
+  margin-bottom: 16px;
+
+  @media (min-width: 768px) {
+    margin-bottom: 20px;
+  }
+}
+
+.balance-card {
+  background: linear-gradient(135deg, #f8f9ff 0%, #e8f5e8 100%);
+  border: 2px solid #4caf50;
+  border-radius: 16px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
+  }
+}
+
+.balance-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+
+  @media (min-width: 768px) {
+    padding: 20px 24px;
+  }
+}
+
+.balance-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.balance-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: #4caf50;
+  border-radius: 50%;
+  color: white;
+
+  .q-icon {
+    font-size: 24px;
+  }
+}
+
+.balance-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.balance-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2e7d32;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  @media (min-width: 768px) {
+    font-size: 14px;
+  }
+}
+
+.balance-amount {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1b5e20;
+  font-feature-settings: 'tnum';
+
+  @media (min-width: 768px) {
+    font-size: 28px;
+  }
+}
+
+.balance-refresh {
+  color: #4caf50;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(76, 175, 80, 0.1);
+    transform: rotate(180deg);
   }
 }
 
@@ -923,14 +944,16 @@ onMounted(async () => {
 .spending-plans-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 24px;
+  gap: 20px;
 
   @media (min-width: 768px) {
     grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
   }
 
-  @media (min-width: 1024px) {
+  @media (min-width: 1200px) {
     grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
   }
 }
 
