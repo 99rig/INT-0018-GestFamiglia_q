@@ -2680,85 +2680,162 @@ onMounted(async () => {
 /* === PLANNED EXPENSE MENU STYLES === */
 .mcf-planned-expense-menu-btn {
   color: var(--mcf-text-secondary);
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 8px;
 
   &:hover {
     color: var(--mcf-primary);
-    background: rgba(35, 157, 176, 0.1);
+    background: linear-gradient(135deg, rgba(35, 157, 176, 0.12), rgba(35, 157, 176, 0.08));
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(35, 157, 176, 0.2);
+  }
+
+  &:active {
+    transform: scale(0.95);
   }
 }
 
 .mcf-planned-expense-menu {
-  min-width: 220px;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  min-width: 260px;
+  border-radius: 16px;
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.15),
+    0 4px 12px rgba(0, 0, 0, 0.08);
   border: 1px solid var(--mcf-border-light);
   overflow: hidden;
   background: var(--mcf-bg-surface);
+  backdrop-filter: blur(20px);
 }
 
 .mcf-menu-list {
-  padding: 8px 0;
+  padding: 12px 0;
 }
 
 .mcf-menu-item {
-  padding: 12px 16px;
-  transition: all 0.2s ease;
+  padding: 16px 20px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
+  border-radius: 12px;
+  margin: 0 8px 4px 8px;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
 
   &:hover {
     background: var(--mcf-bg-hover);
-    transform: translateX(2px);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+    &::before {
+      opacity: 1;
+    }
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
   }
 }
 
 .mcf-menu-edit:hover {
-  background: rgba(35, 157, 176, 0.08);
+  background: linear-gradient(135deg, rgba(35, 157, 176, 0.12), rgba(35, 157, 176, 0.08));
+  border-left: 3px solid var(--mcf-primary);
 
   .mcf-menu-icon {
     color: var(--mcf-primary);
+    transform: scale(1.1) rotate(5deg);
   }
 
   .mcf-menu-title {
     color: var(--mcf-primary);
+    font-weight: 600;
+  }
+}
+
+.mcf-menu-recurring:hover {
+  background: linear-gradient(135deg, rgba(75, 85, 99, 0.12), rgba(75, 85, 99, 0.08));
+  border-left: 3px solid #4b5563;
+
+  .mcf-menu-icon {
+    color: #4b5563;
+    transform: scale(1.1) rotate(360deg);
+  }
+
+  .mcf-menu-title {
+    color: #4b5563;
+    font-weight: 600;
+  }
+}
+
+.mcf-menu-hide:hover,
+.mcf-menu-show:hover {
+  background: linear-gradient(135deg, rgba(156, 163, 175, 0.12), rgba(156, 163, 175, 0.08));
+  border-left: 3px solid #9ca3af;
+
+  .mcf-menu-icon {
+    color: #9ca3af;
+    transform: scale(1.1);
+  }
+
+  .mcf-menu-title {
+    color: #9ca3af;
+    font-weight: 600;
   }
 }
 
 .mcf-menu-delete:hover {
-  background: rgba(239, 68, 68, 0.08);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.08));
+  border-left: 3px solid #ef4444;
 
   .mcf-menu-icon {
     color: #ef4444;
+    transform: scale(1.1) rotate(-5deg);
   }
 
   .mcf-menu-title {
     color: #ef4444;
+    font-weight: 600;
   }
 }
 
 .mcf-menu-icon {
-  font-size: 20px;
+  font-size: 22px;
   color: var(--mcf-text-secondary);
-  transition: color 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .mcf-menu-title {
   font-weight: 500;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--mcf-text-primary);
-  transition: color 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.02em;
 }
 
 .mcf-menu-subtitle {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--mcf-text-secondary);
-  opacity: 0.8;
-  margin-top: 2px;
+  opacity: 0.75;
+  margin-top: 4px;
+  line-height: 1.4;
+  transition: opacity 0.3s ease;
 }
 
 .mcf-menu-separator {
-  margin: 4px 0;
-  background: var(--mcf-border-light);
+  margin: 8px 16px;
+  background: linear-gradient(90deg, transparent 0%, var(--mcf-border-light) 20%, var(--mcf-border-light) 80%, transparent 100%);
+  height: 1px;
+  border: none;
 }
 
 /* === RESPONSIVE FORM LAYOUT === */

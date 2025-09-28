@@ -113,12 +113,23 @@
                 </template>
               </q-input>
 
-              <!-- Remember Me -->
-              <q-checkbox
-                v-model="rememberMe"
-                label="Ricordami"
-                class="q-mb-md"
-              />
+              <!-- Remember Me and Forgot Password -->
+              <div class="row items-center justify-between q-mb-md">
+                <q-checkbox
+                  v-model="rememberMe"
+                  label="Ricordami"
+                />
+                <q-btn
+                  label="Password dimenticata?"
+                  flat
+                  dense
+                  no-caps
+                  color="primary"
+                  size="sm"
+                  @click="goToForgotPassword"
+                  class="forgot-password-btn"
+                />
+              </div>
 
               <!-- Login Button -->
               <q-btn
@@ -443,6 +454,10 @@ const declinePin = async () => {
 
 const goToRegister = () => {
   router.push('/register')
+}
+
+const goToForgotPassword = () => {
+  router.push('/forgot-password')
 }
 
 

@@ -239,6 +239,39 @@
           </div>
         </div>
 
+        <!-- Security & Account -->
+        <div class="mcf-settings-section">
+          <div class="mcf-section-header">
+            <q-icon name="security" class="mcf-section-icon" />
+            <h3 class="mcf-section-title">Sicurezza e Account</h3>
+          </div>
+
+          <div class="mcf-security-section">
+            <!-- Password Change Card -->
+            <div class="mcf-password-card">
+              <div class="mcf-password-header">
+                <q-icon name="lock" class="mcf-password-icon" />
+                <div class="mcf-password-info">
+                  <h4 class="mcf-password-title">Cambia Password</h4>
+                  <p class="mcf-password-description">
+                    Aggiorna la tua password per mantenere il tuo account sicuro
+                  </p>
+                </div>
+                <q-btn
+                  flat
+                  round
+                  icon="edit"
+                  color="primary"
+                  @click="showPasswordDialog = true"
+                  class="mcf-password-edit-btn"
+                >
+                  <q-tooltip>Cambia Password</q-tooltip>
+                </q-btn>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- System Information -->
         <div class="mcf-settings-section">
           <div class="mcf-section-header">
@@ -759,6 +792,106 @@
       </q-card>
     </q-dialog>
 
+    <!-- Password Change Dialog -->
+    <q-dialog v-model="showPasswordDialog" persistent>
+      <q-card class="mcf-password-dialog">
+        <q-card-section class="mcf-dialog-header">
+          <div class="mcf-dialog-title-section">
+            <q-icon name="lock" class="mcf-dialog-icon" />
+            <div>
+              <h6 class="mcf-dialog-title">Cambia Password</h6>
+              <p class="mcf-dialog-subtitle">Inserisci la tua password attuale e quella nuova</p>
+            </div>
+          </div>
+          <q-btn
+            flat
+            round
+            dense
+            icon="close"
+            @click="closePasswordDialog"
+            class="mcf-dialog-close-btn"
+          />
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-section class="mcf-password-form-section">
+          <q-form @submit="changePassword" class="mcf-password-form">
+            <div class="mcf-form-row">
+              <q-input
+                v-model="passwordForm.old_password"
+                type="password"
+                label="Password Attuale *"
+                outlined
+                required
+                :error="!!passwordErrors.old_password"
+                :error-message="passwordErrors.old_password"
+                class="mcf-form-field"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="lock_outline" />
+                </template>
+              </q-input>
+            </div>
+
+            <div class="mcf-form-row">
+              <q-input
+                v-model="passwordForm.new_password"
+                type="password"
+                label="Nuova Password *"
+                outlined
+                required
+                :error="!!passwordErrors.new_password"
+                :error-message="passwordErrors.new_password"
+                class="mcf-form-field"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="lock" />
+                </template>
+              </q-input>
+            </div>
+
+            <div class="mcf-form-row">
+              <q-input
+                v-model="passwordForm.new_password2"
+                type="password"
+                label="Conferma Nuova Password *"
+                outlined
+                required
+                :error="!!passwordErrors.new_password2"
+                :error-message="passwordErrors.new_password2"
+                class="mcf-form-field"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="lock" />
+                </template>
+              </q-input>
+            </div>
+          </q-form>
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-actions align="right" class="mcf-dialog-actions">
+          <q-btn
+            flat
+            label="Annulla"
+            @click="closePasswordDialog"
+            class="mcf-btn-secondary"
+          />
+          <q-btn
+            unelevated
+            label="Cambia Password"
+            color="primary"
+            @click="changePassword"
+            :loading="passwordLoading"
+            :disable="!isPasswordFormValid"
+            class="mcf-btn-primary"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
   </q-page>
 </template>
 
@@ -781,6 +914,16 @@ const showCamera = ref(false)
 const cameraLoading = ref(false)
 const capturedPhoto = ref(null)
 let mediaStream = null
+
+// Password change refs
+const showPasswordDialog = ref(false)
+const passwordLoading = ref(false)
+const passwordForm = ref({
+  old_password: '',
+  new_password: '',
+  new_password2: ''
+})
+const passwordErrors = ref({})
 
 // Update refs
 const updateChecking = ref(false)
@@ -870,6 +1013,14 @@ const isAndroidDevice = computed(() => {
 
   // Solo Android reale può installare APK
   return userAgent.includes('android') && !userAgent.includes('iphone') && !userAgent.includes('ipad')
+})
+
+// Password form validation
+const isPasswordFormValid = computed(() => {
+  return passwordForm.value.old_password &&
+         passwordForm.value.new_password &&
+         passwordForm.value.new_password2 &&
+         passwordForm.value.new_password === passwordForm.value.new_password2
 })
 
 onMounted(async () => {
@@ -1024,6 +1175,50 @@ async function forceAppRefresh() {
     })
   } finally {
     forceRefreshing.value = false
+  }
+}
+
+// Password management functions
+const closePasswordDialog = () => {
+  showPasswordDialog.value = false
+  passwordForm.value = {
+    old_password: '',
+    new_password: '',
+    new_password2: ''
+  }
+  passwordErrors.value = {}
+}
+
+const changePassword = async () => {
+  if (!isPasswordFormValid.value) {
+    snackbar.error('Compila tutti i campi correttamente')
+    return
+  }
+
+  passwordLoading.value = true
+  passwordErrors.value = {}
+
+  try {
+    await usersAPI.changePassword(passwordForm.value)
+
+    snackbar.success('Password cambiata con successo!')
+    closePasswordDialog()
+  } catch (error) {
+    console.error('Password change error:', error)
+
+    if (error.response?.data) {
+      // Handle validation errors from the backend
+      const errorData = error.response.data
+      if (typeof errorData === 'object') {
+        passwordErrors.value = errorData
+      } else {
+        snackbar.error(errorData.detail || 'Errore durante il cambio password')
+      }
+    } else {
+      snackbar.error('Errore di connessione durante il cambio password')
+    }
+  } finally {
+    passwordLoading.value = false
   }
 }
 
@@ -2657,6 +2852,171 @@ onUnmounted(() => {
     width: 100%;
     justify-content: center;
     gap: 16px;
+  }
+}
+
+/* === PASSWORD SECTION STYLES === */
+.mcf-security-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mcf-password-card {
+  background: linear-gradient(135deg, rgba(35, 157, 176, 0.05), rgba(35, 157, 176, 0.02));
+  border: 1px solid rgba(35, 157, 176, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: rgba(35, 157, 176, 0.2);
+    box-shadow: 0 4px 12px rgba(35, 157, 176, 0.1);
+  }
+}
+
+.mcf-password-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.mcf-password-icon {
+  font-size: 32px;
+  color: var(--mcf-primary);
+  padding: 12px;
+  background: rgba(35, 157, 176, 0.1);
+  border-radius: 50%;
+}
+
+.mcf-password-info {
+  flex: 1;
+}
+
+.mcf-password-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--mcf-text-primary);
+  margin: 0 0 4px 0;
+}
+
+.mcf-password-description {
+  font-size: 14px;
+  color: var(--mcf-text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.mcf-password-edit-btn {
+  color: var(--mcf-primary);
+  background: rgba(35, 157, 176, 0.1);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(35, 157, 176, 0.2);
+    transform: scale(1.05);
+  }
+}
+
+/* === PASSWORD DIALOG STYLES === */
+.mcf-password-dialog {
+  min-width: 400px;
+  max-width: 500px;
+  border-radius: 16px;
+  overflow: hidden;
+
+  @media (max-width: 500px) {
+    min-width: 90vw;
+    max-width: 90vw;
+  }
+}
+
+.mcf-dialog-header {
+  background: linear-gradient(135deg, var(--mcf-primary), #1e7a8c);
+  color: white;
+  padding: 20px;
+  position: relative;
+}
+
+.mcf-dialog-title-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.mcf-dialog-icon {
+  font-size: 28px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+}
+
+.mcf-dialog-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+}
+
+.mcf-dialog-subtitle {
+  font-size: 14px;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.mcf-dialog-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.mcf-password-form-section {
+  padding: 24px;
+  background: var(--mcf-bg-surface);
+}
+
+.mcf-password-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.mcf-dialog-actions {
+  padding: 16px 24px;
+  background: var(--mcf-bg-surface);
+  gap: 12px;
+}
+
+.mcf-btn-secondary {
+  color: var(--mcf-text-secondary);
+  font-weight: 500;
+
+  &:hover {
+    background: var(--mcf-bg-hover);
+  }
+}
+
+.mcf-btn-primary {
+  background: var(--mcf-primary);
+  color: white;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 8px 20px;
+
+  &:hover {
+    background: #1e7a8c;
+  }
+
+  &:disabled {
+    background: var(--mcf-text-disabled);
+    color: white;
   }
 }
 </style>

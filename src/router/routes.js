@@ -28,6 +28,18 @@ const routes = [
     component: () => import('pages/users/RegisterPage.vue')
   },
 
+  // Forgot password route (no layout)
+  {
+    path: '/forgot-password',
+    component: () => import('pages/users/ForgotPasswordPage.vue')
+  },
+
+  // Reset password route (no layout)
+  {
+    path: '/reset-password',
+    component: () => import('pages/users/ResetPasswordPage.vue')
+  },
+
   // Main app routes (with layout)
   {
     path: '/',

@@ -326,7 +326,8 @@ const handlePlanSubmit = async (planData) => {
 
     await reportsAPI.createSpendingPlan(submitData)
 
-    snackbar.success('Piano di spesa creato con successo!')
+    const planTypeMessage = planData.plan_scope === 'personal' ? 'Piano Personale' : 'Piano Familiare'
+    snackbar.success(`${planTypeMessage} creato con successo!`)
 
     showCreateDialog.value = false
     await loadSpendingPlans()

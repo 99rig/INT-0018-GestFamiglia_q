@@ -36,7 +36,7 @@ export default defineRouter(function (/* { store, ssrContext } */) {
   // Route guard per autenticazione
   Router.beforeEach(async (to, from, next) => {
     // Pagine pubbliche che non richiedono autenticazione
-    const publicPages = ['/login', '/register', '/landing-vue', '/landing2-vue']
+    const publicPages = ['/login', '/register', '/landing-vue', '/landing2-vue', '/forgot-password', '/reset-password']
     const requiresAuth = !publicPages.includes(to.path)
 
     if (!requiresAuth) {

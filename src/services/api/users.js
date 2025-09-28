@@ -59,6 +59,23 @@ export const usersAPI = {
   async acceptInvitation(invitationId) {
     const response = await apiClient.post(`/family-invitations/${invitationId}/accept/`)
     return response.data
+  },
+
+  // ===== ACCOUNT =====
+  async changePassword(passwordData) {
+    const response = await apiClient.post('/users/change_password/', passwordData)
+    return response.data
+  },
+
+  // ===== PASSWORD RESET =====
+  async requestPasswordReset(email) {
+    const response = await apiClient.post('/auth/password-reset/', { email })
+    return response.data
+  },
+
+  async confirmPasswordReset(resetData) {
+    const response = await apiClient.post('/auth/password-reset-confirm/', resetData)
+    return response.data
   }
 }
 

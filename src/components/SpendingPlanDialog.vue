@@ -142,14 +142,15 @@
               <q-icon name="group" />
             </q-item-section>
             <q-item-section>
-              <q-item-label>Piano famigliare</q-item-label>
+              <q-item-label>{{ formData.plan_scope === 'family' ? 'Piano famigliare' : 'Piano personale' }}</q-item-label>
               <q-item-label caption>
-                Se attivato, il piano sarà condiviso con tutti i membri della famiglia
+                {{ formData.plan_scope === 'family' ? 'Se attivato, il piano sarà condiviso con tutti i membri della famiglia' : 'Se disattivato, il piano sarà solo per te' }}
               </q-item-label>
             </q-item-section>
             <q-item-section side>
               <q-toggle
-                v-model="formData.is_shared"
+                :model-value="formData.plan_scope === 'family'"
+                @update:model-value="formData.plan_scope = $event ? 'family' : 'personal'"
                 color="primary"
               />
             </q-item-section>
@@ -226,7 +227,7 @@ const formData = ref({
   plan_type: 'custom',
   start_date: '',
   end_date: '',
-  is_shared: true
+  plan_scope: 'family'
 })
 
 // Options
@@ -256,7 +257,7 @@ const resetForm = () => {
     plan_type: 'custom',
     start_date: '',
     end_date: '',
-    is_shared: true
+    plan_scope: 'family'
   }
 }
 
@@ -271,7 +272,7 @@ watch(() => props.plan, (newPlan) => {
       plan_type: newPlan.plan_type || 'custom',
       start_date: newPlan.start_date || '',
       end_date: newPlan.end_date || '',
-      is_shared: newPlan.is_shared !== undefined ? newPlan.is_shared : true
+      plan_scope: newPlan.plan_scope || 'family'
     }
   } else {
     // Create mode - reset form
