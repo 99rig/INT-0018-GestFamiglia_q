@@ -30,6 +30,8 @@
     emit-value
     map-options
     ref="selectRef"
+    menu-anchor="bottom left"
+    menu-self="top left"
   >
     <!-- Slot per personalizzare come vengono mostrate le opzioni -->
     <template v-slot:option="scope" v-if="$slots.option">
@@ -413,8 +415,27 @@ defineExpose({
 
 <style lang="scss" scoped>
 .mcf-autocomplete {
+  /* Reset margini per allineamento con altri campi */
+  margin: 0 0 16px 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+
   .q-field__control {
     transition: all 0.2s ease;
+    margin: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .q-field__inner {
+    margin: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .q-field__marginal {
+    margin: 0 !important;
   }
 
   &.q-field--focused {
@@ -426,9 +447,12 @@ defineExpose({
   /* Fix per allineamento campi categoria in modali */
   &.mcf-category-field,
   &.mcf-subcategory-field {
-    width: 100% !important;
+    width: calc(100% - 8px) !important;
     box-sizing: border-box !important;
-    margin: 0 !important;
+    margin-left: 8px !important;
+    margin-right: 0 !important;
+    margin-top: 0 !important;
+    /* Manteniamo il margin-bottom per lo spacing */
 
     .q-field__control {
       width: 100% !important;
@@ -436,6 +460,7 @@ defineExpose({
     }
   }
 }
+
 
 :deep(.mcf-autocomplete-option) {
   border-radius: 8px;
@@ -477,7 +502,6 @@ defineExpose({
 
 // Stili per il menu dropdown
 :deep(.q-menu) {
-  border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(var(--q-primary-rgb, 25, 118, 210), 0.1);
 

@@ -21,54 +21,25 @@
           transition-show="scale"
           transition-hide="scale"
           :breakpoint="600"
+          ref="datePopup"
         >
           <q-date
             :model-value="internalValue"
-            @update:model-value="onDateChange"
+            @update:model-value="onDateChangeAndClose"
             :locale="italianLocale"
             class="mcf-date-popup"
             today-btn
             flat
             v-if="internalValue !== undefined"
-          >
-            <div class="row items-center justify-end q-gutter-sm">
-              <q-btn
-                label="Annulla"
-                color="grey-7"
-                flat
-                v-close-popup
-              />
-              <q-btn
-                label="OK"
-                color="primary"
-                flat
-                v-close-popup
-              />
-            </div>
-          </q-date>
+          />
           <q-date
-            @update:model-value="onDateChange"
+            @update:model-value="onDateChangeAndClose"
             :locale="italianLocale"
             class="mcf-date-popup"
             today-btn
             flat
             v-else
-          >
-            <div class="row items-center justify-end q-gutter-sm">
-              <q-btn
-                label="Annulla"
-                color="grey-7"
-                flat
-                v-close-popup
-              />
-              <q-btn
-                label="OK"
-                color="primary"
-                flat
-                v-close-popup
-              />
-            </div>
-          </q-date>
+          />
         </q-popup-proxy>
       </q-icon>
     </template>
@@ -76,7 +47,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -142,6 +113,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
+
+// Riferimento al popup per chiuderlo programmaticamente
+const datePopup = ref(null)
 
 // Locale italiana per il datepicker
 const italianLocale = {
@@ -329,6 +303,15 @@ const navigationMaxYearMonth = computed(() => {
 // Gestori eventi
 const onDateChange = (value) => {
   internalValue.value = value
+}
+
+// Nuova funzione che cambia la data e chiude automaticamente il popup
+const onDateChangeAndClose = (value) => {
+  internalValue.value = value
+  // Chiude il popup automaticamente dopo la selezione
+  if (datePopup.value) {
+    datePopup.value.hide()
+  }
 }
 
 const onClear = () => {

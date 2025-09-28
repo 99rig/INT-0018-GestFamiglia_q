@@ -86,11 +86,11 @@
             align="justify"
             narrow-indicator
           >
-            <q-tab name="all" label="Tutte" />
-            <q-tab name="pending" label="In Attesa" />
-            <q-tab name="partial" label="Parziali" />
-            <q-tab name="completed" label="Completate" />
-            <q-tab name="overdue" label="Scadute" />
+            <q-tab name="all" label="Tutte"/>
+            <q-tab name="pending" label="In Attesa"/>
+            <q-tab name="partial" label="Parziali"/>
+            <q-tab name="completed" label="Completate"/>
+            <q-tab name="overdue" label="Scadute"/>
           </q-tabs>
         </div>
 
@@ -210,8 +210,10 @@
                       class="installment-checkbox"
                     >
                       <q-tooltip>
-                        Rata {{ installment.installment_number }}/{{ expense.total_installments }} - {{ getInstallmentStatus(installment) }}
-                        <br>Debug: completed={{ installment.is_completed }}, paid={{ installment.is_fully_paid }}, checkbox={{ getInstallmentCheckboxValue(installment, expense.installment_number) }}
+                        Rata {{ installment.installment_number }}/{{ expense.total_installments }} -
+                        {{ getInstallmentStatus(installment) }}
+                        <br>Debug: completed={{ installment.is_completed }}, paid={{ installment.is_fully_paid }},
+                        checkbox={{ getInstallmentCheckboxValue(installment, expense.installment_number) }}
                       </q-tooltip>
                     </q-checkbox>
                   </div>
@@ -220,225 +222,270 @@
                 <!-- Right side: Action buttons -->
                 <div class="desktop-actions-right">
                   <q-btn
-                  v-if="!expense.is_fully_paid"
-                  icon="payment"
-                  label="Aggiungi Pagamento"
-                  size="sm"
-                  color="primary"
-                  outline
-                  @click="openPaymentDialog(expense)"
-                />
-                <q-btn
-                  icon="receipt"
-                  label="Pagamenti"
-                  size="sm"
-                  color="secondary"
-                  outline
-                  @click="viewPayments(expense)"
-                />
-                <q-btn
-                  flat
-                  round
-                  icon="more_vert"
-                  size="sm"
-                  class="mcf-planned-expense-menu-btn"
-                  @click.stop
-                >
-                  <q-menu
-                    class="mcf-planned-expense-menu"
-                    transition-show="scale"
-                    transition-hide="scale"
-                    anchor="bottom right"
-                    self="top right"
+                    v-if="!expense.is_fully_paid"
+                    icon="payment"
+                    label="Aggiungi Pagamento"
+                    size="sm"
+                    color="primary"
+                    outline
+                    @click="openPaymentDialog(expense)"
+                  />
+                  <q-btn
+                    icon="receipt"
+                    label="Pagamenti"
+                    size="sm"
+                    color="secondary"
+                    outline
+                    @click="viewPayments(expense)"
+                  />
+                  <q-btn
+                    flat
+                    round
+                    icon="more_vert"
+                    size="sm"
+                    class="mcf-planned-expense-menu-btn"
+                    @click.stop
                   >
-                    <q-list class="mcf-menu-list">
-                      <q-item
-                        clickable
-                        v-close-popup
-                        @click="editExpense(expense)"
-                        class="mcf-menu-item mcf-menu-edit"
-                      >
-                        <q-item-section avatar>
-                          <q-icon name="edit" class="mcf-menu-icon" />
-                        </q-item-section>
-                        <q-item-section>
-                          <q-item-label class="mcf-menu-title">Modifica</q-item-label>
-                          <q-item-label caption class="mcf-menu-subtitle">Modifica i dettagli della spesa pianificata</q-item-label>
-                        </q-item-section>
-                      </q-item>
+                    <q-menu
+                      class="mcf-planned-expense-menu"
+                      transition-show="scale"
+                      transition-hide="scale"
+                      anchor="bottom right"
+                      self="top right"
+                    >
+                      <q-list class="mcf-menu-list">
+                        <q-item
+                          clickable
+                          v-close-popup
+                          @click="editExpense(expense)"
+                          class="mcf-menu-item mcf-menu-edit"
+                        >
+                          <q-item-section avatar>
+                            <q-icon name="edit" class="mcf-menu-icon"/>
+                          </q-item-section>
+                          <q-item-section>
+                            <q-item-label class="mcf-menu-title">Modifica</q-item-label>
+                            <q-item-label caption class="mcf-menu-subtitle">Modifica i dettagli della spesa
+                              pianificata
+                            </q-item-label>
+                          </q-item-section>
+                        </q-item>
 
-                      <!-- Generate Recurring Installments -->
-                      <q-item
-                        v-if="expense.is_recurring && canGenerateRecurring(expense)"
-                        clickable
-                        v-close-popup
-                        @click="generateRecurringInstallments(expense)"
-                        class="mcf-menu-item mcf-menu-recurring"
-                      >
-                        <q-item-section avatar>
-                          <q-icon name="repeat" class="mcf-menu-icon" />
-                        </q-item-section>
-                        <q-item-section>
-                          <q-item-label class="mcf-menu-title">Genera Rate</q-item-label>
-                          <q-item-label caption class="mcf-menu-subtitle">
-                            Crea le {{ (expense.total_installments || 1) - 1 }} rate successive
-                          </q-item-label>
-                        </q-item-section>
-                      </q-item>
+                        <!-- Generate Recurring Installments -->
+                        <q-item
+                          v-if="expense.is_recurring && canGenerateRecurring(expense)"
+                          clickable
+                          v-close-popup
+                          @click="generateRecurringInstallments(expense)"
+                          class="mcf-menu-item mcf-menu-recurring"
+                        >
+                          <q-item-section avatar>
+                            <q-icon name="repeat" class="mcf-menu-icon"/>
+                          </q-item-section>
+                          <q-item-section>
+                            <q-item-label class="mcf-menu-title">Genera Rate</q-item-label>
+                            <q-item-label caption class="mcf-menu-subtitle">
+                              Crea le {{ (expense.total_installments || 1) - 1 }} rate successive
+                            </q-item-label>
+                          </q-item-section>
+                        </q-item>
 
-                      <!-- Nascondi/Mostra opzione per spese pagate -->
-                      <q-item
-                        v-if="expense.is_fully_paid && !expense.is_hidden"
-                        clickable
-                        v-close-popup
-                        @click="hideExpense(expense)"
-                        class="mcf-menu-item mcf-menu-hide"
-                      >
-                        <q-item-section avatar>
-                          <q-icon name="visibility_off" class="mcf-menu-icon" />
-                        </q-item-section>
-                        <q-item-section>
-                          <q-item-label class="mcf-menu-title">Nascondi</q-item-label>
-                          <q-item-label caption class="mcf-menu-subtitle">Nascondi questa spesa pagata dalla vista</q-item-label>
-                        </q-item-section>
-                      </q-item>
+                        <!-- Nascondi/Mostra opzione per spese pagate -->
+                        <q-item
+                          v-if="expense.is_fully_paid && !expense.is_hidden"
+                          clickable
+                          v-close-popup
+                          @click="hideExpense(expense)"
+                          class="mcf-menu-item mcf-menu-hide"
+                        >
+                          <q-item-section avatar>
+                            <q-icon name="visibility_off" class="mcf-menu-icon"/>
+                          </q-item-section>
+                          <q-item-section>
+                            <q-item-label class="mcf-menu-title">Nascondi</q-item-label>
+                            <q-item-label caption class="mcf-menu-subtitle">Nascondi questa spesa pagata dalla vista
+                            </q-item-label>
+                          </q-item-section>
+                        </q-item>
 
-                      <q-item
-                        v-if="expense.is_hidden"
-                        clickable
-                        v-close-popup
-                        @click="showExpense(expense)"
-                        class="mcf-menu-item mcf-menu-show"
-                      >
-                        <q-item-section avatar>
-                          <q-icon name="visibility" class="mcf-menu-icon" />
-                        </q-item-section>
-                        <q-item-section>
-                          <q-item-label class="mcf-menu-title">Mostra</q-item-label>
-                          <q-item-label caption class="mcf-menu-subtitle">Mostra nuovamente questa spesa</q-item-label>
-                        </q-item-section>
-                      </q-item>
+                        <q-item
+                          v-if="expense.is_hidden"
+                          clickable
+                          v-close-popup
+                          @click="showExpense(expense)"
+                          class="mcf-menu-item mcf-menu-show"
+                        >
+                          <q-item-section avatar>
+                            <q-icon name="visibility" class="mcf-menu-icon"/>
+                          </q-item-section>
+                          <q-item-section>
+                            <q-item-label class="mcf-menu-title">Mostra</q-item-label>
+                            <q-item-label caption class="mcf-menu-subtitle">Mostra nuovamente questa spesa
+                            </q-item-label>
+                          </q-item-section>
+                        </q-item>
 
-                      <q-separator class="mcf-menu-separator" />
+                        <q-separator class="mcf-menu-separator"/>
 
-                      <q-item
-                        clickable
-                        v-close-popup
-                        @click="deleteExpense(expense)"
-                        class="mcf-menu-item mcf-menu-delete"
-                      >
-                        <q-item-section avatar>
-                          <q-icon name="delete" class="mcf-menu-icon" />
-                        </q-item-section>
-                        <q-item-section>
-                          <q-item-label class="mcf-menu-title">Elimina</q-item-label>
-                          <q-item-label caption class="mcf-menu-subtitle">Rimuovi questa spesa pianificata</q-item-label>
-                        </q-item-section>
-                      </q-item>
-                    </q-list>
-                  </q-menu>
-                </q-btn>
+                        <q-item
+                          clickable
+                          v-close-popup
+                          @click="deleteExpense(expense)"
+                          class="mcf-menu-item mcf-menu-delete"
+                        >
+                          <q-item-section avatar>
+                            <q-icon name="delete" class="mcf-menu-icon"/>
+                          </q-item-section>
+                          <q-item-section>
+                            <q-item-label class="mcf-menu-title">Elimina</q-item-label>
+                            <q-item-label caption class="mcf-menu-subtitle">Rimuovi questa spesa pianificata
+                            </q-item-label>
+                          </q-item-section>
+                        </q-item>
+                      </q-list>
+                    </q-menu>
+                  </q-btn>
                 </div>
               </template>
 
-              <!-- Mobile view with icons only -->
+              <!-- Mobile view with text menu -->
               <template v-else>
-                <q-btn
-                  v-if="!expense.is_fully_paid"
-                  flat
-                  round
-                  icon="payment"
-                  size="sm"
-                  color="primary"
-                  class="mcf-mobile-action-btn"
-                  @click="openPaymentDialog(expense)"
-                >
-                  <q-tooltip>Aggiungi Pagamento</q-tooltip>
-                </q-btn>
-                <q-btn
-                  flat
-                  round
-                  icon="receipt"
-                  size="sm"
-                  color="secondary"
-                  class="mcf-mobile-action-btn"
-                  @click="viewPayments(expense)"
-                >
-                  <q-tooltip>Visualizza Pagamenti</q-tooltip>
-                </q-btn>
-                <q-btn
-                  flat
-                  round
-                  icon="edit"
-                  size="sm"
-                  color="grey-7"
-                  class="mcf-mobile-action-btn"
-                  @click="editExpense(expense)"
-                >
-                  <q-tooltip>Modifica Spesa</q-tooltip>
-                </q-btn>
-                <q-btn
-                  v-if="expense.is_recurring && canGenerateRecurring(expense)"
-                  flat
-                  round
-                  icon="repeat"
-                  size="sm"
-                  color="orange"
-                  class="mcf-mobile-action-btn"
-                  @click="generateRecurringInstallments(expense)"
-                >
-                  <q-tooltip>Genera Rate ({{ (expense.total_installments || 1) - 1 }} rimanenti)</q-tooltip>
-                </q-btn>
-                <!-- Nascondi/Mostra per spese pagate (mobile) -->
-                <q-btn
-                  v-if="expense.is_fully_paid && !expense.is_hidden"
-                  flat
-                  round
-                  icon="visibility_off"
-                  size="sm"
-                  color="grey-7"
-                  class="mcf-mobile-action-btn"
-                  @click="hideExpense(expense)"
-                >
-                  <q-tooltip>Nascondi Spesa Pagata</q-tooltip>
-                </q-btn>
-                <q-btn
-                  v-if="expense.is_hidden"
-                  flat
-                  round
-                  icon="visibility"
-                  size="sm"
-                  color="grey-7"
-                  class="mcf-mobile-action-btn"
-                  @click="showExpense(expense)"
-                >
-                  <q-tooltip>Mostra Spesa</q-tooltip>
-                </q-btn>
-                <q-btn
-                  flat
-                  round
-                  icon="close"
-                  size="sm"
-                  color="red"
-                  class="mcf-mobile-action-btn"
-                  @click="deleteExpense(expense)"
-                >
-                  <q-tooltip>Elimina Spesa</q-tooltip>
-                </q-btn>
+                <!-- Primary Action Buttons (most used) -->
+                <div class="mobile-primary-actions">
+                  <q-btn
+                    v-if="!expense.is_fully_paid"
+                    icon="payment"
+                    label="PAGA"
+                    size="sm"
+                    color="primary"
+                    class="mcf-mobile-primary-btn"
+                    @click="openPaymentDialog(expense)"
+                  />
+                  <q-btn
+                    icon="receipt"
+                    label="STORICO"
+                    size="sm"
+                    color="secondary"
+                    outline
+                    class="mcf-mobile-primary-btn"
+                    @click="viewPayments(expense)"
+                  />
 
-                <!-- Recurring Installments Toggle (Mobile only) -->
-                <q-btn
-                  v-if="expense.is_recurring && expense.recurring_installments_status"
-                  flat
-                  round
-                  :icon="isRecurringExpanded(expense.id) ? 'expand_less' : 'expand_more'"
-                  size="sm"
-                  color="orange"
-                  class="mcf-mobile-action-btn"
-                  @click="toggleRecurringView(expense.id)"
-                >
-                  <q-tooltip>{{ isRecurringExpanded(expense.id) ? 'Nascondi' : 'Mostra' }} Rate</q-tooltip>
-                </q-btn>
+                  <!-- Recurring Toggle Button (if applicable) -->
+                  <q-btn
+                    v-if="expense.is_recurring && expense.recurring_installments_status"
+                    :icon="isRecurringExpanded(expense.id) ? 'expand_less' : 'expand_more'"
+                    :label="isRecurringExpanded(expense.id) ? 'Nascondi Rate' : 'Mostra Rate'"
+                    size="sm"
+                    color="orange"
+                    outline
+                    class="mcf-mobile-primary-btn"
+                    @click="toggleRecurringView(expense.id)"
+                  />
+                </div>
+
+                <!-- Secondary Actions Menu -->
+                <div class="mobile-secondary-actions">
+                  <q-btn
+                    flat
+                    round
+                    icon="more_vert"
+                    size="sm"
+                    class="mcf-mobile-menu-btn"
+                    @click.stop
+                  >
+                    <q-menu
+                      class="mcf-mobile-expense-menu"
+                      transition-show="scale"
+                      transition-hide="scale"
+                      anchor="bottom right"
+                      self="top right"
+                    >
+                      <q-list class="mcf-mobile-menu-list">
+                        <q-item
+                          clickable
+                          v-close-popup
+                          @click="editExpense(expense)"
+                          class="mcf-mobile-menu-item"
+                        >
+                          <q-item-section avatar>
+                            <q-icon name="edit" class="mcf-mobile-menu-icon"/>
+                          </q-item-section>
+                          <q-item-section>
+                            <q-item-label class="mcf-mobile-menu-title">Modifica</q-item-label>
+                          </q-item-section>
+                        </q-item>
+
+                        <q-item
+                          v-if="expense.is_recurring && canGenerateRecurring(expense)"
+                          clickable
+                          v-close-popup
+                          @click="generateRecurringInstallments(expense)"
+                          class="mcf-mobile-menu-item"
+                        >
+                          <q-item-section avatar>
+                            <q-icon name="repeat" class="mcf-mobile-menu-icon"/>
+                          </q-item-section>
+                          <q-item-section>
+                            <q-item-label class="mcf-mobile-menu-title">Genera Rate</q-item-label>
+                            <q-item-label caption class="mcf-mobile-menu-subtitle">
+                              {{ (expense.total_installments || 1) - 1 }} rimanenti
+                            </q-item-label>
+                          </q-item-section>
+                        </q-item>
+
+                        <q-item
+                          v-if="expense.is_fully_paid && !expense.is_hidden"
+                          clickable
+                          v-close-popup
+                          @click="hideExpense(expense)"
+                          class="mcf-mobile-menu-item"
+                        >
+                          <q-item-section avatar>
+                            <q-icon name="visibility_off" class="mcf-mobile-menu-icon"/>
+                          </q-item-section>
+                          <q-item-section>
+                            <q-item-label class="mcf-mobile-menu-title">Nascondi</q-item-label>
+                            <q-item-label caption class="mcf-mobile-menu-subtitle">Spesa completata</q-item-label>
+                          </q-item-section>
+                        </q-item>
+
+                        <q-item
+                          v-if="expense.is_hidden"
+                          clickable
+                          v-close-popup
+                          @click="showExpense(expense)"
+                          class="mcf-mobile-menu-item"
+                        >
+                          <q-item-section avatar>
+                            <q-icon name="visibility" class="mcf-mobile-menu-icon"/>
+                          </q-item-section>
+                          <q-item-section>
+                            <q-item-label class="mcf-mobile-menu-title">Mostra</q-item-label>
+                            <q-item-label caption class="mcf-mobile-menu-subtitle">Rendi visibile</q-item-label>
+                          </q-item-section>
+                        </q-item>
+
+                        <q-separator class="mcf-mobile-menu-separator"/>
+
+                        <q-item
+                          clickable
+                          v-close-popup
+                          @click="deleteExpense(expense)"
+                          class="mcf-mobile-menu-item mcf-mobile-menu-delete"
+                        >
+                          <q-item-section avatar>
+                            <q-icon name="delete" class="mcf-mobile-menu-icon mcf-delete-icon"/>
+                          </q-item-section>
+                          <q-item-section>
+                            <q-item-label class="mcf-mobile-menu-title mcf-delete-text">Elimina</q-item-label>
+                            <q-item-label caption class="mcf-mobile-menu-subtitle">Rimuovi spesa</q-item-label>
+                          </q-item-section>
+                        </q-item>
+                      </q-list>
+                    </q-menu>
+                  </q-btn>
+                </div>
               </template>
             </div>
 
@@ -448,7 +495,7 @@
               class="recurring-dots-detailed"
             >
               <div class="recurring-header">
-                <q-icon name="repeat" color="orange" />
+                <q-icon name="repeat" color="orange"/>
                 <span class="recurring-title">Rate del piano</span>
 
                 <!-- Desktop Summary -->
@@ -467,7 +514,11 @@
                 <!-- Mobile Summary (only numbers) -->
                 <div v-else-if="expense.recurring_installments_summary" class="recurring-summary-mobile">
                   <span class="summary-numbers">
-                    €{{ expense.recurring_installments_summary.completed_amount }}/€{{ expense.recurring_installments_summary.total_amount }}/€{{ expense.recurring_installments_summary.pending_amount }}
+                    €{{
+                      expense.recurring_installments_summary.completed_amount
+                    }}/€{{
+                      expense.recurring_installments_summary.total_amount
+                    }}/€{{ expense.recurring_installments_summary.pending_amount }}
                   </span>
                 </div>
               </div>
@@ -504,7 +555,7 @@
                       @click="toggleInstallmentEdit(expense.id, installment.installment_number)"
                     >
                       €{{ installment.amount }}
-                      <q-icon name="edit" size="xs" class="edit-hint-icon" />
+                      <q-icon name="edit" size="xs" class="edit-hint-icon"/>
                     </div>
 
                     <!-- Edit Mode -->
@@ -547,7 +598,7 @@
 
           <!-- Empty State -->
           <div v-if="filteredExpenses.length === 0" class="empty-expenses">
-            <q-icon name="receipt_long" size="48px" class="text-grey-4" />
+            <q-icon name="receipt_long" size="48px" class="text-grey-4"/>
             <div class="empty-title">Nessuna spesa {{ getEmptyStateText() }}</div>
             <div class="empty-subtitle">
               <span v-if="activeTab === 'all'">
@@ -566,32 +617,31 @@
     <q-dialog
       v-model="showCreateExpenseDialog"
       persistent
-      :full-width="$q.screen.lt.md"
-      :full-height="$q.screen.lt.md"
-      maximized
+      full-width
+      position="top"
+      transition-show="slide-down"
+      transition-hide="slide-up"
     >
-      <q-card :style="$q.screen.lt.md ? '' : 'min-width: 500px; max-width: 600px;'">
-        <q-card-section>
+      <q-card class="full-width" style="margin: 0; border-radius: 0 0 16px 16px; max-height: 90vh; display: flex; flex-direction: column;">
+        <q-card-section class="flex-shrink-0 bg-grey-2" style="border-radius: 0 0 12px 12px;">
           <div class="text-h6">Nuova Spesa Pianificata</div>
           <div class="text-caption text-grey-6">Aggiungi una spesa al piano "{{ currentPlan?.name }}"</div>
         </q-card-section>
 
-        <q-card-section class="q-pt-none">
-          <q-form @submit.prevent="createExpense" class="q-gutter-md">
-            <q-input
+        <q-card-section class="q-pt-none flex-grow-1" style="overflow-y: auto;">
+          <q-form @submit.prevent="createExpense" class="q-gutter-sm">
+            <MCFInput
               v-model="newExpense.description"
               label="Descrizione *"
               required
-              outlined
               placeholder="es. Retta Thomas, Spesa supermercato..."
               :rules="[val => val && val.length > 0 || 'Descrizione richiesta']"
             />
 
-            <q-input
+            <MCFInput
               v-model="newExpense.amount"
               label="Importo Stimato *"
               required
-              outlined
               type="number"
               step="0.01"
               min="0"
@@ -602,62 +652,54 @@
             <CategorySelect
               v-model="newExpense.category"
               label="Categoria"
-              outlined
               clearable
               :return-object="true"
             />
 
-            <MCFAutocomplete
+            <MCFSelect
               v-model="newExpense.priority"
               :options="priorityOptions"
               label="Priorità"
-              outlined
               option-value="value"
               option-label="label"
-              :search-fields="['label']"
               prepend-icon="priority_high"
             />
 
             <MCFDatePicker
               v-model="newExpense.due_date"
               label="Data Scadenza"
-              outlined
               clearable
             />
 
-            <q-input
+            <MCFInput
               v-model="newExpense.notes"
               label="Note (opzionali)"
-              outlined
               type="textarea"
               rows="2"
               placeholder="Note aggiuntive..."
             />
 
             <!-- Recurring Expense Section -->
-            <q-separator class="q-my-md" />
+            <q-separator class="q-my-sm"/>
 
             <div class="text-subtitle2 text-weight-medium q-mb-sm">
-              <q-icon name="repeat" class="q-mr-xs" />
-              Spesa Ricorrente
+              <q-icon name="repeat" class="q-mr-xs"/>
+              <q-toggle
+                v-model="newExpense.is_recurring"
+                label="Questa è una spesa ricorrente"
+                color="orange"
+                left-label
+                @update:model-value="onRecurringToggle"
+              />
             </div>
 
-            <q-toggle
-              v-model="newExpense.is_recurring"
-              label="Questa è una spesa ricorrente"
-              color="orange"
-              left-label
-              @update:model-value="onRecurringToggle"
-            />
-
-            <div v-if="newExpense.is_recurring" class="recurring-fields q-mt-md">
+            <div v-if="newExpense.is_recurring" class="recurring-fields q-mt-sm">
               <div class="mcf-form-row">
                 <div class="mcf-form-col">
-                  <q-input
+                  <MCFInput
                     v-model.number="newExpense.total_installments"
                     label="Numero Rate Totali *"
                     required
-                    outlined
                     type="number"
                     min="2"
                     max="60"
@@ -666,12 +708,11 @@
                   />
                 </div>
                 <div class="mcf-form-col">
-                  <q-select
+                  <MCFSelect
                     v-model="newExpense.recurring_frequency"
                     :options="frequencyOptions"
                     label="Frequenza *"
                     required
-                    outlined
                     option-value="value"
                     option-label="label"
                     emit-value
@@ -680,9 +721,9 @@
                 </div>
               </div>
 
-              <q-banner class="bg-orange-1 text-orange-8 q-mt-md" rounded>
+              <q-banner class="bg-orange-1 text-orange-8 q-mt-sm" rounded>
                 <template v-slot:avatar>
-                  <q-icon name="info" color="orange" />
+                  <q-icon name="info" color="orange"/>
                 </template>
                 Questa sarà la <strong>prima rata</strong>.
                 Le altre {{ (newExpense.total_installments || 2) - 1 }} rate verranno generate automaticamente
@@ -692,8 +733,8 @@
           </q-form>
         </q-card-section>
 
-        <q-card-actions align="right">
-          <q-btn flat label="Annulla" v-close-popup @click="resetExpenseForm" />
+        <q-card-actions align="right" class="flex-shrink-0 bg-grey-2" style="border-radius: 12px 12px 0 0;">
+          <q-btn flat label="Annulla" v-close-popup @click="resetExpenseForm"/>
           <q-btn
             flat
             label="Crea Spesa"
@@ -710,24 +751,41 @@
     <q-dialog
       v-model="showPaymentDialog"
       persistent
-      :full-width="$q.screen.lt.md"
+      full-width
+      position="top"
+      transition-show="slide-down"
+      transition-hide="slide-up"
     >
-      <q-card :style="$q.screen.lt.md ? '' : 'min-width: 400px; max-width: 500px;'">
-        <q-card-section>
+      <q-card class="full-width" style="margin: 0; border-radius: 0 0 16px 16px; max-height: 90vh; display: flex; flex-direction: column;">
+        <q-card-section class="flex-shrink-0 bg-grey-2" style="border-radius: 0 0 12px 12px;">
           <div class="text-h6">Aggiungi Pagamento</div>
-          <div class="text-caption text-grey-6">
-            {{ selectedExpense?.description }}
-            <br>Rimanente: €{{ selectedExpense?.remaining_amount }}
+          <div class="q-mt-sm">
+            <div class="text-subtitle1 text-weight-medium">{{ selectedExpense?.description }}</div>
+            <div class="q-mt-sm">
+              <div class="row q-col-gutter-md">
+                <div class="col-4">
+                  <div class="text-caption text-grey-6">Totale spesa</div>
+                  <div class="text-body2 text-weight-medium">€{{ selectedExpense?.amount }}</div>
+                </div>
+                <div class="col-4">
+                  <div class="text-caption text-grey-6">Già pagato</div>
+                  <div class="text-body2 text-weight-medium text-positive">€{{ selectedExpense?.total_paid }}</div>
+                </div>
+                <div class="col-4">
+                  <div class="text-caption text-grey-6">Rimanente</div>
+                  <div class="text-body2 text-weight-medium text-negative">€{{ selectedExpense?.remaining_amount }}</div>
+                </div>
+              </div>
+            </div>
           </div>
         </q-card-section>
 
-        <q-card-section class="q-pt-none">
-          <q-form @submit.prevent="addPayment" class="q-gutter-md">
-            <q-input
+        <q-card-section class="q-pt-none flex-grow-1" style="overflow-y: auto;">
+          <q-form @submit.prevent="addPayment" class="q-gutter-sm">
+            <MCFInput
               v-model="newPayment.amount"
               label="Importo Pagamento *"
               required
-              outlined
               type="number"
               step="0.01"
               min="0"
@@ -740,34 +798,30 @@
               }]"
             />
 
-            <q-input
+            <MCFInput
               v-model="newPayment.description"
               label="Descrizione Pagamento"
-              outlined
               placeholder="es. Pagamento Marco..."
             />
 
             <MCFDatePicker
               v-model="newPayment.date"
               label="Data Pagamento"
-              outlined
               clearable
             />
 
-            <q-select
+            <MCFSelect
               v-model="newPayment.payment_method"
               :options="paymentMethodOptions"
               label="Metodo di Pagamento"
-              outlined
               emit-value
               map-options
             />
 
-            <q-select
+            <MCFSelect
               v-model="newPayment.payment_source"
               :options="paymentSourceOptions"
               label="Fonte di Pagamento"
-              outlined
               emit-value
               map-options
               @update:model-value="onPaymentSourceChange"
@@ -775,20 +829,20 @@
 
             <div v-if="newPayment.payment_source === 'contribution'" class="text-caption text-grey-6 q-mt-sm">
               <div class="row items-center q-gutter-xs">
-                <q-icon name="account_balance_wallet" size="16px" />
+                <q-icon name="account_balance_wallet" size="16px"/>
                 <span>Saldo disponibile: <span v-html="familyBalanceText"></span></span>
-                <q-spinner v-if="loadingBalance" size="14px" />
+                <q-spinner v-if="loadingBalance" size="14px"/>
               </div>
               <div v-if="newPayment.amount && parseFloat(newPayment.amount) > familyBalance" class="text-negative">
-                <q-icon name="warning" size="14px" />
+                <q-icon name="warning" size="14px"/>
                 Importo superiore al saldo disponibile
               </div>
             </div>
           </q-form>
         </q-card-section>
 
-        <q-card-actions align="right">
-          <q-btn flat label="Annulla" v-close-popup @click="resetPaymentForm" />
+        <q-card-actions align="right" class="flex-shrink-0 bg-grey-2" style="border-radius: 12px 12px 0 0;">
+          <q-btn flat label="Annulla" v-close-popup @click="resetPaymentForm"/>
           <q-btn
             flat
             label="Aggiungi Pagamento"
@@ -805,113 +859,124 @@
     <q-dialog
       v-model="showEditExpenseDialog"
       persistent
-      maximized
+      full-width
+      position="top"
+      transition-show="slide-down"
+      transition-hide="slide-up"
     >
-      <q-card>
-        <q-card-section>
+      <q-card class="full-width" style="margin: 0; border-radius: 0 0 16px 16px; max-height: 90vh; display: flex; flex-direction: column;">
+        <q-card-section class="flex-shrink-0 bg-grey-2" style="border-radius: 0 0 12px 12px;">
           <div class="text-h6">Modifica Spesa Pianificata</div>
+          <div class="text-caption text-grey-6">Modifica la spesa del piano "{{ currentPlan?.name }}"</div>
         </q-card-section>
 
-        <q-card-section>
-          <q-form @submit.prevent="updateExpense" class="q-gutter-md">
-            <q-input
+        <q-card-section class="q-pt-none flex-grow-1" style="overflow-y: auto;">
+          <q-form @submit.prevent="updateExpense" class="q-gutter-sm">
+            <MCFInput
               v-model="editExpenseForm.description"
               label="Descrizione *"
-              outlined
-              :rules="[val => val && val.length > 0 || 'Descrizione obbligatoria']"
+              required
+              placeholder="es. Retta Thomas, Spesa supermercato..."
+              :rules="[val => val && val.length > 0 || 'Descrizione richiesta']"
             />
 
-            <q-input
+            <MCFInput
               v-model="editExpenseForm.amount"
-              label="Importo (€) *"
+              label="Importo Stimato *"
+              required
               type="number"
               step="0.01"
               min="0"
-              outlined
-              :rules="[
-                val => val && parseFloat(val) > 0 || 'Importo obbligatorio e maggiore di zero'
-              ]"
+              prefix="€"
+              :rules="[val => val > 0 || 'Importo deve essere maggiore di zero']"
             />
 
             <CategorySelect
               v-model="editExpenseForm.category"
               label="Categoria"
-              outlined
               clearable
               :return-object="true"
             />
 
-            <MCFAutocomplete
+            <MCFSelect
               v-model="editExpenseForm.priority"
               :options="priorityOptions"
               label="Priorità"
-              outlined
               option-value="value"
               option-label="label"
-              :search-fields="['label']"
               prepend-icon="priority_high"
             />
 
             <MCFDatePicker
               v-model="editExpenseForm.due_date"
-              label="Data scadenza"
-              outlined
+              label="Data Scadenza"
               clearable
             />
 
-            <q-input
+            <MCFInput
               v-model="editExpenseForm.notes"
-              label="Note"
+              label="Note (opzionali)"
               type="textarea"
-              outlined
-              rows="3"
+              rows="2"
+              placeholder="Note aggiuntive..."
             />
 
-            <!-- Recurring Fields -->
-            <div class="q-mt-md">
-              <q-separator />
-              <div class="text-subtitle1 q-mt-md q-mb-sm">
-                <q-icon name="repeat" class="q-mr-sm" />
-                Ricorrenza
-              </div>
+            <!-- Recurring Expense Section -->
+            <q-separator class="q-my-sm"/>
 
+            <div class="text-subtitle2 text-weight-medium q-mb-sm">
+              <q-icon name="repeat" class="q-mr-xs"/>
               <q-toggle
                 v-model="editExpenseForm.is_recurring"
-                label="Spesa ricorrente"
-                color="primary"
+                label="Questa è una spesa ricorrente"
+                color="orange"
+                left-label
                 @update:model-value="onRecurringToggle"
               />
+            </div>
 
-              <div v-if="editExpenseForm.is_recurring" class="q-mt-md q-gutter-md">
-                <q-input
-                  v-model="editExpenseForm.total_installments"
-                  label="Numero totale di rate *"
-                  type="number"
-                  min="2"
-                  max="120"
-                  outlined
-                  :rules="[
-                    val => !editExpenseForm.is_recurring || (val && parseInt(val) >= 2) || 'Minimo 2 rate per spese ricorrenti'
-                  ]"
-                />
-
-                <MCFAutocomplete
-                  v-model="editExpenseForm.recurring_frequency"
-                  :options="frequencyOptions"
-                  label="Frequenza ricorrenza"
-                  outlined
-                  option-value="value"
-                  option-label="label"
-                  :search-fields="['label']"
-                  prepend-icon="schedule"
-                />
+            <div v-if="editExpenseForm.is_recurring" class="recurring-fields q-mt-sm">
+              <div class="mcf-form-row">
+                <div class="mcf-form-col">
+                  <MCFInput
+                    v-model.number="editExpenseForm.total_installments"
+                    label="Numero Rate Totali *"
+                    required
+                    type="number"
+                    min="2"
+                    max="60"
+                    :rules="[val => val >= 2 || 'Minimo 2 rate', val => val <= 60 || 'Massimo 60 rate']"
+                    hint="Es: 10 per dentista in 10 rate"
+                  />
+                </div>
+                <div class="mcf-form-col">
+                  <MCFSelect
+                    v-model="editExpenseForm.recurring_frequency"
+                    :options="frequencyOptions"
+                    label="Frequenza *"
+                    required
+                    option-value="value"
+                    option-label="label"
+                    emit-value
+                    map-options
+                  />
+                </div>
               </div>
+
+              <q-banner class="bg-orange-1 text-orange-8 q-mt-sm" rounded>
+                <template v-slot:avatar>
+                  <q-icon name="info" color="orange"/>
+                </template>
+                Questa sarà la <strong>prima rata</strong>.
+                Le altre {{ (editExpenseForm.total_installments || 2) - 1 }} rate verranno generate automaticamente
+                nei mesi successivi quando cliccherai "Genera Rate".
+              </q-banner>
             </div>
           </q-form>
         </q-card-section>
 
-        <q-card-actions align="right">
-          <q-btn flat label="Annulla" v-close-popup @click="resetEditExpenseForm" />
+        <q-card-actions align="right" class="flex-shrink-0 bg-grey-2" style="border-radius: 12px 12px 0 0;">
+          <q-btn flat label="Annulla" v-close-popup @click="resetEditExpenseForm"/>
           <q-btn
             flat
             label="Salva Modifiche"
@@ -928,22 +993,39 @@
     <q-dialog
       v-model="showPaymentsDialog"
       persistent
-      :full-width="$q.screen.lt.md"
-      :full-height="$q.screen.lt.md"
+      full-width
+      position="top"
+      transition-show="slide-down"
+      transition-hide="slide-up"
     >
-      <q-card :style="$q.screen.lt.md ? '' : 'min-width: 600px; max-width: 800px;'">
-        <q-card-section>
+      <q-card class="full-width" style="margin: 0; border-radius: 0 0 16px 16px; max-height: 90vh; display: flex; flex-direction: column;">
+        <q-card-section class="flex-shrink-0 bg-grey-2" style="border-radius: 0 0 12px 12px;">
           <div class="text-h6">Pagamenti Effettuati</div>
-          <div class="text-caption text-grey-6">
-            {{ selectedExpense?.description }}
-            <br>Totale spesa: €{{ selectedExpense?.amount }} - Pagato: €{{ selectedExpense?.total_paid }} - Rimanente: €{{ selectedExpense?.remaining_amount }}
+          <div class="q-mt-sm">
+            <div class="text-subtitle1 text-weight-medium">{{ selectedExpense?.description }}</div>
+            <div class="q-mt-sm">
+              <div class="row q-col-gutter-md">
+                <div class="col-4">
+                  <div class="text-caption text-grey-6">Totale spesa</div>
+                  <div class="text-body2 text-weight-medium">€{{ selectedExpense?.amount }}</div>
+                </div>
+                <div class="col-4">
+                  <div class="text-caption text-grey-6">Pagato</div>
+                  <div class="text-body2 text-weight-medium text-positive">€{{ selectedExpense?.total_paid }}</div>
+                </div>
+                <div class="col-4">
+                  <div class="text-caption text-grey-6">Rimanente</div>
+                  <div class="text-body2 text-weight-medium text-negative">€{{ selectedExpense?.remaining_amount }}</div>
+                </div>
+              </div>
+            </div>
           </div>
         </q-card-section>
 
-        <q-card-section class="q-pt-none">
+        <q-card-section class="q-pt-none flex-grow-1" style="overflow-y: auto;">
           <!-- Loading payments -->
           <div v-if="loading" class="text-center q-pa-lg">
-            <q-spinner-dots size="40px" color="primary" />
+            <q-spinner-dots size="40px" color="primary"/>
             <div class="q-mt-md">Caricamento pagamenti...</div>
           </div>
 
@@ -1013,21 +1095,23 @@
               </div>
               <div class="summary-row">
                 <span>Importo rimanente:</span>
-                <span class="summary-amount remaining">€{{ formatAmount(selectedExpense?.remaining_amount || 0) }}</span>
+                <span class="summary-amount remaining">€{{
+                    formatAmount(selectedExpense?.remaining_amount || 0)
+                  }}</span>
               </div>
             </div>
           </div>
 
           <!-- Empty state -->
           <div v-else class="empty-payments">
-            <q-icon name="receipt" size="48px" class="text-grey-4" />
+            <q-icon name="receipt" size="48px" class="text-grey-4"/>
             <div class="empty-title">Nessun pagamento effettuato</div>
             <div class="empty-subtitle">Questa spesa non ha ancora ricevuto pagamenti.</div>
           </div>
         </q-card-section>
 
-        <q-card-actions align="right">
-          <q-btn flat label="Chiudi" v-close-popup @click="closePaymentsDialog" />
+        <q-card-actions align="right" class="flex-shrink-0 bg-grey-2" style="border-radius: 12px 12px 0 0;">
+          <q-btn flat label="Chiudi" v-close-popup @click="closePaymentsDialog"/>
           <q-btn
             v-if="!selectedExpense?.is_fully_paid"
             flat
@@ -1052,22 +1136,26 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useQuasar } from 'quasar'
-import { useRoute } from 'vue-router'
+import {ref, computed, onMounted} from 'vue'
+import {useQuasar} from 'quasar'
+import {useRoute} from 'vue-router'
 // 🚀 Import ottimizzato: solo i moduli API necessari per questa pagina
-import { reportsAPI } from 'src/services/api/reports.js'
-import { useContributionsStore } from 'src/stores/contributions.js'
+import {reportsAPI} from 'src/services/api/reports.js'
+import {expensesAPI} from 'src/services/api/expenses.js'
+import {useContributionsStore} from 'src/stores/contributions.js'
 
 // Questa pagina gestisce piani di spesa e spese, quindi importiamo solo:
 // - reportsAPI per spending plans e planned expenses
 // - contributionsStore per il balance famiglia con caching
-import { useSnackbar } from 'src/composables/useSnackbar'
+import {useSnackbar} from 'src/composables/useSnackbar'
 import MCFDatePicker from 'components/MCFDatePicker.vue'
 import MCFAutocomplete from 'components/MCFAutocomplete.vue'
+import MCFInput from 'components/forms/MCFInput.vue'
+import MCFSelect from 'components/forms/MCFSelect.vue'
 import CategorySelect from 'components/CategorySelect.vue'
 import DeleteExpenseModal from 'components/DeleteExpenseModal.vue'
 import MCFLoading from 'src/components/MCFLoading.vue'
+import { MCFFormModal, MCFInfoModal } from 'components/modals'
 
 const $q = useQuasar()
 const route = useRoute()
@@ -1139,32 +1227,32 @@ const editExpenseForm = ref({
 
 // Opzioni priorità
 const priorityOptions = [
-  { label: 'Bassa', value: 'low' },
-  { label: 'Media', value: 'medium' },
-  { label: 'Alta', value: 'high' },
-  { label: 'Urgente', value: 'urgent' }
+  {label: 'Bassa', value: 'low'},
+  {label: 'Media', value: 'medium'},
+  {label: 'Alta', value: 'high'},
+  {label: 'Urgente', value: 'urgent'}
 ]
 
 // Options for recurring frequency
 const frequencyOptions = [
-  { label: 'Mensile', value: 'monthly' },
-  { label: 'Bimestrale', value: 'bimonthly' },
-  { label: 'Trimestrale', value: 'quarterly' }
+  {label: 'Mensile', value: 'monthly'},
+  {label: 'Bimestrale', value: 'bimonthly'},
+  {label: 'Trimestrale', value: 'quarterly'}
 ]
 
 // Payment options
 const paymentMethodOptions = [
-  { label: 'Carta di Credito/Debito', value: 'carta' },
-  { label: 'Contanti', value: 'contanti' },
-  { label: 'Bonifico Bancario', value: 'bonifico' },
-  { label: 'PayPal', value: 'paypal' },
-  { label: 'Assegno', value: 'assegno' },
-  { label: 'Altro', value: 'altro' }
+  {label: 'Carta di Credito/Debito', value: 'carta'},
+  {label: 'Contanti', value: 'contanti'},
+  {label: 'Bonifico Bancario', value: 'bonifico'},
+  {label: 'PayPal', value: 'paypal'},
+  {label: 'Assegno', value: 'assegno'},
+  {label: 'Altro', value: 'altro'}
 ]
 
 const paymentSourceOptions = [
-  { label: 'Personale', value: 'personal' },
-  { label: 'Contributi Famiglia', value: 'contribution' }
+  {label: 'Personale', value: 'personal'},
+  {label: 'Contributi Famiglia', value: 'contribution'}
 ]
 
 // Computed
@@ -1263,8 +1351,8 @@ const dynamicProgressValue = computed(() => {
 
 const canCreateExpense = computed(() => {
   return newExpense.value.description &&
-         newExpense.value.amount &&
-         parseFloat(newExpense.value.amount) > 0
+    newExpense.value.amount &&
+    parseFloat(newExpense.value.amount) > 0
 })
 
 const canAddPayment = computed(() => {
@@ -1273,10 +1361,10 @@ const canAddPayment = computed(() => {
 
   // Validazione base
   const basicValidation = newPayment.value.amount &&
-         !isNaN(amount) &&
-         amount > 0 &&
-         !isNaN(remainingAmount) &&
-         amount <= remainingAmount
+    !isNaN(amount) &&
+    amount > 0 &&
+    !isNaN(remainingAmount) &&
+    amount <= remainingAmount
 
   // Se sta pagando con contributi, verifica che ci sia saldo sufficiente
   if (newPayment.value.payment_source === 'contribution') {
@@ -1290,8 +1378,8 @@ const canAddPayment = computed(() => {
 
 const canEditExpense = computed(() => {
   return editExpenseForm.value.description &&
-         editExpenseForm.value.amount &&
-         parseFloat(editExpenseForm.value.amount) > 0
+    editExpenseForm.value.amount &&
+    parseFloat(editExpenseForm.value.amount) > 0
 })
 
 const totalPayments = computed(() => {
@@ -1324,6 +1412,24 @@ const paymentsByUser = computed(() => {
   return Array.from(userMap.values()).sort((a, b) => b.total - a.total)
 })
 
+// Stats per le modali
+const paymentModalStats = computed(() => [
+  {
+    label: 'Totale spesa',
+    value: `€${selectedExpense.value?.amount || 0}`,
+    colorClass: ''
+  },
+  {
+    label: 'Già pagato',
+    value: `€${selectedExpense.value?.total_paid || 0}`,
+    colorClass: 'text-positive'
+  },
+  {
+    label: 'Rimanente',
+    value: `€${selectedExpense.value?.remaining_amount || 0}`,
+    colorClass: 'text-negative'
+  }
+])
 
 // Metodi
 const loadPlanData = async () => {
@@ -1675,11 +1781,31 @@ const viewPayments = async (expense) => {
 
   try {
     loading.value = true
-    const response = await reportsAPI.getPlannedExpensePayments(expense.id)
-    payments.value = response.results || response || []
-    console.log('📋 Pagamenti caricati:', payments.value.length)
+
+    // Debug: loggiamo i dettagli della spesa
+    console.log('🔍 DEBUG - Expense object:', {
+      id: expense.id,
+      description: expense.description,
+      is_real_expense: expense.is_real_expense,
+      planned_expense_id: expense.planned_expense_id,
+      parent_recurring_id: expense.parent_recurring_id,
+      type: expense.is_real_expense ? 'REAL_EXPENSE' : 'PLANNED_EXPENSE'
+    })
+
+    // Se è una spesa reale non pianificata, usa l'endpoint delle quote
+    if (expense.is_real_expense) {
+      const response = await expensesAPI.getExpenseQuotes(expense.id)
+      payments.value = response || []
+      console.log('📋 Quote spesa reale caricate:', payments.value.length)
+    } else {
+      // È una spesa pianificata, usa l'endpoint delle planned expenses
+      const response = await reportsAPI.getPlannedExpensePayments(expense.id)
+      payments.value = response.results || response || []
+      console.log('📋 Pagamenti spesa pianificata caricati:', payments.value.length)
+    }
   } catch (error) {
-    console.error('Errore nel caricamento dei pagamenti:', error)
+    console.error('❌ Errore nel caricamento dei pagamenti:', error)
+    console.error('❌ Expense che ha causato l\'errore:', expense)
     snackbar.error('Errore nel caricamento dei pagamenti')
     payments.value = []
   } finally {
@@ -1854,8 +1980,8 @@ const generateRecurringInstallments = async (expense) => {
     console.error('❌ Errore durante la generazione delle rate ricorrenti:', error)
 
     const errorMessage = error.response?.data?.detail ||
-                        error.message ||
-                        'Errore durante la generazione delle rate ricorrenti'
+      error.message ||
+      'Errore durante la generazione delle rate ricorrenti'
 
     snackbar.error(errorMessage)
   } finally {
@@ -2497,11 +2623,13 @@ onMounted(async () => {
   justify-content: center;
   gap: 6px;
 }
+
 .paid-by-badges-inline {
   display: flex;
   gap: 4px;
   align-items: center;
 }
+
 .paid-by-badges {
   display: flex;
   gap: 4px;
@@ -2546,6 +2674,121 @@ onMounted(async () => {
   gap: 8px;
 }
 
+/* Mobile Actions Layout */
+.mobile-primary-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+
+  @media (max-width: 480px) {
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+}
+
+.mobile-secondary-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.mcf-mobile-primary-btn {
+  min-height: 32px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: none;
+  border-radius: 16px;
+  transition: all 0.2s ease;
+
+  &.q-btn--outline {
+    border-width: 1px;
+  }
+
+  @media (max-width: 480px) {
+    min-height: 28px;
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+}
+
+.mcf-mobile-menu-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: var(--mcf-text-secondary);
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: var(--mcf-bg-hover);
+    color: var(--mcf-text-primary);
+  }
+
+  @media (max-width: 480px) {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* Mobile Menu Styles */
+.mcf-mobile-expense-menu {
+  min-width: 200px;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--mcf-border-light);
+}
+
+.mcf-mobile-menu-list {
+  padding: 8px 0;
+}
+
+.mcf-mobile-menu-item {
+  min-height: 48px;
+  padding: 8px 16px;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: var(--mcf-bg-hover);
+  }
+
+  &.mcf-mobile-menu-delete:hover {
+    background-color: rgba(244, 67, 54, 0.1);
+  }
+}
+
+.mcf-mobile-menu-icon {
+  font-size: 20px;
+  color: var(--mcf-text-secondary);
+
+  &.mcf-delete-icon {
+    color: var(--mcf-error);
+  }
+}
+
+.mcf-mobile-menu-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--mcf-text-primary);
+
+  &.mcf-delete-text {
+    color: var(--mcf-error);
+  }
+}
+
+.mcf-mobile-menu-subtitle {
+  font-size: 12px;
+  color: var(--mcf-text-secondary);
+  margin-top: 2px;
+}
+
+.mcf-mobile-menu-separator {
+  margin: 4px 0;
+  background-color: var(--mcf-border-light);
+}
+
+/* Backward compatibility for old mobile action buttons */
 .mcf-mobile-action-btn {
   width: 40px;
   height: 40px;
@@ -2698,9 +2941,8 @@ onMounted(async () => {
 .mcf-planned-expense-menu {
   min-width: 260px;
   border-radius: 16px;
-  box-shadow:
-    0 20px 40px rgba(0, 0, 0, 0.15),
-    0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15),
+  0 4px 12px rgba(0, 0, 0, 0.08);
   border: 1px solid var(--mcf-border-light);
   overflow: hidden;
   background: var(--mcf-bg-surface);

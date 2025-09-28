@@ -70,6 +70,12 @@ export const expensesAPI = {
     const idsString = plannedExpenseIds.join(',')
     const response = await apiClient.get(`/expenses/batch_by_planned_expenses/?planned_expense_ids=${idsString}`)
     return response.data
+  },
+
+  // Ottieni le quote/pagamenti di una spesa
+  async getExpenseQuotes(expenseId) {
+    const response = await apiClient.get(`/expenses/${expenseId}/quote/`)
+    return response.data
   }
 }
 

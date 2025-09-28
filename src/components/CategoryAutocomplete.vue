@@ -1,39 +1,37 @@
 <template>
-  <div class="category-autocomplete">
-    <MCFAutocomplete
-      v-model="selectedCategory"
-      :options="filteredCategoryOptions"
-      :label="categoryLabel"
-      required
-      v-bind="$attrs"
-      option-value="value"
-      option-label="label"
-      @update:model-value="onCategoryChange"
-      :rules="[val => val !== null && val !== undefined || 'Categoria richiesta']"
-      prepend-icon="category"
-      :multiple="false"
-      :custom-filter="categoryFilter"
-      :show-icon="false"
-      class="mcf-category-field"
-    />
+  <MCFAutocomplete
+    v-model="selectedCategory"
+    :options="filteredCategoryOptions"
+    :label="categoryLabel"
+    required
+    v-bind="$attrs"
+    option-value="value"
+    option-label="label"
+    @update:model-value="onCategoryChange"
+    :rules="[val => val !== null && val !== undefined || 'Categoria richiesta']"
+    prepend-icon="category"
+    :multiple="false"
+    :custom-filter="categoryFilter"
+    :show-icon="false"
+    class="mcf-category-field"
+  />
 
-    <MCFAutocomplete
-      v-if="showSubcategorySelect"
-      v-model="selectedSubcategory"
-      :options="subcategoryOptions"
-      :label="subcategoryLabel"
-      v-bind="$attrs"
-      option-value="value"
-      option-label="label"
-      :disable="!selectedCategory || subcategoryOptions.length === 0"
-      prepend-icon="label"
-      :multiple="false"
-      @update:model-value="onSubcategoryChange"
-      :show-icon="false"
-      :placeholder="selectedCategory ? (subcategoryOptions.length > 0 ? 'Seleziona sottocategoria...' : 'Nessuna sottocategoria disponibile') : 'Seleziona prima una categoria'"
-      class="mcf-subcategory-field"
-    />
-  </div>
+  <MCFAutocomplete
+    v-if="showSubcategorySelect"
+    v-model="selectedSubcategory"
+    :options="subcategoryOptions"
+    :label="subcategoryLabel"
+    v-bind="$attrs"
+    option-value="value"
+    option-label="label"
+    :disable="!selectedCategory || subcategoryOptions.length === 0"
+    prepend-icon="label"
+    :multiple="false"
+    @update:model-value="onSubcategoryChange"
+    :show-icon="false"
+    :placeholder="selectedCategory ? (subcategoryOptions.length > 0 ? 'Seleziona sottocategoria...' : 'Nessuna sottocategoria disponibile') : 'Seleziona prima una categoria'"
+    class="mcf-subcategory-field"
+  />
 </template>
 
 <script setup>
@@ -281,36 +279,15 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.category-autocomplete {
-  /* Rispetta il padding del contenitore padre - solo il padding sinistro mancante */
-  width: calc(100% - 16px) !important;
-  border-radius: 15px !important;
-  display: flex;
-  flex-direction: column;
-  gap: 16px !important;
-  margin: 0 0 0 16px !important; /* Solo margin sinistro per allineamento */
-  padding: 0 !important;
-  box-sizing: border-box !important;
-}
-
-/* Rimuovi tutti gli stili forzati dai campi interni */
 :deep(.mcf-category-field),
 :deep(.mcf-subcategory-field) {
-  width: 100% !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  box-sizing: border-box !important;
+  margin-bottom: 16px !important;
+}
 
-  .q-field {
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    box-sizing: border-box !important;
-  }
-
-  .q-field__control {
-    width: 100% !important;
-    box-sizing: border-box !important;
-  }
+/* Approccio ancora più aggressivo */
+:deep(.mcf-category-field.mcf-autocomplete),
+:deep(.mcf-subcategory-field.mcf-autocomplete) {
+  margin-bottom: 16px !important;
 }
 </style>
+
