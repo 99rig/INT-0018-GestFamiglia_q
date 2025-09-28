@@ -6,21 +6,18 @@
           <!-- Modern App Logo -->
           <div class="mcf-login-header">
             <div class="mcf-welcome-text">
-              <h1 class="mcf-app-title">My Crazy Family</h1>
+              <h6 class="mcf-app-title">My Crazy Family</h6>
               <p class="mcf-app-subtitle">Gestione Spese Familiari</p>
             </div>
           </div>
 
-          <!-- Logo positioned to overlap the card -->
+          <!-- Logo with overlap effect -->
           <div class="mcf-logo-overlay">
-            <div class="mcf-logo-background">
-              <div class="mcf-logo-glass-effect"></div>
-              <div class="mcf-logo-shine"></div>
-              <q-icon
-                name="family_restroom"
-                class="mcf-logo-icon"
-              />
-            </div>
+            <img
+              src="~/assets/wallet-logo.png"
+              alt="App Logo"
+              class="mcf-logo-image"
+            />
           </div>
 
           <!-- PIN Login (se configurato) -->
@@ -529,8 +526,11 @@ onMounted(() => {
 
 /* === MODERN LOGIN HEADER === */
 .mcf-login-header {
+  background: linear-gradient(135deg, #ffffff 0%, #F4F8FA 100%);
+  border-radius: 20px;
   text-align: center;
   margin-bottom: 60px;
+  padding: 10px;
 
   @media (min-width: 768px) {
     margin-bottom: 70px;
@@ -550,122 +550,41 @@ onMounted(() => {
   }
 }
 
-.mcf-logo-background {
-  width: 120px;
-  height: 120px;
-  background: linear-gradient(145deg,
-    rgba(255, 255, 255, 0.3) 0%,
-    rgba(255, 255, 255, 0.1) 25%,
-    var(--mcf-primary) 50%,
-    var(--mcf-secondary) 75%,
-    rgba(0, 0, 0, 0.1) 100%
-  );
+.mcf-logo-image {
+  width: 100px;
+  height: 100px;
+  background: white;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    inset 0 2px 8px rgba(255, 255, 255, 0.3),
-    inset 0 -2px 8px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(15px);
-  position: relative;
-  overflow: hidden;
-  transition: all 0.4s ease;
+  padding: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 
   @media (min-width: 768px) {
-    width: 140px;
-    height: 140px;
-  }
-
-  &:hover {
-    transform: translateY(-5px) scale(1.05);
-    box-shadow:
-      0 15px 45px rgba(0, 0, 0, 0.4),
-      inset 0 3px 12px rgba(255, 255, 255, 0.4),
-      inset 0 -3px 12px rgba(0, 0, 0, 0.3);
-
-    .mcf-logo-shine {
-      animation: shine 0.8s ease-in-out;
-    }
-  }
-}
-
-
-.mcf-logo-glass-effect {
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(
-    45deg,
-    transparent 30%,
-    rgba(255, 255, 255, 0.3) 40%,
-    rgba(255, 255, 255, 0.6) 50%,
-    rgba(255, 255, 255, 0.3) 60%,
-    transparent 70%
-  );
-  border-radius: 50%;
-  pointer-events: none;
-  animation: rotate-glass 8s linear infinite;
-}
-
-.mcf-logo-shine {
-  position: absolute;
-  top: 15%;
-  left: 20%;
-  width: 30%;
-  height: 40%;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.8) 0%,
-    rgba(255, 255, 255, 0.4) 50%,
-    transparent 100%
-  );
-  border-radius: 50% 30% 40% 60%;
-  filter: blur(1px);
-  pointer-events: none;
-  opacity: 0.7;
-}
-
-@keyframes rotate-glass {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes shine {
-  0% { opacity: 0.7; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.1); }
-  100% { opacity: 0.7; transform: scale(1); }
-}
-
-.mcf-logo-icon {
-  font-size: 65px;
-  color: white;
-  position: relative;
-  z-index: 2;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-
-  @media (min-width: 768px) {
-    font-size: 75px;
+    width: 120px;
+    height: 120px;
+    padding: 15px;
   }
 }
 
 .mcf-welcome-text {
-  color: white;
+  margin-top: 15px;
+  margin-bottom: 15px;
+
+  @media (min-width: 768px) {
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
 }
 
 .mcf-app-title {
-  font-family: var(--mcf-logo-font, 'Fredoka One'), cursive;
+  font-family: 'Nunito', sans-serif;
   font-size: 28px;
-  font-weight: bold !important; // Logo sempre bold
-  margin: 0 0 4px 0;
+  font-weight: 600;
+  margin: 0 0 2px 0;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 
   @media (min-width: 768px) {
     font-size: 32px;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
   }
 }
 
