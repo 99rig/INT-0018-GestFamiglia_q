@@ -1573,7 +1573,7 @@ const loadPlanData = async (statusFilter = 'all', resetPagination = true) => {
     const response = await reportsAPI.getSpendingPlanDetails(planId.value, {
       status: statusFilter,
       page: currentPage.value,
-      pageSize: 20
+      pageSize: 10
     })
 
     currentPlan.value = response.plan
