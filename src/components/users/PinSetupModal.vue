@@ -3,11 +3,12 @@
     :model-value="modelValue"
     @update:model-value="$emit('update:modelValue', $event)"
     persistent
-    backdrop-filter="blur(4px)"
-    transition-show="scale"
-    transition-hide="scale"
+    full-width
+    position="top"
+    transition-show="slide-down"
+    transition-hide="slide-up"
   >
-    <q-card class="mcf-pin-setup-modal">
+    <q-card style="margin: 0; border-radius: 0 0 16px 16px; display: flex; flex-direction: column;" class="mcf-pin-setup-modal">
       <!-- Header -->
       <q-card-section class="mcf-pin-header">
         <div class="mcf-pin-icon-container">
@@ -355,10 +356,9 @@ watch(() => props.modelValue, (isOpen) => {
   .mcf-pin-setup-modal {
     margin: 0;
     width: 100vw;
-    height: 100vh;
     max-width: none;
-    max-height: none;
-    border-radius: 0;
+    border-radius: 0 0 16px 16px;
+    overflow: hidden;
   }
 
   .mcf-pin-header {
@@ -370,11 +370,12 @@ watch(() => props.modelValue, (isOpen) => {
   }
 
   .mcf-pin-actions {
-    padding: 0 20px 20px;
+    padding: 0 20px 24px;
+    justify-content: space-between;
   }
 
   .mcf-pin-security-note {
-    padding: 16px 20px 20px;
+    padding: 16px 20px 24px;
   }
 }
 </style>

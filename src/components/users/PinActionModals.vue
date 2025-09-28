@@ -4,8 +4,12 @@
     :model-value="showWantPin"
     @update:model-value="$emit('update:showWantPin', $event)"
     persistent
+    full-width
+    position="top"
+    transition-show="slide-down"
+    transition-hide="slide-up"
   >
-    <q-card class="mcf-want-pin-modal">
+    <q-card style="margin: 0; border-radius: 0 0 16px 16px; display: flex; flex-direction: column;" class="mcf-want-pin-modal">
       <!-- Header -->
       <q-card-section class="mcf-want-pin-header">
         <div class="mcf-want-pin-icon">
@@ -44,8 +48,12 @@
     :model-value="showDeletePin"
     @update:model-value="$emit('update:showDeletePin', $event)"
     persistent
+    full-width
+    position="top"
+    transition-show="slide-down"
+    transition-hide="slide-up"
   >
-    <q-card class="mcf-delete-pin-modal">
+    <q-card style="margin: 0; border-radius: 0 0 16px 16px; display: flex; flex-direction: column;" class="mcf-delete-pin-modal">
       <!-- Header -->
       <q-card-section class="mcf-delete-header">
         <div class="mcf-delete-icon">
@@ -162,16 +170,23 @@ defineEmits([
 }
 
 .mcf-want-pin-actions {
-  padding: 0 20px 20px;
+  padding: 0 24px 24px;
+  justify-content: space-between;
   gap: 12px;
 }
 
-.mcf-want-pin-decline-btn,
-.mcf-want-pin-accept-btn {
+.mcf-want-pin-decline-btn {
   flex: 1;
-  height: 44px;
-  border-radius: 10px;
+  height: 48px;
+  border-radius: 12px;
   font-weight: 500;
+}
+
+.mcf-want-pin-accept-btn {
+  flex: 2;
+  height: 48px;
+  border-radius: 12px;
+  font-weight: 600;
   text-transform: none;
 }
 
@@ -234,15 +249,22 @@ defineEmits([
 }
 
 .mcf-delete-actions {
-  padding: 0 20px 20px;
+  padding: 0 24px 24px;
+  justify-content: space-between;
   gap: 12px;
 }
 
-.mcf-delete-cancel-btn,
+.mcf-delete-cancel-btn {
+  flex: 1;
+  height: 48px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
 .mcf-delete-confirm-btn {
   flex: 1;
-  height: 44px;
-  border-radius: 10px;
+  height: 48px;
+  border-radius: 12px;
   font-weight: 500;
   text-transform: none;
 }
@@ -251,9 +273,11 @@ defineEmits([
 @media (max-width: 600px) {
   .mcf-want-pin-modal,
   .mcf-delete-pin-modal {
-    margin: 16px;
-    width: calc(100vw - 32px);
+    margin: 0;
+    width: 100vw;
     max-width: none;
+    border-radius: 0 0 16px 16px;
+    overflow: hidden;
   }
 
   .mcf-want-pin-header,
@@ -268,7 +292,23 @@ defineEmits([
 
   .mcf-want-pin-actions,
   .mcf-delete-actions {
-    padding: 0 16px 16px;
+    padding: 0 20px 24px;
+    justify-content: space-between;
+  }
+
+  .mcf-want-pin-decline-btn,
+  .mcf-want-pin-accept-btn,
+  .mcf-delete-cancel-btn,
+  .mcf-delete-confirm-btn {
+    flex: 1;
+    height: 48px;
+    border-radius: 12px;
+    font-weight: 500;
+  }
+
+  .mcf-want-pin-accept-btn {
+    flex: 2;
+    font-weight: 600;
   }
 }
 </style>
