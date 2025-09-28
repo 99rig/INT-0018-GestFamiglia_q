@@ -6,9 +6,15 @@
         <q-btn
           icon="arrow_back"
           label="Torna ai Piani"
-          class="mcf-btn-secondary"
           flat
+          no-caps
           @click="$router.go(-1)"
+        />
+        <q-btn
+          icon="add"
+          label="Nuova Spesa"
+          class="mcf-btn-primary"
+          @click="showCreateExpenseDialog = true"
         />
       </div>
 
@@ -29,73 +35,77 @@
               <div class="plan-period">
                 {{ formatDate(currentPlan.start_date) }} - {{ formatDate(currentPlan.end_date) }}
               </div>
-              <div v-if="currentPlan.description" class="plan-description">
-                {{ currentPlan.description }}
-              </div>
             </div>
-            <q-btn
-              icon="add"
-              label="Nuova Spesa"
-              class="mcf-btn-primary"
-              @click="showCreateExpenseDialog = true"
-            />
           </div>
 
-          <!-- Plan Summary -->
-          <div class="plan-summary">
-            <div class="summary-stats">
-              <div class="stat-item">
-                <div class="stat-value">{{ plannedExpenses.length }}</div>
-                <div class="stat-label">Pianificate</div>
+          <!-- Compact Stats -->
+          <div class="plan-stats-compact">
+            <div class="stats-row">
+              <div class="stat-compact">
+                <span class="stat-value">€{{ formatAmount(totalPlanned) }}</span>
+                <span class="stat-label">Budget</span>
               </div>
-              <div class="stat-item">
-                <div class="stat-value">€{{ formatAmount(totalPlanned) }}</div>
-                <div class="stat-label">Pianificato</div>
+              <div class="stat-compact">
+                <span class="stat-value">€{{ formatAmount(totalPaid) }}</span>
+                <span class="stat-label">Pagato</span>
               </div>
-              <div class="stat-item">
-                <div class="stat-value">€{{ formatAmount(totalPaid) }}</div>
-                <div class="stat-label">Già Pagato</div>
+              <div class="stat-compact">
+                <span class="stat-value">{{ completedExpenses }}/{{ totalExpensesCount }}</span>
+                <span class="stat-label">Spese</span>
               </div>
-              <div class="stat-item">
-                <div class="stat-value">€{{ formatAmount(totalRemaining) }}</div>
-                <div class="stat-label">Rimanente</div>
+              <div class="stat-compact">
+                <span class="stat-value">{{ Math.round(progressPercentage) }}%</span>
+                <span class="stat-label">Progresso</span>
               </div>
             </div>
-            <div class="progress-container">
+            <div class="progress-bar-container">
               <q-linear-progress
-                :value="dynamicProgressValue"
-                size="8px"
+                :value="progressPercentage / 100"
+                size="6px"
                 :color="progressColor"
                 track-color="grey-3"
-                class="progress-bar"
+                class="compact-progress"
               />
-              <div class="progress-text cursor-pointer" @click="toggleProgressDisplay">
-                {{ progressText }}
-              </div>
             </div>
           </div>
         </div>
 
-        <!-- Filter Tabs -->
-        <div class="filter-tabs">
-          <q-tabs
-            v-model="activeTab"
-            class="text-grey"
-            active-color="primary"
-            indicator-color="primary"
-            align="justify"
-            narrow-indicator
-          >
-            <q-tab name="all" label="Tutte"/>
-            <q-tab name="pending" label="In Attesa"/>
-            <q-tab name="partial" label="Parziali"/>
-            <q-tab name="completed" label="Completate"/>
-            <q-tab name="overdue" label="Scadute"/>
-          </q-tabs>
+
+        <!-- Filter Chips -->
+        <div class="filter-chips">
+          <div class="filter-chips-container">
+            <q-chip
+              v-for="filter in filterOptions"
+              :key="filter.value"
+              :selected="activeTab === filter.value"
+              @click="activeTab = filter.value"
+              :color="activeTab === filter.value ? 'primary' : 'grey-4'"
+              :text-color="activeTab === filter.value ? 'white' : 'grey-7'"
+              :icon="filter.icon"
+              clickable
+              class="filter-chip"
+            >
+              {{ filter.label }}
+              <q-badge
+                v-if="filter.count > 0"
+                :color="activeTab === filter.value ? 'white' : 'grey-6'"
+                :text-color="activeTab === filter.value ? 'primary' : 'white'"
+                class="q-ml-xs"
+                rounded
+              >
+                {{ filter.count }}
+              </q-badge>
+            </q-chip>
+          </div>
         </div>
 
-        <!-- Expenses List -->
-        <div class="expenses-list">
+        <!-- Expenses List with Infinite Scroll -->
+        <q-infinite-scroll
+          @load="loadMoreExpenses"
+          :offset="250"
+          :disable="!hasMorePages || loading"
+          class="expenses-list"
+        >
           <div
             v-for="expense in filteredExpenses"
             :key="expense.id"
@@ -602,8 +612,17 @@
             </div>
           </div>
 
-          <!-- Empty State -->
-          <div v-if="filteredExpenses.length === 0" class="empty-expenses">
+          <!-- Loading More Indicator -->
+          <template v-slot:loading>
+            <div class="row justify-center q-my-md">
+              <q-spinner-dots color="primary" size="40px" />
+              <div class="q-ml-sm">Caricamento altre spese...</div>
+            </div>
+          </template>
+        </q-infinite-scroll>
+
+        <!-- Empty State -->
+        <div v-if="filteredExpenses.length === 0 && !loading" class="empty-expenses">
             <q-icon name="receipt_long" size="48px" class="text-grey-4"/>
             <div class="empty-title">Nessuna spesa {{ getEmptyStateText() }}</div>
             <div class="empty-subtitle">
@@ -615,7 +634,6 @@
               </span>
             </div>
           </div>
-        </div>
       </div>
     </div>
 
@@ -1142,7 +1160,7 @@
 </template>
 
 <script setup>
-import {ref, computed, onMounted} from 'vue'
+import {ref, computed, onMounted, watch} from 'vue'
 import {useQuasar} from 'quasar'
 import {useRoute} from 'vue-router'
 // 🚀 Import ottimizzato: solo i moduli API necessari per questa pagina
@@ -1178,6 +1196,47 @@ const expensePaymentsCache = ref(new Map())
 const saving = ref(false)
 const savingPayment = ref(false)
 const activeTab = ref('all')
+
+// Paginazione e infinite scroll
+const currentPage = ref(1)
+const hasMorePages = ref(true)
+const loadingMore = ref(false)
+const paginationInfo = ref(null)
+
+// Filter options with icons - counts now show filtered results from backend
+const filterOptions = computed(() => [
+  {
+    value: 'all',
+    label: 'Tutte',
+    icon: 'list',
+    count: activeTab.value === 'all' ? plannedExpenses.value.length : 0
+  },
+  {
+    value: 'pending',
+    label: 'In Attesa',
+    icon: 'schedule',
+    count: activeTab.value === 'pending' ? plannedExpenses.value.length : 0
+  },
+  {
+    value: 'partial',
+    label: 'Parziali',
+    icon: 'hourglass_empty',
+    count: activeTab.value === 'partial' ? plannedExpenses.value.length : 0
+  },
+  {
+    value: 'completed',
+    label: 'Completate',
+    icon: 'check_circle',
+    count: activeTab.value === 'completed' ? plannedExpenses.value.length : 0
+  },
+  {
+    value: 'overdue',
+    label: 'Scadute',
+    icon: 'warning',
+    count: activeTab.value === 'overdue' ? plannedExpenses.value.length : 0
+  }
+])
+
 const showCreateExpenseDialog = ref(false)
 const showPaymentDialog = ref(false)
 const showEditExpenseDialog = ref(false)
@@ -1288,12 +1347,8 @@ const familyBalanceText = computed(() => {
 const loadingBalance = ref(false)
 
 // Computed properties
-const filteredExpenses = computed(() => {
-  if (activeTab.value === 'all') return plannedExpenses.value
-  return plannedExpenses.value.filter(expense => {
-    return expense.payment_status === activeTab.value
-  })
-})
+// Nota: filteredExpenses ora è identico a plannedExpenses perché il filtro è applicato lato backend
+const filteredExpenses = computed(() => plannedExpenses.value)
 
 const totalPlanned = computed(() => {
   // Usa il dato calcolato dal backend che include tutte le spese
@@ -1354,6 +1409,72 @@ const dynamicProgressValue = computed(() => {
     // Usa la percentuale per numero di spese (quella esistente)
     return progressValue.value
   }
+})
+
+// 🚀 New enhanced statistics computed properties
+const progressPercentage = computed(() => {
+  if (!currentPlan.value) return 0
+  const percentage = parseFloat(currentPlan.value?.completion_percentage || 0)
+  return Math.max(0, Math.min(100, percentage))
+})
+
+const progressIcon = computed(() => {
+  const progress = progressPercentage.value
+  if (progress >= 100) return 'check_circle'
+  if (progress >= 75) return 'trending_up'
+  if (progress >= 25) return 'schedule'
+  return 'hourglass_empty'
+})
+
+const progressStatusText = computed(() => {
+  const progress = progressPercentage.value
+  if (progress >= 100) return 'Completato'
+  if (progress >= 75) return 'Quasi finito'
+  if (progress >= 25) return 'In corso'
+  return 'Appena iniziato'
+})
+
+const completedExpenses = computed(() => {
+  return parseInt(currentPlan.value?.completed_count || 0)
+})
+
+const totalExpensesCount = computed(() => {
+  return parseInt(currentPlan.value?.total_expenses_count || 0)
+})
+
+const expenseStats = computed(() => {
+  if (!currentPlan.value) return []
+
+  return [
+    {
+      key: 'completed',
+      icon: 'check_circle',
+      label: 'Completate',
+      count: parseInt(currentPlan.value.completed_count || 0),
+      colorClass: 'stat-completed'
+    },
+    {
+      key: 'pending',
+      icon: 'schedule',
+      label: 'In Attesa',
+      count: parseInt(currentPlan.value.pending_count || 0),
+      colorClass: 'stat-pending'
+    },
+    {
+      key: 'partial',
+      icon: 'hourglass_empty',
+      label: 'Parziali',
+      count: parseInt(currentPlan.value.partial_count || 0),
+      colorClass: 'stat-partial'
+    },
+    {
+      key: 'overdue',
+      icon: 'warning',
+      label: 'Scadute',
+      count: parseInt(currentPlan.value.overdue_count || 0),
+      colorClass: 'stat-overdue'
+    }
+  ]
 })
 
 const canCreateExpense = computed(() => {
@@ -1439,42 +1560,88 @@ const paymentModalStats = computed(() => [
 ])
 
 // Metodi
-const loadPlanData = async () => {
-  loading.value = true
+const loadPlanData = async (statusFilter = 'all', resetPagination = true) => {
+  if (resetPagination) {
+    loading.value = true
+    currentPage.value = 1
+    plannedExpenses.value = []
+    hasMorePages.value = true
+  }
+
   try {
-    // 🚀 Usa il nuovo endpoint ottimizzato che carica tutto in una chiamata
-    const response = await reportsAPI.getSpendingPlanDetails(planId.value)
+    // 🚀 Usa il nuovo endpoint ottimizzato con filtro status e paginazione
+    const response = await reportsAPI.getSpendingPlanDetails(planId.value, {
+      status: statusFilter,
+      page: currentPage.value,
+      pageSize: 20
+    })
 
     currentPlan.value = response.plan
+    paginationInfo.value = response.plan.pagination
 
-    // Le spese pianificate vengono caricate direttamente dal piano
+    // Le spese pianificate vengono caricate direttamente dal piano (già filtrate e paginate dal backend)
     const plannedExpensesFromPlan = response.plan.planned_expenses_detail || []
 
-    // Le spese non pianificate vengono caricate separatamente
+    // Le spese non pianificate vengono caricate separatamente (già filtrate dal backend)
     const unplannedExpenses = response.unplanned_expenses || []
 
-    // Combina spese pianificate e non pianificate
-    plannedExpenses.value = [
-      ...plannedExpensesFromPlan,
-      ...unplannedExpenses.map(exp => ({
-        ...exp,
-        is_real_expense: true // Flag per distinguere spese reali non pianificate
-      }))
-    ]
+    // Se è la prima pagina, sostituisci, altrimenti aggiungi
+    if (currentPage.value === 1) {
+      plannedExpenses.value = [
+        ...plannedExpensesFromPlan,
+        ...unplannedExpenses.map(exp => ({
+          ...exp,
+          is_real_expense: true // Flag per distinguere spese reali non pianificate
+        }))
+      ]
+    } else {
+      // Aggiungi le nuove spese a quelle esistenti
+      plannedExpenses.value.push(
+        ...plannedExpensesFromPlan,
+        ...unplannedExpenses.map(exp => ({
+          ...exp,
+          is_real_expense: true
+        }))
+      )
+    }
 
-    console.log('📋 Piano caricato:', currentPlan.value)
-    console.log('💰 Spese pianificate:', plannedExpensesFromPlan.length)
-    console.log('💳 Spese non pianificate:', unplannedExpenses.length)
+    // Aggiorna lo stato di paginazione
+    hasMorePages.value = paginationInfo.value?.has_next || false
+
+    console.log('📋 Piano caricato - Pagina:', currentPage.value, 'Filtro:', statusFilter)
+    console.log('📊 Paginazione:', paginationInfo.value)
     console.log('💰 Totale spese caricate:', plannedExpenses.value.length)
-    console.log('🚀 Performance: utilizzato endpoint ottimizzato /details/')
+    console.log('🚀 Performance: paginazione e filtro applicati lato backend')
 
-    // Carica i dati dei pagamenti in background
-    loadPaymentsData()
+    // Carica i dati dei pagamenti in background solo se necessario
+    if (statusFilter === 'all' || statusFilter === 'partial') {
+      loadPaymentsData()
+    }
   } catch (error) {
     console.error('Errore nel caricamento dei dati del piano:', error)
     snackbar.error('Errore nel caricamento dei dati')
   } finally {
     loading.value = false
+    loadingMore.value = false
+  }
+}
+
+// Funzione per caricare più elementi (infinite scroll)
+const loadMoreExpenses = async (index, done) => {
+  if (!hasMorePages.value) {
+    done(true) // Stop infinite scroll
+    return
+  }
+
+  loadingMore.value = true
+  currentPage.value++
+
+  try {
+    await loadPlanData(activeTab.value, false) // false = non resettare la paginazione
+    done(!hasMorePages.value) // Stop se non ci sono più pagine
+  } catch (error) {
+    console.error('Errore nel caricamento di più spese:', error)
+    done(true) // Stop on error
   }
 }
 
@@ -2213,6 +2380,14 @@ onMounted(async () => {
   // Carica il saldo famiglia all'avvio per averlo disponibile
   await loadFamilyBalance()
 })
+
+// Watcher per ricaricare i dati quando cambia il filtro
+watch(activeTab, async (newFilter, oldFilter) => {
+  if (newFilter !== oldFilter) {
+    console.log(`🔄 Filtro cambiato da '${oldFilter}' a '${newFilter}' - ricaricamento dati dal backend`)
+    await loadPlanData(newFilter, true) // true = resetta la paginazione
+  }
+})
 </script>
 
 <style lang="scss" scoped>
@@ -2221,21 +2396,32 @@ onMounted(async () => {
   width: 100%;
   margin: 0;
   padding: 12px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
 
   @media (min-width: 768px) {
     padding: 24px;
   }
 }
 
+// Sfondo grigio chiaro per la pagina
+.mcf-page-container-fullwidth {
+  background-color: #f8f9fa !important;
+}
+
 // Override gestito nel CSS globale
 
 .mcf-action-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 16px;
   padding: 0;
 
   @media (min-width: 768px) {
     margin-bottom: 24px;
   }
+
 }
 
 .container {
@@ -2249,17 +2435,17 @@ onMounted(async () => {
 }
 
 
-// === PLAN INFO CARD ===
+// === COMPACT PLAN INFO CARD ===
 .plan-info-card {
-  background: var(--mcf-bg-surface);
-  border: 1px dashed var(--mcf-secondary);
+  background: #ffffff;
+  border: 1px solid var(--mcf-border-light);
   border-radius: 12px;
   margin-bottom: 16px;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(35, 157, 176, 0.08);
 
   @media (min-width: 768px) {
-    border-radius: 16px;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
   }
 }
 
@@ -2271,7 +2457,7 @@ onMounted(async () => {
   gap: 12px;
 
   @media (min-width: 768px) {
-    padding: 24px;
+    padding: 20px;
     gap: 16px;
   }
 
@@ -2288,15 +2474,14 @@ onMounted(async () => {
 }
 
 .plan-name {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--mcf-text-primary);
-  line-height: 1.3;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 
   @media (min-width: 768px) {
-    font-size: 24px;
-    margin-bottom: 8px;
+    font-size: 20px;
+    margin-bottom: 6px;
   }
 }
 
@@ -2304,109 +2489,131 @@ onMounted(async () => {
   font-size: 13px;
   color: var(--mcf-text-secondary);
   font-weight: 500;
-  margin-bottom: 8px;
 
   @media (min-width: 768px) {
     font-size: 14px;
-    margin-bottom: 12px;
   }
 }
 
-.plan-description {
-  font-size: 16px;
-  color: var(--mcf-text-muted);
-  line-height: 1.4;
-}
-
-.plan-summary {
-  padding: 0 16px 16px 16px;
+// Compact Stats Section
+.plan-stats-compact {
+  padding: 12px 16px 16px 16px;
   border-top: 1px solid var(--mcf-border-light);
-  background-color: #ffffff;
 
   @media (min-width: 768px) {
-    padding: 0 24px 24px 24px;
+    padding: 16px 20px 20px 20px;
   }
 }
 
-.summary-stats {
+.stats-row {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
   margin-bottom: 12px;
 
   @media (min-width: 768px) {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
+    gap: 12px;
     margin-bottom: 16px;
   }
 }
 
-.stat-item {
+.stat-compact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
-  padding: 2px 6px;
+  padding: 8px 4px;
 
   @media (min-width: 768px) {
-    padding: 16px 8px;
+    padding: 12px 8px;
   }
 }
 
 .stat-value {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--mcf-primary);
-  margin-bottom: 3px;
+  margin-bottom: 2px;
   font-feature-settings: 'tnum';
 
   @media (min-width: 768px) {
-    font-size: 20px;
+    font-size: 16px;
     margin-bottom: 4px;
   }
 }
 
 .stat-label {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--mcf-text-secondary);
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
+  letter-spacing: 0.3px;
 
-.progress-container {
-  margin-top: 8px;
-}
-
-.progress-bar {
-  border-radius: 4px;
-  margin-bottom: 6px;
-}
-
-.progress-text {
-  font-size: 12px;
-  color: var(--mcf-text-secondary);
-  text-align: center;
-  font-weight: 500;
-  transition: all 0.2s ease;
-
-  &.cursor-pointer {
-    user-select: none;
-
-    &:hover {
-      color: var(--q-primary);
-      transform: scale(1.05);
-    }
-
-    &:active {
-      transform: scale(0.95);
-    }
+  @media (min-width: 768px) {
+    font-size: 12px;
+    letter-spacing: 0.5px;
   }
 }
 
-// === FILTER TABS ===
-.filter-tabs {
+.progress-bar-container {
+  margin-top: 8px;
+}
+
+.compact-progress {
+  border-radius: 3px;
+}
+
+// === FILTER CHIPS ===
+.filter-chips {
   margin-bottom: 16px;
 
   @media (min-width: 768px) {
     margin-bottom: 24px;
+  }
+}
+
+.filter-chips-container {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 0 4px;
+
+  @media (min-width: 768px) {
+    gap: 12px;
+    padding: 0;
+  }
+}
+
+.filter-chip {
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+  user-select: none;
+  min-height: 32px;
+
+  @media (min-width: 768px) {
+    font-size: 14px;
+    min-height: 36px;
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .q-chip__content {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .q-icon {
+    font-size: 16px;
+
+    @media (min-width: 768px) {
+      font-size: 18px;
+    }
   }
 }
 

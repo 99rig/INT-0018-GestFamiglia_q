@@ -375,7 +375,8 @@
           </div>
         </div>
 
-        <!-- Camera Testing -->
+        <!-- Camera Testing - HIDDEN -->
+        <!--
         <div class="mcf-settings-section">
           <div class="mcf-section-header">
             <q-icon name="camera_alt" class="mcf-section-icon" />
@@ -399,7 +400,6 @@
               />
             </div>
 
-            <!-- Camera preview -->
             <div v-if="showCamera" class="mcf-camera-container">
               <video
                 ref="videoElement"
@@ -427,7 +427,6 @@
               </div>
             </div>
 
-            <!-- Photo preview -->
             <div v-if="capturedPhoto" class="mcf-photo-container">
               <div class="mcf-photo-header">
                 <q-icon name="photo" class="mcf-photo-icon" />
@@ -437,6 +436,7 @@
             </div>
           </div>
         </div>
+        -->
 
         <!-- App Updates Section -->
         <div class="mcf-settings-section" v-if="isAndroidDevice">
@@ -473,7 +473,8 @@
           </div>
         </div>
 
-        <!-- Font Settings Section -->
+        <!-- Font Settings Section - HIDDEN -->
+        <!--
         <div class="mcf-settings-section">
           <div class="mcf-section-header">
             <q-icon name="text_fields" class="mcf-section-icon" />
@@ -485,7 +486,6 @@
               Personalizza i font dell'applicazione per migliorare la tua esperienza di lettura.
             </p>
 
-            <!-- Logo Font Selection -->
             <div class="mcf-font-group">
               <h4 class="mcf-font-group-title">
                 <q-icon name="account_balance_wallet" class="mcf-font-group-icon" />
@@ -509,7 +509,6 @@
               </div>
             </div>
 
-            <!-- App Font Selection -->
             <div class="mcf-font-group">
               <h4 class="mcf-font-group-title">
                 <q-icon name="article" class="mcf-font-group-icon" />
@@ -535,7 +534,6 @@
               </div>
             </div>
 
-            <!-- Reset Button -->
             <div class="mcf-font-reset">
               <q-btn
                 flat
@@ -545,6 +543,72 @@
                 @click="resetFonts"
                 class="mcf-reset-btn"
               />
+            </div>
+          </div>
+        </div>
+        -->
+
+        <!-- Theme Palette Settings Section -->
+        <div class="mcf-settings-section">
+          <div class="mcf-section-header">
+            <q-icon name="palette" class="mcf-section-icon" />
+            <h3 class="mcf-section-title">Impostazioni Tema</h3>
+          </div>
+
+          <div class="mcf-theme-section">
+            <p class="mcf-section-description">
+              Scegli la palette di colori che preferisci per personalizzare l'aspetto dell'applicazione.
+            </p>
+
+            <!-- Color Palette Selection -->
+            <div class="mcf-theme-group">
+              <h4 class="mcf-theme-group-title">
+                <q-icon name="color_lens" class="mcf-theme-group-icon" />
+                Palette Colori
+              </h4>
+
+              <div class="mcf-palette-container">
+                <div class="mcf-palette-options">
+                  <div
+                    v-for="palette in colorPalettes"
+                    :key="palette.id"
+                    class="mcf-palette-option"
+                  >
+                    <q-card
+                      class="mcf-palette-card cursor-pointer"
+                      :class="{ 'mcf-palette-selected': selectedPalette === palette.id }"
+                      @click="selectPalette(palette.id)"
+                    >
+                      <q-card-section class="q-pa-md">
+                        <div class="mcf-palette-preview">
+                          <div class="mcf-palette-name">{{ palette.name }}</div>
+                          <div class="mcf-color-swatches">
+                            <div
+                              v-for="color in palette.colors.slice(0, 3)"
+                              :key="color.name"
+                              class="mcf-color-swatch"
+                              :style="{ backgroundColor: color.value }"
+                              :title="color.name"
+                            ></div>
+                          </div>
+                        </div>
+                      </q-card-section>
+                    </q-card>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Reset Theme Button -->
+              <div class="mcf-reset-container q-mt-md">
+                <q-btn
+                  flat
+                  color="secondary"
+                  icon="refresh"
+                  label="Ripristina Tema Predefinito"
+                  @click="resetTheme"
+                  class="mcf-reset-btn"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -986,6 +1050,34 @@ const appFontOptions = [
   { label: 'Quicksand', value: 'Quicksand' }
 ]
 
+// Theme palette settings
+const selectedPalette = ref('default')
+
+const colorPalettes = [
+  {
+    id: 'default',
+    name: 'My Crazy Family (Default)',
+    colors: [
+      { name: 'Primary', value: '#239db0' },
+      { name: 'Secondary', value: '#2a5f82' },
+      { name: 'Accent', value: '#10B981' },
+      { name: 'Success', value: '#10B981' },
+      { name: 'Warning', value: '#F59E0B' }
+    ]
+  },
+  {
+    id: 'anthropic',
+    name: 'Anthropic Inspired',
+    colors: [
+      { name: 'Primary', value: '#131314' },
+      { name: 'Secondary', value: '#404040' },
+      { name: 'Accent', value: '#d97757' },
+      { name: 'Success', value: '#10B981' },
+      { name: 'Warning', value: '#F59E0B' }
+    ]
+  }
+]
+
 // Computed properties (moved from LoginPage)
 const apiServer = computed(() => {
   const url = process.env.API_BASE_URL || 'http://localhost:8000'
@@ -1036,6 +1128,9 @@ onMounted(async () => {
 
   // Load UI preferences (fonts, etc.)
   await loadUIPreferences()
+
+  // Load saved theme
+  loadSavedTheme()
 
   // Test connection every 30 seconds (less frequent than login page)
   setInterval(testServerConnection, 30000)
@@ -1438,6 +1533,92 @@ const resetFonts = async () => {
   await updateAppFont('Nunito')
 
   snackbar.info('Font ripristinati ai valori predefiniti')
+}
+
+// Theme Management Methods
+const selectPalette = async (paletteId) => {
+  selectedPalette.value = paletteId
+  await applyThemePalette(paletteId)
+
+  // Save to localStorage
+  localStorage.setItem('mcf-theme-palette', paletteId)
+
+  snackbar.success(`Palette "${colorPalettes.find(p => p.id === paletteId)?.name}" applicata`)
+}
+
+const applyThemePalette = async (paletteId) => {
+  const palette = colorPalettes.find(p => p.id === paletteId)
+  if (!palette) return
+
+  const root = document.documentElement
+
+  // Apply CSS custom properties based on the selected palette
+  switch (paletteId) {
+    case 'default':
+      // My Crazy Family original colors (fixed default)
+      root.style.setProperty('--mcf-primary', '#239db0')
+      root.style.setProperty('--mcf-secondary', '#2a5f82')
+      root.style.setProperty('--mcf-accent', '#10B981')
+      root.style.setProperty('--mcf-theme-primary', '#239db0')
+      root.style.setProperty('--mcf-theme-secondary', '#2a5f82')
+      root.style.setProperty('--mcf-theme-accent', '#10B981')
+      break
+    case 'anthropic':
+      // Anthropic inspired dark theme
+      root.style.setProperty('--mcf-primary', '#131314')
+      root.style.setProperty('--mcf-secondary', '#404040')
+      root.style.setProperty('--mcf-accent', '#d97757')
+      root.style.setProperty('--mcf-theme-primary', '#131314')
+      root.style.setProperty('--mcf-theme-secondary', '#404040')
+      root.style.setProperty('--mcf-theme-accent', '#d97757')
+      break
+  }
+
+  // Update Quasar's theme colors for components that use them
+  if ($q && $q.colors) {
+    const paletteColors = palette.colors
+    $q.colors.setBrand('primary', paletteColors[0]?.value || '#14B8A6')
+    $q.colors.setBrand('secondary', paletteColors[1]?.value || '#8B5CF6')
+    $q.colors.setBrand('accent', paletteColors[2]?.value || '#06B6D4')
+  }
+}
+
+const resetTheme = async () => {
+  selectedPalette.value = 'default'
+
+  // Clear any previously set custom properties to restore original CSS values
+  const root = document.documentElement
+  root.style.removeProperty('--mcf-primary')
+  root.style.removeProperty('--mcf-secondary')
+  root.style.removeProperty('--mcf-accent')
+  root.style.removeProperty('--mcf-theme-primary')
+  root.style.removeProperty('--mcf-theme-secondary')
+  root.style.removeProperty('--mcf-theme-accent')
+
+  // Force a browser cache refresh
+  if ($q && $q.colors) {
+    $q.colors.setBrand('primary', '#239db0')
+    $q.colors.setBrand('secondary', '#2a5f82')
+    $q.colors.setBrand('accent', '#10B981')
+  }
+
+  // Remove from localStorage
+  localStorage.removeItem('mcf-theme-palette')
+
+  // Force page refresh to clear any CSS cache issues
+  setTimeout(() => {
+    window.location.reload()
+  }, 500)
+
+  snackbar.info('Tema ripristinato ai valori originali - ricaricando...')
+}
+
+const loadSavedTheme = () => {
+  const savedPalette = localStorage.getItem('mcf-theme-palette')
+  if (savedPalette && colorPalettes.find(p => p.id === savedPalette)) {
+    selectedPalette.value = savedPalette
+    applyThemePalette(savedPalette)
+  }
 }
 
 // Family Management Methods
@@ -3017,6 +3198,131 @@ onUnmounted(() => {
   &:disabled {
     background: var(--mcf-text-disabled);
     color: white;
+  }
+}
+
+/* === THEME PALETTE STYLES === */
+.mcf-theme-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.mcf-theme-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mcf-theme-group-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--mcf-text-primary);
+
+  @media (min-width: 768px) {
+    font-size: 18px;
+  }
+}
+
+.mcf-theme-group-icon {
+  color: var(--mcf-primary);
+  font-size: 20px;
+
+  @media (min-width: 768px) {
+    font-size: 22px;
+  }
+}
+
+.mcf-palette-container {
+  width: 100%;
+}
+
+.mcf-palette-options {
+  display: flex;
+  gap: 16px;
+  flex-direction: column;
+
+  @media (min-width: 640px) {
+    flex-direction: row;
+  }
+}
+
+.mcf-palette-option {
+  flex: 1;
+  min-width: 0;
+}
+
+.mcf-palette-card {
+  border: 2px solid transparent;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  background: var(--mcf-bg-surface);
+  position: relative;
+
+  &:hover {
+    border-color: var(--mcf-primary);
+    box-shadow: var(--mcf-shadow-md);
+    transform: translateY(-2px);
+  }
+}
+
+.mcf-palette-selected {
+  border-color: var(--mcf-primary) !important;
+  box-shadow: var(--mcf-shadow-md);
+
+  &::after {
+    content: '✓';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    background: var(--mcf-primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+  }
+}
+
+.mcf-palette-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+}
+
+.mcf-palette-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--mcf-text-primary);
+  text-align: center;
+}
+
+.mcf-color-swatches {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.mcf-color-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--mcf-border-light);
+  flex-shrink: 0;
+
+  @media (min-width: 768px) {
+    width: 28px;
+    height: 28px;
   }
 }
 </style>

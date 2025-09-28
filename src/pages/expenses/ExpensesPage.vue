@@ -285,13 +285,18 @@
       <q-dialog
         v-model="showManualForm"
         persistent
-        maximized
+        full-width
+        position="top"
+        transition-show="slide-down"
+        transition-hide="slide-up"
       >
-        <q-card class="mcf-manual-expense-dialog">
-          <q-card-section>
+        <q-card class="full-width" style="margin: 0; border-radius: 0 0 16px 16px; max-height: 90vh; display: flex; flex-direction: column;">
+          <q-card-section class="flex-shrink-0 bg-grey-2" style="border-radius: 0 0 12px 12px;">
             <div class="text-h6">Nuova Spesa</div>
             <div class="text-caption text-grey-6">Scegli come inserire la spesa</div>
           </q-card-section>
+
+          <q-card-section class="q-pt-none flex-grow-1" style="overflow-y: auto;">
 
           <!-- Method Selection -->
           <q-card-section class="q-pt-none q-pb-sm">
@@ -564,12 +569,14 @@
               </div>
             </div>
           </q-card-section>
+          </q-card-section>
 
-          <q-card-actions align="right">
+          <q-card-actions align="right" class="flex-shrink-0 bg-grey-2" style="border-radius: 12px 12px 0 0;">
             <q-btn
               flat
               label="Annulla"
               color="grey"
+              v-close-popup
               @click="closeManualForm"
             />
             <q-btn
@@ -587,29 +594,30 @@
       <q-dialog
         v-model="showEditForm"
         persistent
-        maximized
+        full-width
+        position="top"
+        transition-show="slide-down"
+        transition-hide="slide-up"
       >
-        <q-card>
-          <q-card-section>
+        <q-card class="full-width" style="margin: 0; border-radius: 0 0 16px 16px; max-height: 90vh; display: flex; flex-direction: column;">
+          <q-card-section class="flex-shrink-0 bg-grey-2" style="border-radius: 0 0 12px 12px;">
             <div class="text-h6">Modifica Spesa</div>
             <div class="text-caption text-grey-6">Modifica i dati della spesa</div>
           </q-card-section>
 
-          <q-card-section class="q-pt-none">
-            <q-form @submit.prevent="submitEditExpense" class="q-gutter-md">
-              <q-input
+          <q-card-section class="q-pt-none flex-grow-1" style="overflow-y: auto;">
+            <q-form @submit.prevent="submitEditExpense" class="q-gutter-sm">
+              <MCFInput
                 v-model="editForm.description"
                 label="Descrizione *"
                 required
-                outlined
                 :rules="[val => val && val.length > 0 || 'Descrizione richiesta']"
               />
 
-              <q-input
+              <MCFInput
                 v-model="editForm.amount"
                 label="Importo *"
                 required
-                outlined
                 type="number"
                 step="0.01"
                 min="0"
@@ -673,10 +681,9 @@
                 </template>
               </MCFAutocomplete>
 
-              <q-input
+              <MCFInput
                 v-model="editForm.notes"
                 label="Note (opzionale)"
-                outlined
                 type="textarea"
                 rows="3"
               />
@@ -717,10 +724,9 @@
                     hint="Lascia vuoto per ricorrenza senza fine"
                   />
 
-                  <q-input
+                  <MCFInput
                     v-model.number="editForm.total_installments"
                     label="Numero rate totali (opzionale)"
-                    outlined
                     type="number"
                     min="1"
                     max="120"
@@ -737,14 +743,14 @@
             </q-form>
           </q-card-section>
 
-          <q-card-actions align="right">
+          <q-card-actions align="right" class="flex-shrink-0 bg-grey-2" style="border-radius: 12px 12px 0 0;">
             <q-btn flat label="Annulla" v-close-popup @click="closeEditForm" />
             <q-btn
               flat
               label="Salva Modifiche"
               color="primary"
-              :loading="saving"
               @click="submitEditExpense"
+              :loading="saving"
             />
           </q-card-actions>
         </q-card>
@@ -2543,8 +2549,6 @@ onMounted(async () => {
 }
 
 // === MODALE NUOVA SPESA ===
-.mcf-manual-expense-dialog {
-  background: #f8f9fa !important;
-}
+// Removed old maximized dialog styles
 
 </style>

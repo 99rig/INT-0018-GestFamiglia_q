@@ -48,9 +48,17 @@ export const reportsAPI = {
     return response.data
   },
 
-  // 🚀 Endpoint ottimizzato per i dettagli del piano
-  async getSpendingPlanDetails(id) {
-    const response = await apiClient.get(`/spending-plans/${id}/details/`)
+  // 🚀 Endpoint ottimizzato per i dettagli del piano con paginazione
+  async getSpendingPlanDetails(id, options = {}) {
+    const { status = 'all', page = 1, pageSize = 20 } = options
+    const params = new URLSearchParams()
+
+    if (status && status !== 'all') params.append('status', status)
+    params.append('page', page)
+    params.append('page_size', pageSize)
+
+    const queryString = params.toString()
+    const response = await apiClient.get(`/spending-plans/${id}/details/${queryString ? '?' + queryString : ''}`)
     return response.data
   },
 

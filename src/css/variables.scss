@@ -3,11 +3,11 @@
 
 @use "sass:color";
 
-// === CUSTOM TEAL-PURPLE PALETTE ===
-// Beautiful teal to purple gradient palette
-$teal-primary: #239db0;          // (35,157,176) - Main teal
-$blue-steel: #2a5f82;            // (42,95,130) - Steel blue
-$purple-slate: #524569;          // (82,69,105) - Purple slate
+// === MY CRAZY FAMILY PALETTE (FIXED DEFAULT) ===
+// Original colors - these are now locked as the absolute default
+$teal-primary: #239db0;          // Original teal color - FIXED
+$blue-steel: #2a5f82;            // Original steel blue - FIXED
+$purple-slate: #524569;          // Original purple slate
 $purple-deep: #5d3066;           // (93,48,102) - Deep purple
 $purple-dark: #492b4f;           // (73,43,79) - Dark purple
 
@@ -61,9 +61,9 @@ $red-600: #dc2626;               // Error dark
 $active-palette: 'modern';
 
 // === MCF DESIGN TOKENS ===
-$mcf-primary: $teal-primary;      // Primary brand color (teal)
-$mcf-primary-hover: $teal-700;    // Primary hover state (darker)
-$mcf-primary-light: $teal-100;    // Primary light tint
+$mcf-primary: $teal-primary;      // Primary brand color (modern teal)
+$mcf-primary-hover: darken($teal-primary, 10%);    // Primary hover state (darker)
+$mcf-primary-light: lighten($teal-primary, 40%);    // Primary light tint
 
 $mcf-secondary: $blue-steel;      // Secondary color (steel blue)
 $mcf-secondary-hover: $steel-700; // Secondary hover state (darker)
@@ -73,7 +73,7 @@ $mcf-tertiary: $purple-slate;     // Tertiary color (purple slate)
 $mcf-tertiary-hover: $purple-600; // Tertiary hover state
 $mcf-tertiary-light: $purple-100; // Tertiary light tint
 
-$mcf-accent: $emerald-500;        // Accent/success color
+$mcf-accent: $emerald-500;        // Accent/success color (original)
 $mcf-accent-hover: $emerald-600;  // Accent hover state
 $mcf-accent-light: $emerald-50;   // Accent light tint
 
@@ -244,4 +244,10 @@ $mcf-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0,
   // Font families - Customizable via settings
   --mcf-logo-font: 'Fredoka One';
   --mcf-app-font: 'Nunito';
+
+  // Theme palette colors - Dynamic theme switching support
+  // These will be overridden by JavaScript when themes are changed
+  --mcf-theme-primary: #{$teal-primary};
+  --mcf-theme-secondary: #{$blue-steel};
+  --mcf-theme-accent: #{$emerald-500};
 }
