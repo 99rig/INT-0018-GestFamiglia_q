@@ -17,7 +17,7 @@
               <div class="mcf-logo-glass-effect"></div>
               <div class="mcf-logo-shine"></div>
               <q-icon
-                name="account_balance_wallet"
+                name="family_restroom"
                 class="mcf-logo-icon"
               />
             </div>

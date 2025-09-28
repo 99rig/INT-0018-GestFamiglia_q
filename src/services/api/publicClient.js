@@ -20,7 +20,38 @@ export const publicApiClient = axios.create({
   timeout: 10000
 })
 
-// NON aggiungere interceptors per token o autenticazione
-// Questo client deve rimanere completamente pubblico
+// Funzione per ottenere il CSRF token
+function getCsrfToken() {
+  // Prova a ottenere il token dal cookie
+  const cookieValue = document.cookie
+    .split('; ')
+    .find(row => row.startsWith('csrftoken='))
+    ?.split('=')[1]
+
+  if (cookieValue) {
+    return cookieValue
+  }
+
+  // Fallback: prova a ottenere dal meta tag se presente
+  const metaTag = document.querySelector('meta[name="csrf-token"]')
+  return metaTag ? metaTag.getAttribute('content') : null
+}
+
+// Interceptor per aggiungere CSRF token se disponibile
+publicApiClient.interceptors.request.use(
+  (config) => {
+    const csrfToken = getCsrfToken()
+    if (csrfToken) {
+      config.headers['X-CSRFToken'] = csrfToken
+    }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
+
+// NON aggiungere interceptors per token di autenticazione
+// Questo client deve rimanere pubblico per quanto riguarda l'auth
 
 export default publicApiClient
