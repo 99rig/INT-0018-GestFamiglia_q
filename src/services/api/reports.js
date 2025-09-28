@@ -50,7 +50,7 @@ export const reportsAPI = {
 
   // 🚀 Endpoint ottimizzato per i dettagli del piano con paginazione
   async getSpendingPlanDetails(id, options = {}) {
-    const { status = 'all', page = 1, pageSize = 20 } = options
+    const { status = 'all', page = 1, pageSize = 10 } = options
     const params = new URLSearchParams()
 
     if (status && status !== 'all') params.append('status', status)
