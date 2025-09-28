@@ -149,85 +149,57 @@
         </q-card-section>
 
         <q-card-section class="q-pt-none">
-          <q-form @submit.prevent="createBudget" class="q-gutter-md">
-            <q-input
+          <q-form @submit.prevent="createBudget" class="q-gutter-sm">
+            <MCFInput
               v-model="newBudget.name"
               label="Nome Piano di Spesa *"
               required
-              outlined
               placeholder="es. Ottobre 2025, Estate 2026, Natale 2025..."
               :rules="[val => val && val.length > 0 || 'Nome richiesto']"
             />
 
-            <q-input
+            <MCFInput
               v-model="newBudget.description"
               label="Descrizione (opzionale)"
-              outlined
               type="textarea"
               rows="2"
               placeholder="Descrivi a cosa serve questo piano di spesa..."
             />
 
-            <q-select
+            <MCFSelect
               v-model="newBudget.budget_type"
               :options="budgetTypeOptions"
               label="Tipo Piano *"
-              outlined
               emit-value
               map-options
             />
 
             <div class="row q-gutter-sm">
               <div class="col">
-                <q-input
+                <MCFDatePicker
                   v-model="newBudget.start_date"
                   label="Data Inizio *"
-                  outlined
-                  readonly
-                >
-                  <template v-slot:append>
-                    <q-icon name="event" class="cursor-pointer">
-                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                        <q-date v-model="newBudget.start_date" mask="YYYY-MM-DD">
-                          <div class="row items-center justify-end">
-                            <q-btn v-close-popup label="OK" color="primary" flat />
-                          </div>
-                        </q-date>
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                </q-input>
+                  required
+                  :rules="[val => val && val.length > 0 || 'Data inizio richiesta']"
+                />
               </div>
               <div class="col">
-                <q-input
+                <MCFDatePicker
                   v-model="newBudget.end_date"
                   label="Data Fine *"
-                  outlined
-                  readonly
-                >
-                  <template v-slot:append>
-                    <q-icon name="event" class="cursor-pointer">
-                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                        <q-date v-model="newBudget.end_date" mask="YYYY-MM-DD">
-                          <div class="row items-center justify-end">
-                            <q-btn v-close-popup label="OK" color="primary" flat />
-                          </div>
-                        </q-date>
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                </q-input>
+                  required
+                  :rules="[val => val && val.length > 0 || 'Data fine richiesta']"
+                />
               </div>
             </div>
 
-            <q-input
+            <MCFInput
               v-model.number="newBudget.total_amount"
               label="Importo Totale *"
               type="number"
               step="0.01"
               min="0"
               required
-              outlined
               prefix="€"
               :rules="[val => val > 0 || 'Importo deve essere maggiore di 0']"
             />
@@ -258,6 +230,9 @@ import { useSnackbar } from 'src/composables/useSnackbar'
 import { reportsAPI } from 'src/services/api/reports.js'
 import { useAuthStore } from 'stores/auth.js'
 import MCFLoading from 'src/components/MCFLoading.vue'
+import MCFInput from 'src/components/forms/MCFInput.vue'
+import MCFSelect from 'src/components/forms/MCFSelect.vue'
+import MCFDatePicker from 'src/components/MCFDatePicker.vue'
 
 const $q = useQuasar()
 const snackbar = useSnackbar()

@@ -31,15 +31,16 @@
             <div class="plan-period">
               <q-icon name="event" size="14px" />
               {{ formatPeriod(plan.start_date, plan.end_date) }}
-            </div>
-            <div class="plan-badges">
               <q-chip
                 :color="getPlanTypeColor(plan.plan_type)"
                 text-color="white"
                 size="sm"
                 :label="getPlanTypeLabel(plan.plan_type)"
                 class="type-chip"
+                style="margin-left: auto;"
               />
+            </div>
+            <div class="plan-badges">
               <q-chip
                 v-if="plan.is_current"
                 color="positive"
@@ -132,7 +133,7 @@
             <q-icon name="euro" />
           </div>
           <div class="stat-content">
-            <div class="stat-value">€{{ formatAmount(plan.total_estimated_amount || 0) }}</div>
+            <div class="stat-value">€{{ Math.round(plan.total_estimated_amount || 0) }}</div>
             <div class="stat-label">Budget</div>
           </div>
         </div>
@@ -325,7 +326,7 @@ const getProgressClass = (percentage) => {
   }
 
   &--default {
-    background: #e5e7eb;
+    background: #94a3b8;  /* Grigio-blu più visibile per stato pending */
   }
 }
 
@@ -379,6 +380,7 @@ const getProgressClass = (percentage) => {
   font-size: 0.875rem;
   color: #6b7280;
   font-weight: 500;
+  width: 100%;
 
   .q-icon {
     color: #9ca3af;
@@ -397,6 +399,7 @@ const getProgressClass = (percentage) => {
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
+
 
 .status-chip {
   font-weight: 600;
@@ -444,7 +447,7 @@ const getProgressClass = (percentage) => {
 
 // Stats Section
 .stats-section {
-  padding: 24px;
+  padding: 12px 24px 24px 24px;  /* Ridotto padding top per alzare la sezione */
 }
 
 .stats-row {
@@ -683,7 +686,7 @@ const getProgressClass = (percentage) => {
   }
 
   .stats-section {
-    padding: 20px;
+    padding: 10px 20px 20px 20px;
   }
 
   .stats-row {
@@ -747,7 +750,7 @@ const getProgressClass = (percentage) => {
   }
 
   .stats-section {
-    padding: 16px;
+    padding: 8px 16px 16px 16px;
   }
 
   .stat-item {

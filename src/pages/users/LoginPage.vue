@@ -180,10 +180,17 @@
     :show-delete-pin="showDeletePinModal"
     @update:show-want-pin="showWantPinModal = $event"
     @update:show-delete-pin="showDeletePinModal = $event"
-    @accept="acceptPin"
+    @accept="openSetupPinModal"
     @decline="declinePin"
     @confirm-delete="handleDeletePin"
     @cancel-delete="cancelDeletePin"
+  />
+
+  <PinActionModals2
+    :show-want-pin="showSetupPinModal"
+    @update:show-want-pin="showSetupPinModal = $event"
+    @confirm="confirmPin"
+    @cancel="cancelPin"
   />
 </template>
 
@@ -194,6 +201,7 @@ import { useAuthStore } from 'stores/auth.js'
 import { useSnackbar } from 'src/composables/useSnackbar'
 import PinSetupModal from 'components/users/PinSetupModal.vue'
 import PinActionModals from 'components/users/PinActionModals.vue'
+import PinActionModals2 from 'components/users/PinActionModals2.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -386,6 +394,7 @@ const closePinSetupModal = () => {
 
 // Want PIN Modal
 const showWantPinModal = ref(false)
+const showSetupPinModal = ref(false)
 
 // Delete PIN Function
 const showDeletePinModal = ref(false)
@@ -418,9 +427,44 @@ const cancelDeletePin = () => {
 }
 
 // Want PIN Modal Functions
-const acceptPin = () => {
+const openSetupPinModal = () => {
   showWantPinModal.value = false
-  setupPin()
+  showSetupPinModal.value = true
+}
+
+const closeSetupPinModal = () => {
+  showSetupPinModal.value = false
+}
+
+const confirmPin = async (pin) => {
+  if (!pin || pin.length !== 4) {
+    snackbar.error('PIN deve essere di 4 cifre')
+    return
+  }
+
+  try {
+    // Qui puoi salvare il PIN
+    console.log('PIN da salvare:', pin)
+
+    // Simula il salvataggio
+    await new Promise(resolve => setTimeout(resolve, 500))
+
+    showSetupPinModal.value = false
+    snackbar.success('PIN impostato con successo!')
+
+    // Redirect alla dashboard dopo aver impostato il PIN
+    console.log('🔐 confirmPin - Router push to /dashboard')
+    await router.push('/dashboard')
+    console.log('🔐 confirmPin - Router push completed successfully')
+  } catch (error) {
+    console.error('Errore impostazione PIN:', error)
+    snackbar.error('Errore nell\'impostazione del PIN')
+  }
+}
+
+const cancelPin = () => {
+  showSetupPinModal.value = false
+  snackbar.info('Impostazione PIN annullata')
 }
 
 const declinePin = async () => {

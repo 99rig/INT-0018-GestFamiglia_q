@@ -50,7 +50,7 @@ export class ConfigService {
    */
   static logConfig() {
     if (this.isDevelopment()) {
-      console.log('🔧 Environment Configuration:', this.getEnvironmentConfig())
+
     }
   }
 }

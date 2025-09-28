@@ -3,9 +3,12 @@
     :model-value="modelValue"
     @update:model-value="$emit('update:modelValue', $event)"
     persistent
-    maximized
+    full-width
+    position="top"
+    transition-show="slide-down"
+    transition-hide="slide-up"
   >
-    <q-card class="mcf-dialog">
+    <q-card style="margin: 0; border-radius: 0 0 16px 16px; max-height: 90vh; display: flex; flex-direction: column;" class="mcf-dialog">
       <q-card-section class="mcf-dialog-header">
         <div class="text-h6">
           <q-icon name="content_copy" class="q-mr-sm" />
@@ -21,7 +24,7 @@
       </q-card-section>
 
       <q-card-section class="mcf-dialog-content">
-        <div v-if="!clonePreview && plan" class="q-gutter-md">
+        <div v-if="!clonePreview && plan" class="q-gutter-sm">
           <!-- Piano originale -->
           <q-card flat bordered class="q-pa-md">
             <div class="text-subtitle1 text-weight-medium q-mb-sm">
@@ -55,57 +58,25 @@
             label="Opzioni Avanzate"
             class="bg-grey-1"
           >
-            <div class="q-pa-md q-gutter-md">
-              <q-input
+            <div class="q-pa-md q-gutter-sm">
+              <MCFInput
                 v-model="customTitle"
                 label="Titolo personalizzato (opzionale)"
-                outlined
-                dense
                 hint="Lascia vuoto per utilizzare il titolo suggerito automaticamente"
               />
 
-              <div class="row q-gutter-md">
+              <div class="row q-gutter-sm">
                 <div class="col">
-                  <q-input
+                  <MCFDatePicker
                     v-model="customStartDate"
                     label="Data inizio personalizzata"
-                    outlined
-                    dense
-                    readonly
-                  >
-                    <template v-slot:append>
-                      <q-icon name="event" class="cursor-pointer">
-                        <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                          <q-date v-model="customStartDate" mask="YYYY-MM-DD">
-                            <div class="row items-center justify-end">
-                              <q-btn v-close-popup label="OK" color="primary" flat />
-                            </div>
-                          </q-date>
-                        </q-popup-proxy>
-                      </q-icon>
-                    </template>
-                  </q-input>
+                  />
                 </div>
                 <div class="col">
-                  <q-input
+                  <MCFDatePicker
                     v-model="customEndDate"
                     label="Data fine personalizzata"
-                    outlined
-                    dense
-                    readonly
-                  >
-                    <template v-slot:append>
-                      <q-icon name="event" class="cursor-pointer">
-                        <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                          <q-date v-model="customEndDate" mask="YYYY-MM-DD">
-                            <div class="row items-center justify-end">
-                              <q-btn v-close-popup label="OK" color="primary" flat />
-                            </div>
-                          </q-date>
-                        </q-popup-proxy>
-                      </q-icon>
-                    </template>
-                  </q-input>
+                  />
                 </div>
               </div>
 
@@ -119,7 +90,7 @@
         </div>
 
         <!-- Anteprima del clone -->
-        <div v-if="clonePreview" class="q-gutter-md">
+        <div v-if="clonePreview" class="q-gutter-sm">
           <q-card flat bordered class="q-pa-md bg-green-1">
             <div class="text-subtitle1 text-weight-medium q-mb-sm text-green-8">
               <q-icon name="preview" class="q-mr-sm" />
@@ -149,7 +120,7 @@
             </div>
 
             <!-- Statistiche clone -->
-            <div class="row q-gutter-md text-center">
+            <div class="row q-gutter-sm text-center">
               <div class="col bg-white q-pa-sm rounded-borders">
                 <div class="text-h6 text-primary">{{ clonePreview.cloning_details.expenses_cloned }}</div>
                 <div class="text-caption">Spese Clonate</div>
@@ -235,6 +206,8 @@
 import { ref } from 'vue'
 import { useSnackbar } from 'src/composables/useSnackbar'
 import { reportsAPI } from 'src/services/api/reports.js'
+import MCFInput from 'src/components/forms/MCFInput.vue'
+import MCFDatePicker from 'src/components/MCFDatePicker.vue'
 
 const props = defineProps({
   modelValue: {

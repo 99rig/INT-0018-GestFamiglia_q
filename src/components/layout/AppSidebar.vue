@@ -91,7 +91,6 @@ import { useAuthStore } from 'src/stores/auth'
 const authStore = useAuthStore()
 
 const currentUser = computed(() => {
-  console.log('🔍 Current user data:', authStore.user)
   return authStore.user
 })
 

@@ -20,7 +20,7 @@
             auto-close
           >
             <q-list>
-              <q-item clickable @click="showAddContribution = true">
+              <q-item clickable @click="openAddContribution">
                 <q-item-section avatar>
                   <q-icon name="add" />
                 </q-item-section>
@@ -82,12 +82,10 @@
     </div>
 
     <!-- Dialog Aggiungi Contributo -->
-    <q-dialog v-model="showAddContribution" persistent>
-      <ContributionForm
-        @saved="onContributionSaved"
-        @cancel="showAddContribution = false"
-      />
-    </q-dialog>
+    <ContributionForm
+      v-model="showAddContribution"
+      @saved="onContributionSaved"
+    />
 
     <!-- Dialog Report -->
     <q-dialog v-model="showReportDialog" maximized>
@@ -104,7 +102,7 @@
         fab
         icon="add"
         color="primary"
-        @click="showAddContribution = true"
+        @click="openAddContribution"
       >
         <q-tooltip>Nuovo Contributo</q-tooltip>
       </q-btn>
@@ -113,11 +111,11 @@
 </template>
 
 <script>
-import { defineComponent, ref, onMounted } from 'vue'
+import { defineComponent, ref, onMounted, watch } from 'vue'
 import { useContributionsStore } from '@/stores/contributions'
 import ContributionsDashboard from '@/components/contributions/ContributionsDashboard.vue'
 import ContributionsList from '@/components/contributions/ContributionsList.vue'
-import ContributionForm from '@/components/contributions/ContributionForm.vue'
+import ContributionForm from 'src/components/contributions/ContributionForm.vue'
 import ContributionsReport from '@/components/contributions/ContributionsReport.vue'
 
 export default defineComponent({
@@ -137,6 +135,11 @@ export default defineComponent({
     const showAddContribution = ref(false)
     const showReportDialog = ref(false)
 
+    // Debug watcher per showAddContribution
+    watch(showAddContribution, (newValue) => {
+      console.log('🔍 DEBUG ContributionsPage: showAddContribution changed to:', newValue)
+    })
+
     onMounted(async () => {
       // Carica i dati iniziali
       try {
@@ -148,10 +151,22 @@ export default defineComponent({
       } catch (error) {
         console.error('Errore nel caricamento dati contributi:', error)
       }
+
+      // Test debug: apri automaticamente il modal dopo 3 secondi
+      setTimeout(() => {
+        console.log('🔍 DEBUG: Auto-opening modal for test')
+        showAddContribution.value = true
+      }, 3000)
     })
 
+    const openAddContribution = () => {
+      console.log('🔍 DEBUG: Trying to open ContributionForm')
+      console.log('🔍 DEBUG: showAddContribution before:', showAddContribution.value)
+      showAddContribution.value = true
+      console.log('🔍 DEBUG: showAddContribution after:', showAddContribution.value)
+    }
+
     const onContributionSaved = () => {
-      showAddContribution.value = false
       // I dati vengono aggiornati automaticamente dal store
     }
 
@@ -163,6 +178,7 @@ export default defineComponent({
       currentView,
       showAddContribution,
       showReportDialog,
+      openAddContribution,
       onContributionSaved,
       showReport
     }

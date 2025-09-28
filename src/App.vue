@@ -23,8 +23,6 @@ const loadUIPreferences = () => {
     if (preferences.appFont) {
       document.documentElement.style.setProperty('--mcf-app-font', preferences.appFont)
     }
-
-    console.log('✅ UI preferences applied from profile:', preferences)
   } else {
     // Fallback al localStorage
     const savedLogoFont = localStorage.getItem('mcf-logo-font')

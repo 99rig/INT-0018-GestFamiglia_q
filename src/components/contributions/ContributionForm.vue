@@ -1,14 +1,31 @@
 <template>
-  <q-card style="min-width: 400px; max-width: 500px;">
-    <q-card-section class="bg-primary text-white">
+  <q-dialog
+    :model-value="modelValue"
+    @update:model-value="$emit('update:modelValue', $event)"
+    @show="console.log('🔍 DEBUG: ContributionForm dialog SHOW event')"
+    @hide="console.log('🔍 DEBUG: ContributionForm dialog HIDE event')"
+    persistent
+    full-width
+    position="top"
+    transition-show="slide-down"
+    transition-hide="slide-up"
+  >
+    <q-card class="mcf-dialog" style="margin: 0; border-radius: 0 0 16px 16px; max-height: 90vh; display: flex; flex-direction: column;">
+    <q-card-section class="mcf-dialog-header">
       <div class="text-h6">
-        <q-icon name="add" class="q-mr-sm" />
         {{ isEdit ? 'Modifica Contributo' : 'Nuovo Contributo' }}
       </div>
+      <q-btn
+        flat
+        round
+        dense
+        icon="close"
+        @click="onCancel"
+      />
     </q-card-section>
 
-    <q-form @submit="onSubmit" class="q-gutter-md">
-      <q-card-section>
+    <q-card-section class="mcf-dialog-content">
+      <q-form @submit="onSubmit" class="q-gutter-sm">
         <!-- Descrizione -->
         <MCFInput
           v-model="form.description"
@@ -59,70 +76,78 @@
         </MCFSelect>
 
         <!-- Data -->
-        <MCFInput
+        <MCFDatePicker
           v-model="form.date"
           label="Data Contributo *"
-          type="date"
           :rules="[val => !!val || 'Data richiesta']"
         />
 
         <!-- Note -->
-        <q-input
+        <MCFInput
           v-model="form.notes"
           label="Note aggiuntive"
           type="textarea"
           rows="3"
           maxlength="500"
           counter
-          outlined
-          class="q-mb-md"
         />
-      </q-card-section>
+      </q-form>
+    </q-card-section>
 
-      <q-card-actions align="right" class="q-pa-md">
-        <q-btn
-          flat
-          label="Annulla"
-          color="grey"
-          @click="$emit('cancel')"
-          :disable="loading"
-        />
-        <q-btn
-          type="submit"
-          :label="isEdit ? 'Aggiorna' : 'Aggiungi'"
-          color="primary"
-          :loading="loading"
-          :disable="loading"
-        />
-      </q-card-actions>
-    </q-form>
+    <q-card-actions align="right" class="mcf-dialog-actions">
+      <q-btn
+        flat
+        label="Annulla"
+        @click="onCancel"
+        :disable="loading"
+        unelevated
+        no-caps
+      />
+      <q-btn
+        :label="isEdit ? 'Aggiorna' : 'Aggiungi'"
+        color="primary"
+        :loading="loading"
+        :disable="loading"
+        @click="onSubmit"
+        unelevated
+        no-caps
+        rounded
+      />
+    </q-card-actions>
   </q-card>
+  </q-dialog>
 </template>
 
 <script>
-import { defineComponent, ref, computed, onMounted } from 'vue'
+import { defineComponent, ref, computed, onMounted, watch } from 'vue'
 import { useContributionsStore } from 'src/stores/contributions'
 import { useAuthStore } from 'src/stores/auth'
 import { date } from 'quasar'
 import MCFInput from 'src/components/forms/MCFInput.vue'
 import MCFSelect from 'src/components/forms/MCFSelect.vue'
+import MCFDatePicker from 'src/components/MCFDatePicker.vue'
 
 export default defineComponent({
   name: 'ContributionForm',
 
   components: {
     MCFInput,
-    MCFSelect
+    MCFSelect,
+    MCFDatePicker
   },
 
   props: {
+    modelValue: {
+      type: Boolean,
+      default: false
+    },
     contribution: {
       type: Object,
       default: null
     }
   },
 
-  emits: ['saved', 'cancel'],
+  emits: ['update:modelValue', 'saved', 'cancel'],
 
   setup(props, { emit }) {
     const contributionsStore = useContributionsStore()
@@ -130,6 +155,11 @@ export default defineComponent({
     const loading = ref(false)
 
     const isEdit = computed(() => !!props.contribution)
+
+    // Debug watcher
+    watch(() => props.modelValue, (newValue) => {
+      console.log('🔍 DEBUG ContributionForm: modelValue changed to:', newValue)
+    }, { immediate: true })
 
     // Opzioni per tipo di contributo
     const contributionTypeOptions = [
@@ -204,11 +234,17 @@ export default defineComponent({
           await contributionsStore.createContribution(submitData)
         }
         emit('saved')
+        emit('update:modelValue', false)
       } catch (error) {
         console.error('Errore nel salvataggio contributo:', error)
       } finally {
         loading.value = false
       }
+    }
+
+    const onCancel = () => {
+      emit('cancel')
+      emit('update:modelValue', false)
     }
 
     return {
@@ -218,16 +254,76 @@ export default defineComponent({
       contributionTypeOptions,
       getContributionTypeIcon,
       getContributionTypeColor,
-      onSubmit
+      onSubmit,
+      onCancel
     }
   }
 })
 </script>
 
 <style lang="scss" scoped>
-.q-card {
-  .q-card__section--vert {
-    padding: 16px;
+.mcf-dialog {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.mcf-dialog-header {
+  background: linear-gradient(135deg, var(--q-primary) 0%, #1565c0 100%);
+  color: white;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.mcf-dialog-content {
+  padding: 24px;
+  flex: 1;
+  overflow-y: auto;
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.mcf-dialog-actions {
+  padding: 16px 24px;
+  background-color: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+}
+
+/* === COMPATTA SPACING GENERALE === */
+.q-gutter-sm > * {
+  margin-bottom: 8px !important; /* Riduce spacing tra i campi */
+}
+
+.q-gutter-sm > *:last-child {
+  margin-bottom: 0 !important;
+}
+
+// Responsive
+@media (max-width: 600px) {
+  .mcf-dialog {
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+    max-width: none;
+    max-height: none;
+  }
+
+  .mcf-dialog-header {
+    padding: 16px 20px;
+  }
+
+  .mcf-dialog-content {
+    padding: 20px;
+  }
+
+  .mcf-dialog-actions {
+    padding: 16px 20px;
   }
 }
 </style>

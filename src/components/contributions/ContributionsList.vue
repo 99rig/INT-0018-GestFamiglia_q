@@ -194,13 +194,11 @@
     </q-card>
 
     <!-- Dialog Aggiungi/Modifica -->
-    <q-dialog v-model="showAddForm" persistent>
-      <ContributionForm
-        :contribution="selectedContribution"
-        @saved="onContributionSaved"
-        @cancel="closeForm"
-      />
-    </q-dialog>
+    <ContributionForm
+      v-model="showAddForm"
+      :contribution="selectedContribution"
+      @saved="onContributionSaved"
+    />
 
     <!-- Dialog Dettagli -->
     <q-dialog v-model="showDetails">
@@ -236,7 +234,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed, onMounted } from 'vue'
+import { defineComponent, ref, computed, onMounted, watch } from 'vue'
 import { useContributionsStore } from 'src/stores/contributions'
 import { date } from 'quasar'
 import MCFInput from 'src/components/forms/MCFInput.vue'
@@ -293,6 +291,13 @@ export default defineComponent({
 
     onMounted(() => {
       loadContributions()
+    })
+
+    // Reset selected contribution when dialog closes
+    watch(showAddForm, (isOpen) => {
+      if (!isOpen) {
+        selectedContribution.value = null
+      }
     })
 
     const loadContributions = async () => {
@@ -396,7 +401,6 @@ export default defineComponent({
     }
 
     const onContributionSaved = () => {
-      closeForm()
       loadContributions()
     }
 

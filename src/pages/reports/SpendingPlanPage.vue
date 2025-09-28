@@ -7,17 +7,19 @@
         <div class="action-buttons-grid">
           <q-btn
             icon="event_note"
-            label="Nuovo Piano di Spesa"
-            class="mcf-btn-primary"
+            label="Add Piano"
+            class="mcf-btn-primary border-0"
             @click="showCreateDialog = true"
             :disable="!authStore.user?.family"
+            style="border: 0 !important;"
           />
           <q-btn
             icon="account_balance_wallet"
-            label="Aggiungi Contributo"
+            label="Contributo"
             class="mcf-btn-secondary"
             @click="showContributionDialog = true"
             :disable="!authStore.user?.family"
+            style="border: 0 !important;"
           />
         </div>
       </div>
@@ -50,7 +52,7 @@
                 <q-icon name="account_balance_wallet" />
               </div>
               <div class="balance-details">
-                <div class="balance-label">Bilancio Famiglia Disponibile</div>
+                <div class="balance-label">Disponibilità Cash</div>
                 <div class="balance-amount" v-html="familyBalanceText"></div>
               </div>
             </div>
@@ -181,12 +183,10 @@
     />
 
     <!-- Dialog Contributo -->
-    <q-dialog v-model="showContributionDialog" persistent>
-      <ContributionForm
-        @saved="handleContributionSaved"
-        @cancel="showContributionDialog = false"
-      />
-    </q-dialog>
+    <ContributionForm
+      v-model="showContributionDialog"
+      @saved="handleContributionSaved"
+    />
 
   </q-page>
 </template>
@@ -283,7 +283,6 @@ const loadSpendingPlans = async () => {
     console.log('🔄 Caricamento piani con parametro show_all:', showAllFuturePlans.value)
 
     const response = await reportsAPI.getSpendingPlans(showAllFuturePlans.value)
-    console.log('🔍 Risposta API ricevuta:', response)
 
     // Supporta sia il nuovo formato con metadati che il vecchio formato
     if (response.results) {
@@ -437,7 +436,6 @@ const handlePlanCloned = async (clonedPlan) => {
 
 const handleContributionSaved = async () => {
   snackbar.success('Contributo aggiunto con successo!')
-  showContributionDialog.value = false
 
   // Ricarica il bilancio famiglia dopo aver aggiunto un contributo
   contributionsStore.invalidateBalanceCache()
@@ -589,7 +587,7 @@ onMounted(async () => {
 
 .balance-card {
   background: linear-gradient(135deg, #f8f9ff 0%, #e8f5e8 100%);
-  border: 2px solid #4caf50;
+  border: 2px dashed #4caf50;
   border-radius: 16px;
   transition: all 0.2s ease;
 

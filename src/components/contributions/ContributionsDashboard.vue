@@ -176,12 +176,10 @@
     </q-card>
 
     <!-- Dialog Aggiungi Contributo -->
-    <q-dialog v-model="showAddContribution" persistent>
-      <ContributionForm
-        @saved="onContributionSaved"
-        @cancel="showAddContribution = false"
-      />
-    </q-dialog>
+    <ContributionForm
+      v-model="showAddContribution"
+      @saved="onContributionSaved"
+    />
   </div>
 </template>
 
@@ -277,7 +275,6 @@ export default defineComponent({
     }
 
     const onContributionSaved = async () => {
-      showAddContribution.value = false
       // Ricarica i dati
       await Promise.all([
         contributionsStore.fetchBalance(),

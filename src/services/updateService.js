@@ -31,7 +31,6 @@ class UpdateService {
     } else {
       // Usa la versione dallo store in base al platform
       this.currentVersion = appStore.getCurrentVersion
-      console.log('🌐 Current version (Store):', this.currentVersion)
     }
   }
 

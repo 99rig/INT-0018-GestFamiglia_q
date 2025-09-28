@@ -3,9 +3,12 @@
     :model-value="modelValue"
     @update:model-value="$emit('update:modelValue', $event)"
     persistent
-    maximized
+    full-width
+    position="top"
+    transition-show="slide-down"
+    transition-hide="slide-up"
   >
-    <q-card class="mcf-dialog">
+    <q-card style="margin: 0; border-radius: 0 0 16px 16px; max-height: 90vh; display: flex; flex-direction: column;" class="mcf-dialog">
       <q-card-section class="mcf-dialog-header">
         <div class="text-h6">
           {{ isEdit ? 'Modifica Piano di Spesa' : 'Nuovo Piano di Spesa' }}
@@ -39,30 +42,27 @@
           </div>
         </q-banner>
 
-        <q-form @submit="onSubmit" class="q-gutter-md" :disable="!authStore.user?.family">
+        <q-form @submit="onSubmit" class="q-gutter-sm" :disable="!authStore.user?.family">
 
-          <q-input
+          <MCFInput
             v-model="formData.name"
             label="Nome Piano *"
             required
-            outlined
             :rules="[val => val && val.length > 0 || 'Nome richiesto']"
           />
 
-          <q-input
+          <MCFInput
             v-model="formData.description"
             label="Descrizione (opzionale)"
-            outlined
             type="textarea"
             rows="3"
           />
 
-          <q-input
+          <MCFInput
             v-model.number="formData.total_budget"
             label="Budget Pianificato (opzionale)"
-            outlined
             type="number"
-            step="0.01"
+            step="1"
             min="0"
             suffix="€"
             :rules="[
@@ -72,67 +72,30 @@
             <template v-slot:prepend>
               <q-icon name="account_balance_wallet" />
             </template>
-          </q-input>
+          </MCFInput>
 
-          <q-select
+          <MCFSelect
             v-model="formData.plan_type"
             :options="planTypeOptions"
             label="Tipo Piano *"
-            outlined
             emit-value
             map-options
           />
 
           <div class="mcf-date-fields">
             <div class="mcf-date-field">
-              <q-input
+              <MCFDatePicker
                 v-model="formData.start_date"
                 label="Data Inizio *"
-                outlined
-                readonly
                 :rules="[val => val && val.length > 0 || 'Data inizio richiesta']"
-              >
-                <template v-slot:append>
-                  <q-icon name="event" class="cursor-pointer">
-                    <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                      <q-date
-                        v-model="formData.start_date"
-                        mask="YYYY-MM-DD"
-                        :locale="italianLocale"
-                      >
-                        <div class="row items-center justify-end">
-                          <q-btn v-close-popup label="OK" color="primary" flat />
-                        </div>
-                      </q-date>
-                    </q-popup-proxy>
-                  </q-icon>
-                </template>
-              </q-input>
+              />
             </div>
             <div class="mcf-date-field">
-              <q-input
+              <MCFDatePicker
                 v-model="formData.end_date"
                 label="Data Fine *"
-                outlined
-                readonly
                 :rules="[val => val && val.length > 0 || 'Data fine richiesta']"
-              >
-                <template v-slot:append>
-                  <q-icon name="event" class="cursor-pointer">
-                    <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                      <q-date
-                        v-model="formData.end_date"
-                        mask="YYYY-MM-DD"
-                        :locale="italianLocale"
-                      >
-                        <div class="row items-center justify-end">
-                          <q-btn v-close-popup label="OK" color="primary" flat />
-                        </div>
-                      </q-date>
-                    </q-popup-proxy>
-                  </q-icon>
-                </template>
-              </q-input>
+              />
             </div>
           </div>
 
@@ -172,6 +135,9 @@
           :loading="saving"
           :disable="!canSubmit"
           @click="onSubmit"
+          unelevated
+          no-caps
+          rounded
         />
       </q-card-actions>
     </q-card>
@@ -181,6 +147,9 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useAuthStore } from 'src/stores/auth'
+import MCFInput from 'src/components/forms/MCFInput.vue'
+import MCFSelect from 'src/components/forms/MCFSelect.vue'
+import MCFDatePicker from 'src/components/MCFDatePicker.vue'
 
 // Locale italiana per il datepicker
 const italianLocale = {
@@ -339,11 +308,8 @@ const onCancel = () => {
 /* === DATE FIELDS RESPONSIVE === */
 .mcf-date-fields {
   display: flex;
-  gap: 8px;
-
   @media (max-width: 768px) {
     flex-direction: column;
-    gap: 4px;
   }
 }
 
@@ -361,6 +327,15 @@ const onCancel = () => {
     padding-top: 0 !important;
     margin-top: 2px !important;
   }
+}
+
+/* === COMPATTA SPACING GENERALE === */
+.q-gutter-sm > * {
+  margin-bottom: 8px !important; /* Riduce spacing tra i campi */
+}
+
+.q-gutter-sm > *:last-child {
+  margin-bottom: 0 !important;
 }
 
 /* === FAMILY TOGGLE SECTION === */
@@ -397,11 +372,9 @@ const onCancel = () => {
 /* === DATE FIELDS RESPONSIVE === */
 .mcf-date-fields {
   display: flex;
-  gap: 16px;
 
   @media (max-width: 768px) {
     flex-direction: column;
-    gap: 16px;
   }
 }
 

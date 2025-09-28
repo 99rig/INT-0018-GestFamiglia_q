@@ -244,13 +244,6 @@
         </div>
         <div class="row q-gutter-md justify-center">
           <q-btn
-            icon="edit"
-            label="Inserimento Manuale"
-            class="mcf-btn-primary"
-            size="lg"
-            @click="openManualForm()"
-          />
-          <q-btn
             icon="document_scanner"
             label="Scansiona Ricevuta"
             class="mcf-btn-secondary"
@@ -1763,11 +1756,9 @@ onMounted(async () => {
     const endTime = performance.now()
     console.log(`✅ Expenses page loaded in ${(endTime - startTime).toFixed(2)}ms (without spending plans)`)
 
-    // Auto-focus sul campo di ricerca dopo il caricamento
-    await nextTick()
-    if (searchInputRef.value) {
-      searchInputRef.value.focus()
-    }
+    // Auto-focus rimosso per migliorare UX
+  } catch (error) {
+    console.error('Error loading expenses page:', error)
   } finally {
     // Il loading viene gestito automaticamente da loadExpenses(),
     // ma assicuriamoci che sia false se ci sono errori
