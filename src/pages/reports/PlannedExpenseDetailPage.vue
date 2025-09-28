@@ -1812,6 +1812,17 @@ const canGenerateRecurring = (expense) => {
     return false
   }
 
+  // Verifica il numero effettivo di rate esistenti
+  const parentId = expense.parent_recurring_id || expense.id
+  const existingInstallments = plannedExpenses.value.filter(exp =>
+    exp.parent_recurring_id === parentId || exp.id === parentId
+  )
+
+  // Se il numero di rate esistenti è già uguale o superiore al totale previsto, non mostrare il bottone
+  if (existingInstallments.length >= expense.total_installments) {
+    return false
+  }
+
   return true
 }
 
