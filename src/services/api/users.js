@@ -3,6 +3,7 @@
  */
 
 import { apiClient } from './client.js'
+import { publicApiClient } from './publicClient.js'
 
 export const usersAPI = {
   // ===== FAMIGLIE =====
@@ -68,13 +69,14 @@ export const usersAPI = {
   },
 
   // ===== PASSWORD RESET =====
+  // Usa publicApiClient per evitare invio di token di autenticazione
   async requestPasswordReset(email) {
-    const response = await apiClient.post('/auth/password-reset/', { email })
+    const response = await publicApiClient.post('/auth/password-reset/', { email })
     return response.data
   },
 
   async confirmPasswordReset(resetData) {
-    const response = await apiClient.post('/auth/password-reset-confirm/', resetData)
+    const response = await publicApiClient.post('/auth/password-reset-confirm/', resetData)
     return response.data
   }
 }
