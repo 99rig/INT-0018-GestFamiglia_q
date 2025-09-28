@@ -122,6 +122,19 @@
                   <span class="status-badge mobile-status" :class="expense.payment_status">
                     {{ getStatusLabel(expense.payment_status) }}
                   </span>
+                  <!-- Badge con chi ha pagato SOTTO lo status mobile -->
+                  <div v-if="expense.paid_by_users && expense.paid_by_users.length > 0" class="paid-by-badges-mobile q-mt-xs">
+                    <q-badge
+                      v-for="user in expense.paid_by_users"
+                      :key="user.id"
+                      color="blue-grey-6"
+                      text-color="white"
+                      :label="user.first_name.toUpperCase()"
+                      class="paid-by-badge"
+                    >
+                      <q-tooltip>{{ user.full_name }} - €{{ formatAmount(user.amount_paid) }}</q-tooltip>
+                    </q-badge>
+                  </div>
                   <div v-if="expense.is_recurring" class="expense-badges q-mt-xs">
                     <q-badge
                       color="deep-orange-2"
@@ -136,6 +149,19 @@
                   <span class="status-badge" :class="expense.payment_status">
                     {{ getStatusLabel(expense.payment_status) }}
                   </span>
+                  <!-- Badge con chi ha pagato SOTTO lo status desktop -->
+                  <div v-if="expense.paid_by_users && expense.paid_by_users.length > 0" class="paid-by-badges-desktop q-mt-xs">
+                    <q-badge
+                      v-for="user in expense.paid_by_users"
+                      :key="user.id"
+                      color="blue-grey-6"
+                      text-color="white"
+                      :label="user.first_name.toUpperCase()"
+                      class="paid-by-badge"
+                    >
+                      <q-tooltip>{{ user.full_name }} - €{{ formatAmount(user.amount_paid) }}</q-tooltip>
+                    </q-badge>
+                  </div>
                 </div>
               </div>
             </div>
@@ -153,26 +179,6 @@
                 track-color="grey-2"
                 class="payment-progress-bar"
               />
-              <!-- Payment Details -->
-              <div v-if="expense.actual_payments_count > 0" class="payment-details">
-                <div class="payment-info-row">
-                  <!-- Badge con chi ha pagato PRIMA del testo -->
-                  <div v-if="expense.paid_by_users && expense.paid_by_users.length > 0" class="paid-by-badges-inline">
-                    <q-chip
-                      v-for="user in expense.paid_by_users"
-                      :key="user.id"
-                      color="blue-grey-6"
-                      text-color="white"
-                      size="xs"
-                      :label="getUserInitials(user.full_name)"
-                      class="paid-by-chip"
-                    >
-                      <q-tooltip>{{ user.full_name }} - €{{ formatAmount(user.amount_paid) }}</q-tooltip>
-                    </q-chip>
-                  </div>
-                  <span class="payment-by-text">{{ getPaymentByText(expense) }}</span>
-                </div>
-              </div>
             </div>
 
             <!-- Action Buttons -->
@@ -1312,9 +1318,10 @@ const progressValue = computed(() => {
 
 const progressColor = computed(() => {
   const progress = progressValue.value
-  if (progress >= 1) return 'green'
-  if (progress >= 0.7) return 'orange'
-  return 'primary'
+  if (progress >= 1) return 'green-3'      // Verde tenue per completato
+  if (progress >= 0.7) return 'amber-4'    // Ambra delicata per quasi completo
+  if (progress >= 0.4) return 'blue-3'     // Blu tenue per in progresso
+  return 'blue-grey-4'                     // Grigio-blu per inizio
 })
 
 // Computed per il testo del progresso
@@ -1865,9 +1872,11 @@ const getExpenseStatusClass = (expense) => {
 }
 
 const getProgressColor = (percentage) => {
-  if (percentage >= 100) return 'green'
-  if (percentage >= 50) return 'orange'
-  return 'primary'
+  if (percentage >= 100) return 'green-3'    // Verde più tenue
+  if (percentage >= 75) return 'light-green-4'  // Verde chiaro
+  if (percentage >= 50) return 'amber-4'     // Ambra più delicata
+  if (percentage >= 25) return 'blue-3'     // Blu tenue
+  return 'blue-grey-4'                       // Grigio-blu per inizio
 }
 
 // Nuovo metodo per il testo dei pagatori
@@ -2045,9 +2054,9 @@ const getInstallmentCheckboxValue = (installment, currentInstallmentNumber) => {
 
 const getInstallmentCheckboxColor = (installment, currentInstallmentNumber) => {
   if (installment.is_completed || installment.is_fully_paid) {
-    return 'green'
+    return 'green-3'    // Verde tenue per completato
   } else if (installment.installment_number === currentInstallmentNumber) {
-    return 'primary'
+    return 'blue-3'     // Blu tenue per corrente
   } else {
     return 'grey-5'
   }
@@ -2207,6 +2216,7 @@ onMounted(async () => {
 </script>
 
 <style lang="scss" scoped>
+
 .planned-expense-detail-content {
   width: 100%;
   margin: 0;
@@ -2241,7 +2251,7 @@ onMounted(async () => {
 
 // === PLAN INFO CARD ===
 .plan-info-card {
-  background: #f1f8ff;
+  background: var(--mcf-bg-surface);
   border: 1px dashed var(--mcf-secondary);
   border-radius: 12px;
   margin-bottom: 16px;
@@ -2311,7 +2321,7 @@ onMounted(async () => {
 .plan-summary {
   padding: 0 16px 16px 16px;
   border-top: 1px solid var(--mcf-border-light);
-  background-color: var(--mcf-bg-secondary);
+  background-color: #ffffff;
 
   @media (min-width: 768px) {
     padding: 0 24px 24px 24px;
@@ -2429,7 +2439,6 @@ onMounted(async () => {
     opacity: 1;
     background-color: #ffffff;
 
-    .expense-name,
     .expense-category,
     .amount-main,
     .payment-by-text {
@@ -2476,7 +2485,7 @@ onMounted(async () => {
 .expense-name {
   font-size: 16px;
   font-weight: 600;
-  color: var(--mcf-text-primary);
+  color: var(--mcf-primary);
   line-height: 1.3;
   margin-bottom: 6px;
 
@@ -2637,12 +2646,41 @@ onMounted(async () => {
   margin-top: 4px;
 }
 
+.paid-by-badges-mobile {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.paid-by-badges-desktop {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .paid-by-chip {
   min-width: 24px;
   height: 20px;
   font-size: 0.7rem;
   font-weight: 600;
   border-radius: 10px;
+}
+
+.paid-by-chip-small {
+  min-width: 20px;
+  height: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 10px;
+}
+
+.paid-by-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  margin-right: 4px;
+  margin-bottom: 2px;
 }
 
 .expense-actions {
@@ -3168,7 +3206,7 @@ onMounted(async () => {
 .payments-summary {
   margin-top: 16px;
   padding: 12px;
-  background: var(--mcf-bg-secondary);
+  background: var(--mcf-bg-surface);
   border-radius: 8px;
   border: 1px solid var(--mcf-border-light);
 }
@@ -3257,7 +3295,7 @@ onMounted(async () => {
 .payments-by-user {
   margin: 20px 0;
   padding: 16px;
-  background: var(--mcf-bg-secondary);
+  background: var(--mcf-bg-surface);
   border-radius: 8px;
   border: 1px solid var(--mcf-border-light);
 }
@@ -3565,4 +3603,10 @@ onMounted(async () => {
 }
 
 /* Removed media query - detailed view now available on both mobile and desktop */
+</style>
+
+<style lang="scss">
+.q-page {
+  background: #ffffff;
+}
 </style>

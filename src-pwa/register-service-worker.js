@@ -12,6 +12,23 @@ register(process.env.SERVICE_WORKER_FILE, {
 
   ready(/* registration */) {
     console.log('🔧 Service Worker is active')
+
+    // Check version aggressivo per Safari
+    const currentVersion = '1.0.40'
+    const storedVersion = localStorage.getItem('app_version')
+
+    if (!storedVersion || storedVersion !== currentVersion) {
+      console.log(`🔄 Version mismatch: stored=${storedVersion}, current=${currentVersion}`)
+      localStorage.setItem('app_version', currentVersion)
+
+      // Force clear tutto per Safari
+      if (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome')) {
+        console.log('🍎 Safari detected - forcing aggressive cache clear')
+        setTimeout(() => {
+          window.forceAppUpdate()
+        }, 1000)
+      }
+    }
   },
 
   registered(/* registration */) {
