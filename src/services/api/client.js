@@ -3,10 +3,11 @@
  */
 
 import axios from 'axios'
+import ConfigService from '../config.js'
 
 // Configura istanza axios con environment variables Quasar standard
 export const apiClient = axios.create({
-  baseURL: process.env.API_BASE_URL ? `${process.env.API_BASE_URL}/api` : 'http://localhost:8000/api',
+  baseURL: `${ConfigService.getApiBaseUrl()}/api`,
   headers: {
     'Content-Type': 'application/json',
   },

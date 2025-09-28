@@ -1,5 +1,6 @@
 import { defineBoot } from '#q-app/wrappers'
 import axios from 'axios'
+import ConfigService from '../services/config.js'
 
 // Be careful when using SSR for cross-request state pollution
 // due to creating a Singleton instance here;
@@ -10,8 +11,10 @@ import axios from 'axios'
 const api = axios.create({ baseURL: 'https://api.example.com' })
 
 export default defineBoot(({ app }) => {
-  // for use inside Vue files (Options API) through this.$axios and this.$api
+  // Log configurazioni ambiente al boot (solo in sviluppo)
+  ConfigService.logConfig()
 
+  // for use inside Vue files (Options API) through this.$axios and this.$api
   app.config.globalProperties.$axios = axios
   // ^ ^ ^ this will allow you to use this.$axios (for Vue Options API form)
   //       so you won't necessarily have to import axios in each vue file

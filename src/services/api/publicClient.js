@@ -10,10 +10,11 @@
  */
 
 import axios from 'axios'
+import ConfigService from '../config.js'
 
 // Crea un'istanza separata di axios per richieste pubbliche
 export const publicApiClient = axios.create({
-  baseURL: process.env.API_BASE_URL ? `${process.env.API_BASE_URL}/api` : 'http://localhost:8000/api',
+  baseURL: `${ConfigService.getApiBaseUrl()}/api`,
   headers: {
     'Content-Type': 'application/json',
   },
