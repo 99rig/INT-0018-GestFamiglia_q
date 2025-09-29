@@ -103,7 +103,7 @@
         <q-infinite-scroll
           @load="loadMoreExpenses"
           :offset="250"
-          :disable="!hasMorePages || loading"
+          :disable="!hasMorePages || loading || loadingMore"
           class="expenses-list"
         >
           <div
@@ -1636,12 +1636,11 @@ const loadPlanData = async (statusFilter = 'all', resetPagination = true) => {
 
 // Funzione per caricare più elementi (infinite scroll)
 const loadMoreExpenses = async (index, done) => {
-  if (!hasMorePages.value) {
+  if (!hasMorePages.value || loadingMore.value) {
     done(true) // Stop infinite scroll
     return
   }
 
-  loadingMore.value = true
   currentPage.value++
 
   try {
@@ -1649,6 +1648,7 @@ const loadMoreExpenses = async (index, done) => {
     done(!hasMorePages.value) // Stop se non ci sono più pagine
   } catch (error) {
     console.error('Errore nel caricamento di più spese:', error)
+    currentPage.value-- // Ripristina la pagina in caso di errore
     done(true) // Stop on error
   }
 }
