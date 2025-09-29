@@ -1608,14 +1608,9 @@ const loadPlanData = async (statusFilter = 'all', resetPagination = true) => {
         }))
       ]
     } else {
-      // Aggiungi le nuove spese a quelle esistenti
-      plannedExpenses.value.push(
-        ...plannedExpensesFromPlan,
-        ...unplannedExpenses.map(exp => ({
-          ...exp,
-          is_real_expense: true
-        }))
-      )
+      // Per le pagine successive, aggiungi SOLO le spese pianificate
+      // Le unplanned_expenses sono sempre le stesse e non devono essere duplicate
+      plannedExpenses.value.push(...plannedExpensesFromPlan)
     }
 
     // Aggiorna lo stato di paginazione
@@ -1633,8 +1628,8 @@ const loadPlanData = async (statusFilter = 'all', resetPagination = true) => {
       hasMorePages.value = false
     }
 
-    // Carica i dati dei pagamenti in background solo se necessario
-    if (statusFilter === 'all' || statusFilter === 'partial') {
+    // Carica i dati dei pagamenti in background solo se necessario e solo per la prima pagina
+    if ((statusFilter === 'all' || statusFilter === 'partial') && currentPage.value === 1) {
       loadPaymentsData()
     }
   } catch (error) {
