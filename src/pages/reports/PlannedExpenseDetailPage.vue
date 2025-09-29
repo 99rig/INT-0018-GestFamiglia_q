@@ -99,11 +99,11 @@
           </div>
         </div>
 
-        <!-- Expenses List with Infinite Scroll -->
+        <!-- Expenses List with Infinite Scroll FIXED -->
         <q-infinite-scroll
           @load="loadMoreExpenses"
           :offset="250"
-          :disable="!hasMorePages || loading || loadingMore"
+          :disable="false"
           class="expenses-list"
         >
           <div
@@ -1199,7 +1199,7 @@ const activeTab = ref('all')
 
 // Paginazione e infinite scroll
 const currentPage = ref(1)
-const hasMorePages = ref(true)
+const hasMorePages = ref(false) // Inizializza a false, sarà impostato a true solo se necessario
 const loadingMore = ref(false)
 const paginationInfo = ref(null)
 
@@ -1562,20 +1562,25 @@ const paymentModalStats = computed(() => [
 
 // Metodi
 const loadPlanData = async (statusFilter = 'all', resetPagination = true) => {
+  console.log(`🚀 loadPlanData chiamata - statusFilter: ${statusFilter}, resetPagination: ${resetPagination}, currentPage: ${currentPage.value}`)
+
   if (resetPagination) {
+    console.log(`🔄 Reset paginazione - currentPage: 1`)
     loading.value = true
     currentPage.value = 1
     plannedExpenses.value = []
-    hasMorePages.value = true
+    hasMorePages.value = false // Inizializza a false, sarà impostato dalla risposta API
   }
 
   try {
     // 🚀 Usa il nuovo endpoint ottimizzato con filtro status e paginazione
+    console.log(`📡 Chiamata API - planId: ${planId.value}, page: ${currentPage.value}, status: ${statusFilter}`)
     const response = await reportsAPI.getSpendingPlanDetails(planId.value, {
       status: statusFilter,
       page: currentPage.value,
       pageSize: 10
     })
+    console.log(`✅ Risposta API ricevuta - count: ${response.count}, next: ${response.next}`, response)
 
     // Con DRF pagination, la risposta ha formato: {count, next, previous, results}
     currentPlan.value = response.results.plan
@@ -1618,16 +1623,36 @@ const loadPlanData = async (statusFilter = 'all', resetPagination = true) => {
 
     console.log('📋 Piano caricato - Pagina:', currentPage.value, 'Filtro:', statusFilter)
     console.log('📊 Paginazione:', paginationInfo.value)
+    console.log('🔄 hasMorePages:', hasMorePages.value)
     console.log('💰 Totale spese caricate:', plannedExpenses.value.length)
     console.log('🚀 Performance: paginazione e filtro applicati lato backend')
+
+    // VERIFICA IMPORTANTE: Se non ci sono più pagine, assicurati che l'infinite scroll si fermi
+    if (!response.next) {
+      console.log('🛑 NESSUNA PAGINA SUCCESSIVA - Fermare infinite scroll')
+      hasMorePages.value = false
+    }
 
     // Carica i dati dei pagamenti in background solo se necessario
     if (statusFilter === 'all' || statusFilter === 'partial') {
       loadPaymentsData()
     }
   } catch (error) {
-    console.error('Errore nel caricamento dei dati del piano:', error)
-    snackbar.error('Errore nel caricamento dei dati')
+    console.error(`❌ ERRORE loadPlanData - planId: ${planId.value}, page: ${currentPage.value}, status: ${statusFilter}`)
+    console.error('🚨 Dettagli errore:', error)
+    console.error('🚨 Response status:', error?.response?.status)
+    console.error('🚨 Response data:', error?.response?.data)
+
+    // Se è un errore 404, ferma definitivamente l'infinite scroll
+    if (error?.response?.status === 404) {
+      console.error('🛑 ERRORE 404 - Fermare infinite scroll definitivamente')
+      hasMorePages.value = false
+      if (currentPage.value > 1) {
+        currentPage.value-- // Ripristina la pagina precedente
+      }
+    }
+
+    snackbar.error(`Errore nel caricamento dei dati (HTTP ${error?.response?.status || 'N/A'})`)
   } finally {
     loading.value = false
     loadingMore.value = false
@@ -1636,20 +1661,44 @@ const loadPlanData = async (statusFilter = 'all', resetPagination = true) => {
 
 // Funzione per caricare più elementi (infinite scroll)
 const loadMoreExpenses = async (index, done) => {
+  console.log('🔄 loadMoreExpenses called - hasMorePages:', hasMorePages.value, 'loadingMore:', loadingMore.value, 'currentPage:', currentPage.value)
+
+  // VERIFICA RIGOROSA: Ferma se non ci sono più pagine o se stiamo già caricando
   if (!hasMorePages.value || loadingMore.value) {
+    console.log('🛑 Stopping infinite scroll - hasMorePages:', hasMorePages.value, 'loadingMore:', loadingMore.value)
     done(true) // Stop infinite scroll
     return
   }
 
+  // VERIFICA AGGIUNTIVA: Se siamo già oltre la pagina 1 e non abbiamo più dati, ferma
+  if (currentPage.value >= 1 && !hasMorePages.value) {
+    console.log('🛑 Already at or beyond first page with no more data - stopping')
+    done(true)
+    return
+  }
+
+  loadingMore.value = true
   currentPage.value++
+  console.log('📄 Loading page:', currentPage.value)
 
   try {
     await loadPlanData(activeTab.value, false) // false = non resettare la paginazione
+    console.log('✅ Page loaded - hasMorePages now:', hasMorePages.value)
     done(!hasMorePages.value) // Stop se non ci sono più pagine
   } catch (error) {
-    console.error('Errore nel caricamento di più spese:', error)
+    console.error('❌ Errore nel caricamento di più spese:', error)
+
+    // Check if this is a 500 server error or any HTTP error
+    if (error?.response?.status >= 500 || error?.response?.status >= 400) {
+      console.error('🚨 Server error detected, stopping infinite scroll permanently')
+      hasMorePages.value = false // Permanently disable infinite scroll
+      snackbar.error('Errore del server durante il caricamento. Infinite scroll disabilitato.')
+    }
+
     currentPage.value-- // Ripristina la pagina in caso di errore
     done(true) // Stop on error
+  } finally {
+    loadingMore.value = false // Ensure loading state is reset
   }
 }
 

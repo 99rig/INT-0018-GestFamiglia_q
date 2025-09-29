@@ -58,7 +58,7 @@ export const reportsAPI = {
     params.append('page_size', pageSize)
 
     const queryString = params.toString()
-    const response = await apiClient.get(`/spending-plans/${id}/details/${queryString ? '?' + queryString : ''}`)
+    const response = await apiClient.get(`/spending-plans/${id}/details${queryString ? '?' + queryString : ''}`)
     return response.data
   },
 
