@@ -1577,14 +1577,21 @@ const loadPlanData = async (statusFilter = 'all', resetPagination = true) => {
       pageSize: 10
     })
 
-    currentPlan.value = response.plan
-    paginationInfo.value = response.plan.pagination
+    // Con DRF pagination, la risposta ha formato: {count, next, previous, results}
+    currentPlan.value = response.results.plan
+    paginationInfo.value = {
+      page: currentPage.value,
+      page_size: 10,
+      total_items: response.count,
+      total_pages: Math.ceil(response.count / 10),
+      has_next: !!response.next
+    }
 
-    // Le spese pianificate vengono caricate direttamente dal piano (già filtrate e paginate dal backend)
-    const plannedExpensesFromPlan = response.plan.planned_expenses_detail || []
+    // Le spese pianificate vengono dalla risposta paginata DRF
+    const plannedExpensesFromPlan = response.results.planned_expenses || []
 
     // Le spese non pianificate vengono caricate separatamente (già filtrate dal backend)
-    const unplannedExpenses = response.unplanned_expenses || []
+    const unplannedExpenses = response.results.unplanned_expenses || []
 
     // Se è la prima pagina, sostituisci, altrimenti aggiungi
     if (currentPage.value === 1) {
