@@ -1439,7 +1439,8 @@ const completedExpenses = computed(() => {
 })
 
 const totalExpensesCount = computed(() => {
-  return parseInt(currentPlan.value?.total_expenses_count || 0)
+  // Usa il conteggio dalla paginazione se disponibile, altrimenti fallback al campo del piano
+  return parseInt(paginationInfo.value?.total_items || currentPlan.value?.total_expenses_count || 0)
 })
 
 const expenseStats = computed(() => {
