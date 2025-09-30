@@ -100,9 +100,9 @@ async function logout() {
 
     .mcf-brand-title {
       color: white;
-      font-family: var(--mcf-logo-font, 'Fredoka One'), cursive;
+      font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
       font-size: 20px;
-      font-weight: bold !important; // Logo sempre bold
+      font-weight: 700;
       line-height: 1.2;
       white-space: nowrap;
       overflow: hidden;

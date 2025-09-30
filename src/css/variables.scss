@@ -62,8 +62,8 @@ $active-palette: 'modern';
 
 // === MCF DESIGN TOKENS ===
 $mcf-primary: $teal-primary;      // Primary brand color (modern teal)
-$mcf-primary-hover: darken($teal-primary, 10%);    // Primary hover state (darker)
-$mcf-primary-light: lighten($teal-primary, 40%);    // Primary light tint
+$mcf-primary-hover: color.adjust($teal-primary, $lightness: -10%);    // Primary hover state (darker)
+$mcf-primary-light: color.adjust($teal-primary, $lightness: 40%);    // Primary light tint
 
 $mcf-secondary: $blue-steel;      // Secondary color (steel blue)
 $mcf-secondary-hover: $steel-700; // Secondary hover state (darker)
