@@ -3,81 +3,95 @@
     :model-value="showWantPin"
     @update:model-value="$emit('update:showWantPin', $event)"
     persistent
-    full-width
-    position="top"
-    transition-show="slide-down"
-    transition-hide="slide-up"
   >
-    <q-card style="margin: 0; border-radius: 0 0 16px 16px; display: flex; flex-direction: column;" class="mcf-pin-setup-modal">
-      <!-- Header -->
-      <q-card-section class="mcf-pin-header">
-        <div class="mcf-pin-icon-container">
-          <q-icon name="lock" class="mcf-pin-icon" />
+    <div class="ticket-container">
+      <div class="ticket-card">
+        <!-- Header Section -->
+        <div class="ticket-header">
+          <div class="ticket-logo">
+            <img :src="walletIcon" alt="Logo" class="logo-img" />
+            <div class="brand-section">
+              <div class="brand-badge">
+                <span class="logo-text">VUOI IMPOSTARE UN PIN?</span>
+              </div>
+              <svg class="barcode" viewBox="0 0 120 30" xmlns="http://www.w3.org/2000/svg">
+                <rect x="0" y="0" width="3" height="30" fill="#000"/>
+                <rect x="5" y="0" width="2" height="30" fill="#000"/>
+                <rect x="9" y="0" width="4" height="30" fill="#000"/>
+                <rect x="15" y="0" width="2" height="30" fill="#000"/>
+                <rect x="19" y="0" width="3" height="30" fill="#000"/>
+                <rect x="24" y="0" width="2" height="30" fill="#000"/>
+                <rect x="28" y="0" width="5" height="30" fill="#000"/>
+                <rect x="35" y="0" width="2" height="30" fill="#000"/>
+                <rect x="39" y="0" width="3" height="30" fill="#000"/>
+                <rect x="44" y="0" width="2" height="30" fill="#000"/>
+                <rect x="48" y="0" width="4" height="30" fill="#000"/>
+                <rect x="54" y="0" width="2" height="30" fill="#000"/>
+                <rect x="58" y="0" width="3" height="30" fill="#000"/>
+                <rect x="63" y="0" width="5" height="30" fill="#000"/>
+                <rect x="70" y="0" width="2" height="30" fill="#000"/>
+                <rect x="74" y="0" width="3" height="30" fill="#000"/>
+                <rect x="79" y="0" width="2" height="30" fill="#000"/>
+                <rect x="83" y="0" width="4" height="30" fill="#000"/>
+                <rect x="89" y="0" width="2" height="30" fill="#000"/>
+                <rect x="93" y="0" width="3" height="30" fill="#000"/>
+                <rect x="98" y="0" width="2" height="30" fill="#000"/>
+                <rect x="102" y="0" width="5" height="30" fill="#000"/>
+                <rect x="109" y="0" width="2" height="30" fill="#000"/>
+                <rect x="113" y="0" width="4" height="30" fill="#000"/>
+              </svg>
+            </div>
+          </div>
+          <div class="checkin-code">
+            <img :src="walletIcon" alt="Logo" class="logo-img-right" />
+          </div>
         </div>
-        <h3 class="mcf-pin-title">Imposta PIN</h3>
-        <p class="mcf-pin-subtitle">
-          Scegli un PIN di 4 cifre per accessi più veloci e sicuri
-        </p>
-      </q-card-section>
 
-      <!-- PIN Input -->
-      <q-card-section class="mcf-pin-input-section">
-        <div class="mcf-pin-inputs-container">
-          <q-input
-            v-for="(digit, index) in pinDigits"
-            :key="index"
-            :ref="el => pinInputs[index] = el"
-            v-model="pinDigits[index]"
-            class="mcf-pin-input"
-            outlined
-            dense
-            maxlength="1"
-            input-class="text-center"
-            inputmode="numeric"
-            pattern="[0-9]"
-            @update:model-value="(val) => handlePinInput(index, val)"
-            @keydown="handleKeydown($event, index)"
-          />
+        <!-- Message Section -->
+        <div class="event-info">
+          <div class="info-label">ACCESSO VELOCE E SICURO</div>
+          <div class="info-value">Scegli un PIN di 4 cifre per accessi più veloci e sicuri al tuo account</div>
         </div>
 
-        <!-- PIN Strength Indicator -->
-        <div class="mcf-pin-strength">
-          <div class="mcf-strength-dots">
-            <div
-              v-for="i in 4"
-              :key="i"
-              class="mcf-strength-dot"
-              :class="{ 'active': pinDigits[i-1] !== '' }"
+        <!-- Dashed Line Separator -->
+        <div class="ticket-separator">
+          <div class="dashed-line"></div>
+        </div>
+
+        <!-- Bottom Section with Actions -->
+        <div class="ticket-bottom">
+          <div class="bottom-actions">
+            <q-btn
+              flat
+              label="NO, GRAZIE"
+              color="grey-7"
+              size="sm"
+              @click="onCancel"
+              class="action-btn cancel-btn"
+            />
+            <q-btn
+              unelevated
+              label="SÌ, IMPOSTA PIN"
+              color="black"
+              size="md"
+              @click="onConfirm"
+              class="action-btn confirm-btn"
             />
           </div>
-          <p class="mcf-strength-text">
-            Inserisci 4 cifre per creare il tuo PIN
-          </p>
         </div>
-      </q-card-section>
 
-      <!-- Actions -->
-      <q-card-actions class="mcf-want-pin-actions">
-        <q-btn
-          flat
-          label="Annulla"
-          @click="onCancel"
-          class="mcf-want-pin-decline-btn"
-        />
-        <q-btn
-          unelevated
-          label="Imposta PIN"
-          color="primary"
-          @click="onConfirm"
-          class="mcf-want-pin-accept-btn"
-        />
-      </q-card-actions>
-    </q-card>
+        <!-- Footer -->
+        <div class="ticket-footer">
+          <div class="footer-text">MUMBLE.GROUP</div>
+        </div>
+      </div>
+    </div>
   </q-dialog>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
+import walletIcon from 'assets/wallet-icon-only.svg'
 
 const props = defineProps({
   showWantPin: {
@@ -92,230 +106,267 @@ const emit = defineEmits([
   'cancel'
 ])
 
-// State
-const pinDigits = ref(['', '', '', ''])
-const pinInputs = ref([])
-
-// Methods
-const handlePinInput = (index, value) => {
-  // Prendi solo l'ultima cifra se inserito più di un carattere
-  const digit = value.toString().slice(-1)
-
-  // Accetta solo numeri
-  if (!/^\d*$/.test(digit)) {
-    pinDigits.value[index] = ''
-    return
-  }
-
-  pinDigits.value[index] = digit
-
-  // Auto-focus al campo successivo
-  if (digit && index < 3) {
-    setTimeout(() => {
-      const nextInput = pinInputs.value[index + 1]
-      if (nextInput && nextInput.$el) {
-        const inputEl = nextInput.$el.querySelector('input')
-        if (inputEl) {
-          inputEl.focus()
-          inputEl.select()
-        }
-      }
-    }, 50)
-  }
-
-  // Auto-conferma quando tutti i 4 campi sono compilati
-  const fullPin = pinDigits.value.join('')
-  if (fullPin.length === 4 && !/[^0-9]/.test(fullPin)) {
-    setTimeout(() => onConfirm(), 300)
-  }
-}
-
-const handleKeydown = (event, index) => {
-  if (event.key === 'Backspace' && pinDigits.value[index] === '' && index > 0) {
-    setTimeout(() => {
-      const prevInput = pinInputs.value[index - 1]
-      if (prevInput && prevInput.$el) {
-        const inputEl = prevInput.$el.querySelector('input')
-        if (inputEl) {
-          inputEl.focus()
-          inputEl.select()
-        }
-      }
-    }, 10)
-  }
-}
-
 const onConfirm = () => {
-  const fullPin = pinDigits.value.join('')
-  if (fullPin.length === 4) {
-    emit('confirm', fullPin)
-  }
+  emit('confirm')
 }
 
 const onCancel = () => {
   emit('cancel')
-  resetForm()
 }
-
-const resetForm = () => {
-  pinDigits.value = ['', '', '', '']
-}
-
-// Reset form when modal closes and focus first input when opens
-watch(() => props.showWantPin, (isOpen) => {
-  if (!isOpen) {
-    resetForm()
-  } else {
-    // Focus sul primo input quando la modale si apre
-    setTimeout(() => {
-      const firstInput = pinInputs.value[0]
-      if (firstInput && firstInput.$el) {
-        const inputEl = firstInput.$el.querySelector('input')
-        if (inputEl) {
-          inputEl.focus()
-        }
-      }
-    }, 100)
-  }
-})
 </script>
 
 <style lang="scss" scoped>
-.mcf-pin-setup-modal {
-  border-radius: 20px;
-  overflow: hidden;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-}
-
-.mcf-pin-header {
-  text-align: center;
-  padding: 32px 24px 24px;
-  background: linear-gradient(135deg, #239db0 0%, #2a5f82 100%);
-  color: white;
+.ticket-container {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 20px;
   position: relative;
+  z-index: 9999;
 }
 
-.mcf-pin-icon-container {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
+.ticket-card {
+  background: #f5f5f5;
+  border-radius: 20px;
+  padding: 25px 20px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  overflow: visible;
+
+  /* Perforations */
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 20px;
+    bottom: 20px;
+    width: 8px;
+    background:
+      radial-gradient(circle at 0 10px, transparent 4px, #f5f5f5 4px),
+      radial-gradient(circle at 0 30px, transparent 4px, #f5f5f5 4px),
+      radial-gradient(circle at 0 50px, transparent 4px, #f5f5f5 4px),
+      radial-gradient(circle at 0 70px, transparent 4px, #f5f5f5 4px),
+      radial-gradient(circle at 0 90px, transparent 4px, #f5f5f5 4px);
+    background-size: 8px 20px;
+    background-repeat: repeat-y;
+    z-index: 10;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 20px;
+    bottom: 20px;
+    width: 8px;
+    background:
+      radial-gradient(circle at 8px 10px, transparent 4px, #f5f5f5 4px),
+      radial-gradient(circle at 8px 30px, transparent 4px, #f5f5f5 4px),
+      radial-gradient(circle at 8px 50px, transparent 4px, #f5f5f5 4px),
+      radial-gradient(circle at 8px 70px, transparent 4px, #f5f5f5 4px),
+      radial-gradient(circle at 8px 90px, transparent 4px, #f5f5f5 4px);
+    background-size: 8px 20px;
+    background-repeat: repeat-y;
+    z-index: 10;
+  }
+
+  @media (min-width: 768px) {
+    padding: 30px 25px;
+  }
+}
+
+/* Header */
+.ticket-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+  margin-left: -20px;
+  margin-right: -20px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.ticket-logo {
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin: 0 auto 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-}
-
-.mcf-pin-icon {
-  font-size: 36px;
-  color: white;
-}
-
-.mcf-pin-title {
-  font-size: 24px;
-  font-weight: 600;
-  margin: 0 0 8px;
-  color: white;
-}
-
-.mcf-pin-subtitle {
-  font-size: 14px;
-  margin: 0;
-  opacity: 0.9;
-  line-height: 1.4;
-}
-
-.mcf-pin-input-section {
-  padding: 32px 24px;
-  text-align: center;
-}
-
-.mcf-pin-inputs-container {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.mcf-pin-input {
-  width: 60px;
-  height: 60px;
-}
-
-.mcf-pin-input :deep(.q-field__control) {
-  height: 60px;
-  border-radius: 12px;
-  border: 2px solid #e2e8f0;
-  transition: all 0.3s ease;
-}
-
-.mcf-pin-input :deep(.q-field__control):hover {
-  border-color: #239db0;
-  box-shadow: 0 0 0 3px rgba(35, 157, 176, 0.1);
-}
-
-.mcf-pin-input :deep(.q-field--focused .q-field__control) {
-  border-color: #239db0 !important;
-  box-shadow: 0 0 0 3px rgba(35, 157, 176, 0.2) !important;
-}
-
-.mcf-pin-input :deep(.q-field__native) {
-  font-size: 24px;
-  font-weight: 600;
-  color: #1e293b;
-  text-align: center;
-}
-
-.mcf-pin-strength {
-  margin-top: 16px;
-}
-
-.mcf-strength-dots {
-  display: flex;
-  justify-content: center;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-left: -20px;
 }
 
-.mcf-strength-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #e2e8f0;
-  transition: all 0.3s ease;
+.logo-img {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  margin-left: 20px;
 }
 
-.mcf-strength-dot.active {
-  background: #239db0;
-  transform: scale(1.2);
+.brand-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.mcf-strength-text {
-  font-size: 12px;
-  color: #64748b;
-  margin: 0;
+.brand-badge {
+  background: #2a5f82;
+  padding: 4px 10px;
+  border-radius: 4px;
+  display: inline-block;
+  align-self: flex-start;
+  margin-left: -40px;
+  padding-left: 20px;
 }
 
-.mcf-want-pin-actions {
-  padding: 0 24px 24px;
-  justify-content: space-between;
-  gap: 12px;
+.logo-text {
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.3px;
 }
 
-.mcf-want-pin-decline-btn {
-  flex: 1;
-  height: 48px;
-  border-radius: 12px;
-  font-weight: 500;
+.barcode {
+  width: 100px;
+  height: 20px;
+  margin-left: -40px;
+  padding-left: 20px;
 }
 
-.mcf-want-pin-accept-btn {
-  flex: 2;
-  height: 48px;
-  border-radius: 12px;
+.checkin-code {
+  text-align: right;
+  margin-right: -10px;
+  padding-right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.logo-img-right {
+  width: 80px;
+  height: 80px;
+  margin-top: -20px;
+  position: relative;
+  filter: brightness(0) saturate(100%) invert(32%) sepia(38%) saturate(863%) hue-rotate(162deg) brightness(93%) contrast(87%);
+  border: 1px solid #2a5f82;
+  border-radius: 25px;
+}
+
+/* Event Info */
+.event-info {
+  margin-bottom: 20px;
+  padding: 0 10px;
+}
+
+.info-label {
+  font-size: 9px;
   font-weight: 600;
-  text-transform: none;
+  color: #666666;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.info-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: #000000;
+  letter-spacing: 0.3px;
+  line-height: 1.5;
+}
+
+/* Dashed Separator */
+.ticket-separator {
+  margin: 20px -20px;
+  padding: 0 20px;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: -15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 26px;
+    height: 26px;
+    background: #B4B8BB;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 20;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: -15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 26px;
+    height: 26px;
+    background: #B3B6B9;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 20;
+  }
+}
+
+.dashed-line {
+  width: 100%;
+  height: 2px;
+  background-image: repeating-linear-gradient(
+    to right,
+    #cccccc 0,
+    #cccccc 8px,
+    transparent 8px,
+    transparent 16px
+  );
+}
+
+/* Bottom Section */
+.ticket-bottom {
+  margin-bottom: 15px;
+}
+
+.bottom-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 10px;
+}
+
+.action-btn {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.cancel-btn {
+  flex: 1;
+  font-size: 11px;
+}
+
+.confirm-btn {
+  flex: 2;
+  font-size: 13px;
+}
+
+/* Footer */
+.ticket-footer {
+  text-align: center;
+}
+
+.footer-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: #000000;
+  letter-spacing: 0.5px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .ticket-container {
+    padding: 10px;
+  }
+
+  .ticket-card {
+    padding: 20px 15px;
+  }
 }
 </style>
