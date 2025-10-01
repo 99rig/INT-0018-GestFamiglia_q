@@ -8,18 +8,22 @@
           <q-btn
             icon="event_note"
             label="Add Piano"
-            class="mcf-btn-primary border-0"
+            unelevated
+            color="primary"
+            no-caps
+            class="action-btn"
             @click="showCreateDialog = true"
             :disable="!authStore.user?.family"
-            style="border: 0 !important;"
           />
           <q-btn
             icon="account_balance_wallet"
             label="Contributo"
-            class="mcf-btn-secondary"
+            outline
+            color="primary"
+            no-caps
+            class="action-btn"
             @click="showContributionDialog = true"
             :disable="!authStore.user?.family"
-            style="border: 0 !important;"
           />
         </div>
       </div>
@@ -44,32 +48,32 @@
       </q-banner>
 
       <!-- Bilancio Famiglia -->
-      <div v-if="authStore.user?.family && familyBalanceText !== null" class="mcf-balance-section">
-        <q-card flat bordered class="balance-card">
-          <q-card-section class="balance-content">
-            <div class="balance-info">
-              <div class="balance-icon">
-                <q-icon name="account_balance_wallet" />
-              </div>
-              <div class="balance-details">
-                <div class="balance-label">Disponibilità Cash</div>
-                <div class="balance-amount" v-html="familyBalanceText"></div>
-              </div>
+      <q-card
+        v-if="authStore.user?.family && familyBalanceText !== null"
+        bordered
+        class="balance-card shadow-1"
+      >
+        <q-card-section class="balance-content">
+          <div class="balance-info">
+            <q-icon name="account_balance_wallet" size="24px" color="primary" />
+            <div class="balance-details">
+              <div class="balance-label">Disponibilità Cash</div>
+              <div class="balance-amount" v-html="familyBalanceText"></div>
             </div>
-            <q-btn
-              flat
-              round
-              icon="refresh"
-              size="sm"
-              @click="loadFamilyBalance"
-              :loading="loadingBalance"
-              class="balance-refresh"
-            >
-              <q-tooltip>Aggiorna bilancio</q-tooltip>
-            </q-btn>
-          </q-card-section>
-        </q-card>
-      </div>
+          </div>
+          <q-btn
+            flat
+            round
+            icon="refresh"
+            size="sm"
+            @click="loadFamilyBalance"
+            :loading="loadingBalance"
+            class="balance-refresh"
+          >
+            <q-tooltip>Aggiorna bilancio</q-tooltip>
+          </q-btn>
+        </q-card-section>
+      </q-card>
 
       <!-- Filtri e Controlli -->
       <div class="mcf-filters-section">
@@ -148,12 +152,10 @@
             v-for="plan in filteredSpendingPlans"
             :key="plan.id"
             :plan="plan"
-            :expanded="isExpanded(plan.id)"
             @click="openPlanDetail"
             @edit="editPlan"
             @clone="clonePlan"
             @delete="deletePlan"
-            @toggle-expansion="toggleExpanded"
           />
         </div>
     </div>
@@ -219,7 +221,6 @@ const showCloneDialog = ref(false)
 const showContributionDialog = ref(false)
 const editingPlan = ref(null)
 const cloningPlan = ref(null)
-const expandedPlans = ref(new Set())
 const familyBalance = computed(() => {
   const balance = contributionsStore.familyBalance
   return (balance !== null && balance !== undefined) ? balance : null
@@ -483,20 +484,6 @@ const formatAmount = (amount) => {
 
 // Funzioni rimosse - ora usiamo i dati calcolati dal backend
 
-
-// Toggle funzioni
-const toggleExpanded = (planId) => {
-  if (expandedPlans.value.has(planId)) {
-    expandedPlans.value.delete(planId)
-  } else {
-    expandedPlans.value.add(planId)
-  }
-}
-
-const isExpanded = (planId) => {
-  return expandedPlans.value.has(planId)
-}
-
 // Lifecycle
 onMounted(async () => {
   // Le route guards garantiscono che l'utente sia autenticato
@@ -539,6 +526,13 @@ onMounted(async () => {
   }
 }
 
+.action-btn {
+  flex: 1;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-weight: 500;
+}
+
 .mcf-btn-primary, .mcf-btn-secondary {
   width: 100%;
   justify-content: center;
@@ -577,23 +571,16 @@ onMounted(async () => {
 }
 
 // === BALANCE SECTION ===
-.mcf-balance-section {
+.balance-card {
+  background: white !important;
+  border: 1px solid #E0E0E0 !important;
+  border-radius: 16px !important;
   margin-bottom: 16px;
+  transition: all 0.2s ease;
 
   @media (min-width: 768px) {
     margin-bottom: 20px;
-  }
-}
-
-.balance-card {
-  background: linear-gradient(135deg, #f8f9ff 0%, #e8f5e8 100%);
-  border: 2px dashed #4caf50;
-  border-radius: 16px;
-  transition: all 0.2s ease;
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
+    border-radius: 20px !important;
   }
 }
 
@@ -601,10 +588,10 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: 12px 16px !important;
 
   @media (min-width: 768px) {
-    padding: 20px 24px;
+    padding: 16px 20px !important;
   }
 }
 
@@ -944,6 +931,8 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: 1fr;
   gap: 20px;
+  grid-auto-rows: auto;
+  align-items: start;
 
   @media (min-width: 768px) {
     grid-template-columns: repeat(2, 1fr);

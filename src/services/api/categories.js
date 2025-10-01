@@ -6,8 +6,10 @@ import { apiClient } from './client.js'
 
 export const categoriesAPI = {
   // Categorie
-  async getCategories() {
-    const response = await apiClient.get('/categories/')
+  async getCategories(pageSize = 20) {
+    const response = await apiClient.get('/categories/', {
+      params: { page_size: pageSize }
+    })
     return response.data
   },
 

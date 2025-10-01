@@ -28,7 +28,7 @@
       <!-- Content -->
       <div v-else>
         <!-- Plan Info Card -->
-        <div v-if="currentPlan" class="plan-info-card">
+        <q-card v-if="currentPlan" class="plan-info-card shadow-2" bordered>
           <div class="plan-header">
             <div class="plan-main">
               <div class="plan-name">{{ currentPlan.name }}</div>
@@ -68,7 +68,7 @@
               />
             </div>
           </div>
-        </div>
+        </q-card>
 
 
         <!-- Filter Chips -->
@@ -106,11 +106,15 @@
           :disable="false"
           class="expenses-list"
         >
-          <div
+          <ExpenseCard
             v-for="expense in filteredExpenses"
             :key="expense.id"
-            class="expense-card"
-            :class="getExpenseStatusClass(expense)"
+            :expense="expense"
+            :status-class="getExpenseStatusClass(expense)"
+            :clickable="$q.screen.lt.md"
+            :elevated="2"
+            :mobile-elevated="4"
+            @click="editExpense"
           >
             <div class="expense-header">
               <div class="expense-main">
@@ -366,8 +370,8 @@
 
               <!-- Mobile view with text menu -->
               <template v-else>
-                <!-- Primary Action Buttons (most used) -->
-                <div class="mobile-primary-actions">
+                <!-- Mobile Actions (unified) -->
+                <div class="mobile-actions-unified">
                   <q-btn
                     v-if="!expense.is_fully_paid"
                     icon="payment"
@@ -375,7 +379,7 @@
                     size="sm"
                     color="primary"
                     class="mcf-mobile-primary-btn"
-                    @click="openPaymentDialog(expense)"
+                    @click.stop="openPaymentDialog(expense)"
                   />
                   <q-btn
                     icon="receipt"
@@ -384,7 +388,7 @@
                     color="secondary"
                     outline
                     class="mcf-mobile-primary-btn"
-                    @click="viewPayments(expense)"
+                    @click.stop="viewPayments(expense)"
                   />
 
                   <!-- Recurring Toggle Button (if applicable) -->
@@ -396,12 +400,10 @@
                     color="orange"
                     outline
                     class="mcf-mobile-primary-btn"
-                    @click="toggleRecurringView(expense.id)"
+                    @click.stop="toggleRecurringView(expense.id)"
                   />
-                </div>
 
-                <!-- Secondary Actions Menu -->
-                <div class="mobile-secondary-actions">
+                  <!-- Menu 3 puntini -->
                   <q-btn
                     flat
                     round
@@ -416,8 +418,10 @@
                       transition-hide="scale"
                       anchor="bottom right"
                       self="top right"
+                      :offset="[0, 8]"
+                      style="border-radius: 16px; overflow: hidden;"
                     >
-                      <q-list class="mcf-mobile-menu-list">
+                      <q-list class="mcf-mobile-menu-list" style="border-radius: 16px;">
                         <q-item
                           clickable
                           v-close-popup
@@ -610,7 +614,7 @@
                 </div>
               </div>
             </div>
-          </div>
+          </ExpenseCard>
 
           <!-- Loading More Indicator -->
           <template v-slot:loading>
@@ -928,6 +932,8 @@
               label="Priorità"
               option-value="value"
               option-label="label"
+              emit-value
+              map-options
               prepend-icon="priority_high"
             />
 
@@ -1179,6 +1185,7 @@ import MCFSelect from 'components/forms/MCFSelect.vue'
 import CategorySelect from 'components/CategorySelect.vue'
 import DeleteExpenseModal from 'components/DeleteExpenseModal.vue'
 import MCFLoading from 'src/components/MCFLoading.vue'
+import ExpenseCard from 'src/components/ExpenseCard.vue'
 import { MCFFormModal, MCFInfoModal } from 'components/modals'
 
 const $q = useQuasar()
@@ -1225,7 +1232,7 @@ const filterOptions = computed(() => [
   },
   {
     value: 'completed',
-    label: 'Completate',
+    label: 'Pagate',
     icon: 'check_circle',
     count: activeTab.value === 'completed' ? plannedExpenses.value.length : 0
   },
@@ -1428,7 +1435,7 @@ const progressIcon = computed(() => {
 
 const progressStatusText = computed(() => {
   const progress = progressPercentage.value
-  if (progress >= 100) return 'Completato'
+  if (progress >= 100) return 'Pagato'
   if (progress >= 75) return 'Quasi finito'
   if (progress >= 25) return 'In corso'
   return 'Appena iniziato'
@@ -1450,7 +1457,7 @@ const expenseStats = computed(() => {
     {
       key: 'completed',
       icon: 'check_circle',
-      label: 'Completate',
+      label: 'Pagate',
       count: parseInt(currentPlan.value.completed_count || 0),
       colorClass: 'stat-completed'
     },
@@ -1957,6 +1964,8 @@ const editExpense = (expense) => {
     }
   }
 
+  console.log('🔍 Priority from backend:', expense.priority, typeof expense.priority)
+
   editExpenseForm.value = {
     description: expense.description,
     amount: expense.amount,
@@ -2080,7 +2089,7 @@ const getStatusLabel = (status) => {
   const labels = {
     pending: 'In Attesa',
     partial: 'Parziale',
-    completed: 'Completata',
+    completed: 'Pagata',
     overdue: 'Scaduta'
   }
   return labels[status] || status
@@ -2677,26 +2686,20 @@ watch(activeTab, async (newFilter, oldFilter) => {
 }
 
 .expense-card {
-  background: var(--mcf-bg-surface);
-  border: 1px solid var(--mcf-border-light);
-  border-radius: 8px;
-  padding: 14px;
   transition: all 0.2s ease;
 
   @media (min-width: 768px) {
-    border-radius: 12px;
     padding: 20px;
   }
 
   &:hover {
-    box-shadow: var(--mcf-shadow-sm);
+    background: #F5F5F5;
   }
 
   &.status-completed {
     border-left: 4px solid var(--mcf-accent);
-    /* Rimuovo opacity e background disabilitato - card resta normale */
+    background-color: #F0F9F4;
     opacity: 1;
-    background-color: #ffffff;
 
     .expense-category,
     .amount-main,
@@ -2953,8 +2956,9 @@ watch(activeTab, async (newFilter, oldFilter) => {
   }
 
   @media (max-width: 600px) {
-    justify-content: center;
-    gap: 12px;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
   }
 }
 
@@ -2972,23 +2976,17 @@ watch(activeTab, async (newFilter, oldFilter) => {
 }
 
 /* Mobile Actions Layout */
-.mobile-primary-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 8px;
-
-  @media (max-width: 480px) {
-    gap: 6px;
-    margin-bottom: 6px;
-  }
-}
-
-.mobile-secondary-actions {
+.mobile-actions-unified {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+  width: 100%;
+
+  @media (max-width: 480px) {
+    gap: 6px;
+  }
 }
 
 .mcf-mobile-primary-btn {
@@ -3032,26 +3030,29 @@ watch(activeTab, async (newFilter, oldFilter) => {
 /* Mobile Menu Styles */
 .mcf-mobile-expense-menu {
   min-width: 200px;
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  border: 1px solid var(--mcf-border-light);
+  border-radius: 16px !important;
+  overflow: hidden !important;
 }
 
-.mcf-mobile-menu-list {
-  padding: 8px 0;
+:deep(.mcf-mobile-menu-list) {
+  border-radius: 16px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid #E0E0E0 !important;
+  overflow: hidden !important;
+  padding: 4px 0 !important;
 }
 
 .mcf-mobile-menu-item {
-  min-height: 48px;
-  padding: 8px 16px;
-  transition: background-color 0.2s ease;
+  min-height: 44px;
+  padding: 10px 16px;
+  transition: background-color 0.15s ease;
 
   &:hover {
-    background-color: var(--mcf-bg-hover);
+    background-color: #F5F5F5;
   }
 
   &.mcf-mobile-menu-delete:hover {
-    background-color: rgba(244, 67, 54, 0.1);
+    background-color: #FFEBEE;
   }
 }
 
@@ -3145,10 +3146,20 @@ watch(activeTab, async (newFilter, oldFilter) => {
 
   .expense-card {
     padding: 12px;
+    border-radius: 10px !important;
+
+    &:active {
+      background: #F0F0F0 !important;
+    }
+
+    &.status-completed {
+      background: #E8F5E9 !important;
+      border-color: #A5D6A7 !important;
+    }
   }
 
   .expenses-list {
-    gap: 12px;
+    gap: 14px;
   }
 
   .stat-item {
@@ -3219,155 +3230,65 @@ watch(activeTab, async (newFilter, oldFilter) => {
 
 /* === PLANNED EXPENSE MENU STYLES === */
 .mcf-planned-expense-menu-btn {
-  color: var(--mcf-text-secondary);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 8px;
+  color: #9E9E9E;
+  transition: color 0.2s ease;
 
   &:hover {
-    color: var(--mcf-primary);
-    background: linear-gradient(135deg, rgba(35, 157, 176, 0.12), rgba(35, 157, 176, 0.08));
-    transform: scale(1.05);
-    box-shadow: 0 2px 8px rgba(35, 157, 176, 0.2);
-  }
-
-  &:active {
-    transform: scale(0.95);
+    color: #424242;
+    background: rgba(0, 0, 0, 0.04);
   }
 }
 
 .mcf-planned-expense-menu {
-  min-width: 260px;
-  border-radius: 16px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15),
-  0 4px 12px rgba(0, 0, 0, 0.08);
-  border: 1px solid var(--mcf-border-light);
-  overflow: hidden;
-  background: var(--mcf-bg-surface);
-  backdrop-filter: blur(20px);
+  min-width: 220px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #E0E0E0;
+  background: white;
 }
 
 .mcf-menu-list {
-  padding: 12px 0;
+  padding: 4px 0;
 }
 
 .mcf-menu-item {
-  padding: 16px 20px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 10px 16px;
+  transition: background-color 0.15s ease;
   cursor: pointer;
-  border-radius: 12px;
-  margin: 0 8px 4px 8px;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
 
   &:hover {
-    background: var(--mcf-bg-hover);
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-
-    &::before {
-      opacity: 1;
-    }
-  }
-
-  &:active {
-    transform: translateY(0) scale(0.98);
-  }
-}
-
-.mcf-menu-edit:hover {
-  background: linear-gradient(135deg, rgba(35, 157, 176, 0.12), rgba(35, 157, 176, 0.08));
-  border-left: 3px solid var(--mcf-primary);
-
-  .mcf-menu-icon {
-    color: var(--mcf-primary);
-    transform: scale(1.1) rotate(5deg);
-  }
-
-  .mcf-menu-title {
-    color: var(--mcf-primary);
-    font-weight: 600;
-  }
-}
-
-.mcf-menu-recurring:hover {
-  background: linear-gradient(135deg, rgba(75, 85, 99, 0.12), rgba(75, 85, 99, 0.08));
-  border-left: 3px solid #4b5563;
-
-  .mcf-menu-icon {
-    color: #4b5563;
-    transform: scale(1.1) rotate(360deg);
-  }
-
-  .mcf-menu-title {
-    color: #4b5563;
-    font-weight: 600;
-  }
-}
-
-.mcf-menu-hide:hover,
-.mcf-menu-show:hover {
-  background: linear-gradient(135deg, rgba(156, 163, 175, 0.12), rgba(156, 163, 175, 0.08));
-  border-left: 3px solid #9ca3af;
-
-  .mcf-menu-icon {
-    color: #9ca3af;
-    transform: scale(1.1);
-  }
-
-  .mcf-menu-title {
-    color: #9ca3af;
-    font-weight: 600;
+    background-color: #F5F5F5;
   }
 }
 
 .mcf-menu-delete:hover {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.08));
-  border-left: 3px solid #ef4444;
-
-  .mcf-menu-icon {
-    color: #ef4444;
-    transform: scale(1.1) rotate(-5deg);
-  }
+  background-color: #FFEBEE;
 
   .mcf-menu-title {
-    color: #ef4444;
-    font-weight: 600;
+    color: #D32F2F;
+  }
+
+  .mcf-menu-icon {
+    color: #D32F2F;
   }
 }
 
 .mcf-menu-icon {
-  font-size: 22px;
-  color: var(--mcf-text-secondary);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 20px;
+  color: #757575;
 }
 
 .mcf-menu-title {
   font-weight: 500;
-  font-size: 15px;
-  color: var(--mcf-text-primary);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  letter-spacing: 0.02em;
+  font-size: 14px;
+  color: #424242;
 }
 
 .mcf-menu-subtitle {
-  font-size: 13px;
-  color: var(--mcf-text-secondary);
-  opacity: 0.75;
-  margin-top: 4px;
-  line-height: 1.4;
-  transition: opacity 0.3s ease;
+  font-size: 12px;
+  color: #9E9E9E;
+  margin-top: 2px;
+  line-height: 1.3;
 }
 
 .mcf-menu-separator {

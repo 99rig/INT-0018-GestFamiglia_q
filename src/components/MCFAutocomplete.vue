@@ -42,30 +42,60 @@
     <template v-slot:option="scope" v-else>
       <q-item
         v-bind="scope.itemProps"
-        class="mcf-autocomplete-option"
+        :class="['mcf-autocomplete-option', { 'mcf-option-neutral': isNeutralCategory(scope.opt) }]"
+        :style="getOptionStyle(scope.opt)"
       >
-        <q-item-section v-if="scope.opt.icon && scope.opt.icon.length > 0" avatar>
-          <q-icon
-            :name="scope.opt.icon"
-            :color="scope.opt.color || 'primary'"
-            size="sm"
-          />
+        <!-- Avatar con icona colorata (solo se presente) -->
+        <q-item-section avatar v-if="scope.opt && scope.opt.icon">
+          <q-avatar
+            :style="`background: ${getIconBackground(scope.opt)}; box-shadow: 0 1px 3px rgba(0,0,0,0.12);`"
+            size="32px"
+          >
+            <q-icon
+              :name="scope.opt.icon"
+              color="white"
+              size="16px"
+            />
+          </q-avatar>
         </q-item-section>
 
+        <!-- Contenuto -->
         <q-item-section>
-          <q-item-label class="mcf-option-label">
+          <q-item-label class="mcf-option-label" style="font-size: 16px; font-weight: 600; color: #212121;">
             {{ getOptionLabel(scope.opt) }}
+            <!-- Badge tipo inline -->
+            <q-badge
+              v-if="scope.opt.type === 'subcategory'"
+              color="blue-grey-2"
+              text-color="blue-grey-7"
+              class="q-ml-xs"
+              style="font-size: 10px; padding: 2px 6px;"
+            >
+              Sub
+            </q-badge>
           </q-item-label>
-          <q-item-label v-if="scope.opt.description" caption class="mcf-option-description">
+          <q-item-label v-if="scope.opt.description" caption class="mcf-option-description" style="font-size: 13px; color: #757575;">
             {{ scope.opt.description }}
           </q-item-label>
         </q-item-section>
 
-        <q-item-section v-if="scope.opt.badge" side>
-          <q-badge
-            :color="scope.opt.badgeColor || 'grey'"
-            :label="scope.opt.badge"
-            rounded
+        <!-- Badge laterale -->
+        <q-item-section side>
+          <q-chip
+            v-if="isNeutralCategory(scope.opt)"
+            size="sm"
+            color="orange-2"
+            text-color="orange-8"
+            dense
+            icon="schedule"
+          >
+            Temp
+          </q-chip>
+          <q-icon
+            v-else
+            name="chevron_right"
+            color="grey-4"
+            size="18px"
           />
         </q-item-section>
       </q-item>
@@ -403,6 +433,48 @@ const closeDialog = () => {
   }
 }
 
+// Identifica se un'opzione è una categoria neutrale (es. "Da Categorizzare")
+const isNeutralCategory = (option) => {
+  if (!option) return false
+  const label = getOptionLabel(option).toLowerCase()
+  return label.includes('da categorizzare') || label.includes('categorizzare')
+}
+
+// Genera colore di sfondo per l'icona basato sulla categoria
+const getIconBackground = (option) => {
+  if (!option) return '#9E9E9E'
+
+  // Se è "Da Categorizzare" → grigio
+  if (isNeutralCategory(option)) return '#BDBDBD'
+
+  // Colori diversi per sottocategorie
+  if (option.type === 'subcategory') return '#64B5F6'
+
+  // Palette di colori per le categorie
+  const colors = [
+    '#26A69A', // teal
+    '#66BB6A', // green
+    '#42A5F5', // blue
+    '#AB47BC', // purple
+    '#FF7043', // deep-orange
+    '#FFA726', // orange
+    '#EC407A', // pink
+    '#5C6BC0', // indigo
+  ]
+
+  // Hash del nome per colore consistente
+  const hash = (option.label || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  return colors[hash % colors.length]
+}
+
+// Stile dinamico per ogni opzione
+const getOptionStyle = (option) => {
+  if (isNeutralCategory(option)) {
+    return 'background: linear-gradient(to right, #FAFAFA 0%, #FFFFFF 100%); border-left: 4px solid #BDBDBD;'
+  }
+  return ''
+}
+
 // Esponiamo i metodi per l'utilizzo esterno
 defineExpose({
   updateFilter,
@@ -463,26 +535,57 @@ defineExpose({
 
 
 :deep(.mcf-autocomplete-option) {
-  border-radius: 8px;
-  margin: 2px 8px;
-  transition: all 0.2s ease;
+  border-radius: 12px;
+  margin: 6px 12px;
+  padding: 12px 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 
   &:hover {
-    background-color: rgba(var(--q-primary-rgb, 25, 118, 210), 0.1);
+    background-color: #F5F5F5;
+    border-color: #E0E0E0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transform: translateX(4px);
+  }
+
+  .q-item__section--avatar {
+    min-width: 48px;
+    padding-right: 16px;
+
+    .q-icon {
+      font-size: 24px;
+    }
   }
 
   .mcf-option-label {
-    font-weight: 500;
-    color: var(--q-dark, #1d1d1d);
+    font-size: 15px;
+    line-height: 1.4;
+    letter-spacing: 0.01em;
   }
 
   .mcf-option-description {
-    color: var(--q-dark-page, #757575);
-    font-size: 0.875rem;
+    color: #9E9E9E;
+    font-size: 13px;
+    margin-top: 2px;
   }
 
   &.q-manual-focusable--focused {
-    background-color: rgba(var(--q-primary-rgb, 25, 118, 210), 0.15);
+    background-color: #FAFAFA;
+    border-color: #BDBDBD;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  // Stile per categorie neutrali (es. "Da Categorizzare")
+  &.mcf-option-neutral {
+    background: linear-gradient(to right, #FAFAFA 0%, #FFFFFF 100%);
+    border-left: 4px solid #BDBDBD;
+    opacity: 0.85;
+
+    &:hover {
+      background: linear-gradient(to right, #F5F5F5 0%, #FAFAFA 100%);
+      opacity: 1;
+    }
   }
 }
 

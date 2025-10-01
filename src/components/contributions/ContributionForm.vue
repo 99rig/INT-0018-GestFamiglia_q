@@ -25,7 +25,7 @@
     </q-card-section>
 
     <q-card-section class="mcf-dialog-content">
-      <q-form @submit="onSubmit" class="q-gutter-sm">
+      <q-form @submit="onSubmit" class="q-gutter-xs">
         <!-- Descrizione -->
         <MCFInput
           v-model="form.description"
@@ -92,6 +92,19 @@
           counter
         />
       </q-form>
+
+      <!-- Informativa Contributi -->
+      <q-banner class="contribution-info-banner" rounded>
+        <template v-slot:avatar>
+          <q-icon name="info" color="primary" />
+        </template>
+        <div class="text-caption">
+          <strong>Cos'è un contributo?</strong><br>
+          Un contributo è una somma che aggiungi alla cassa comune della famiglia.
+          Può essere uno stipendio, un regalo ricevuto, o qualsiasi altra entrata.
+          Questo aumenta la disponibilità cash totale per le spese familiari.
+        </div>
+      </q-banner>
     </q-card-section>
 
     <q-card-actions align="right" class="mcf-dialog-actions">
@@ -262,6 +275,21 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+.contribution-info-banner {
+  margin-top: 16px;
+  background: #f0f7ff !important;
+  border: 1px solid #d0e7ff !important;
+  border-radius: 16px !important;
+
+  .text-caption {
+    color: #374151;
+    line-height: 1.5;
+
+    strong {
+      color: #1e40af;
+    }
+  }
+}
 .mcf-dialog {
   width: 100%;
   height: 100%;
@@ -271,17 +299,27 @@ export default defineComponent({
 }
 
 .mcf-dialog-header {
-  background: linear-gradient(135deg, var(--q-primary) 0%, #1565c0 100%);
-  color: white;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  color: #0c4a6e;
   padding: 20px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
+  border-bottom: 2px solid #bae6fd;
+
+  .text-h6 {
+    font-weight: 600;
+    color: #0c4a6e;
+  }
+
+  .q-btn {
+    color: #0369a1;
+  }
 }
 
 .mcf-dialog-content {
-  padding: 24px;
+  padding: 32px 24px 24px 24px;
   flex: 1;
   overflow-y: auto;
   max-width: 600px;

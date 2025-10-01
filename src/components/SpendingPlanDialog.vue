@@ -42,7 +42,7 @@
           </div>
         </q-banner>
 
-        <q-form @submit="onSubmit" class="q-gutter-sm" :disable="!authStore.user?.family">
+        <q-form @submit="onSubmit" class="q-gutter-xs" :disable="!authStore.user?.family">
 
           <MCFInput
             v-model="formData.name"
@@ -287,17 +287,27 @@ const onCancel = () => {
 }
 
 .mcf-dialog-header {
-  background: linear-gradient(135deg, var(--q-primary) 0%, #1565c0 100%);
-  color: white;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  color: #0c4a6e;
   padding: 20px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
+  border-bottom: 2px solid #bae6fd;
+
+  .text-h6 {
+    font-weight: 600;
+    color: #0c4a6e;
+  }
+
+  .q-btn {
+    color: #0369a1;
+  }
 }
 
 .mcf-dialog-content {
-  padding: 24px;
+  padding: 32px 24px 24px 24px;
   flex: 1;
   overflow-y: auto;
   max-width: 600px;

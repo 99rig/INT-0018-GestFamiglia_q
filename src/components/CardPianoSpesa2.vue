@@ -1,16 +1,10 @@
 <template>
-  <div
-    class="card-piano-spesa2"
-    :class="{
-      'card-piano-spesa2--active': plan.is_current,
-      'card-piano-spesa2--completed': isCompleted,
-      'card-piano-spesa2--expanded': isExpanded
-    }"
+  <PlanCard
+    :plan="plan"
+    :custom-class="`card-piano-spesa2 ${plan.is_current ? 'card-piano-spesa2--active' : ''} ${isCompleted ? 'card-piano-spesa2--completed' : ''}`"
+    :elevated="6"
     @click="$emit('click', plan)"
   >
-    <!-- Status Indicator -->
-    <div class="status-indicator" :class="getStatusClass()"></div>
-
     <!-- Card Header -->
     <div class="card-header">
       <div class="header-content">
@@ -20,37 +14,17 @@
             <q-icon
               v-if="!plan.is_shared"
               name="lock"
-              size="16px"
+              size="18px"
+              color="orange"
               class="privacy-icon"
             >
               <q-tooltip>Piano personale</q-tooltip>
             </q-icon>
           </div>
-
           <div class="plan-meta">
-            <div class="plan-period">
-              <q-icon name="event" size="14px" />
-              {{ formatPeriod(plan.start_date, plan.end_date) }}
-              <q-chip
-                :color="getPlanTypeColor(plan.plan_type)"
-                text-color="white"
-                size="sm"
-                :label="getPlanTypeLabel(plan.plan_type)"
-                class="type-chip"
-                style="margin-left: auto;"
-              />
-            </div>
-            <div class="plan-badges">
-              <q-chip
-                v-if="plan.is_current"
-                color="positive"
-                text-color="white"
-                size="sm"
-                label="Attivo"
-                icon="radio_button_checked"
-                class="status-chip"
-              />
-            </div>
+            <q-icon name="event" size="14px" />
+            <span class="plan-period">{{ formatPeriod(plan.start_date, plan.end_date) }}</span>
+            <span v-if="plan.description" class="plan-description-inline">• {{ plan.description }}</span>
           </div>
         </div>
 
@@ -62,31 +36,35 @@
             size="sm"
             class="menu-btn"
           >
-            <q-menu class="action-menu">
-              <q-list>
-                <q-item clickable v-close-popup @click="$emit('edit', plan)">
+            <q-menu
+              class="mcf-planned-expense-menu"
+              transition-show="scale"
+              transition-hide="scale"
+            >
+              <q-list class="mcf-menu-list">
+                <q-item clickable v-close-popup @click="$emit('edit', plan)" class="mcf-menu-item">
                   <q-item-section avatar>
-                    <q-icon name="edit" />
+                    <q-icon name="edit" class="mcf-menu-icon" />
                   </q-item-section>
                   <q-item-section>
-                    <q-item-label>Modifica</q-item-label>
+                    <q-item-label class="mcf-menu-title">Modifica</q-item-label>
                   </q-item-section>
                 </q-item>
-                <q-item clickable v-close-popup @click="$emit('clone', plan)">
+                <q-item clickable v-close-popup @click="$emit('clone', plan)" class="mcf-menu-item">
                   <q-item-section avatar>
-                    <q-icon name="content_copy" />
+                    <q-icon name="content_copy" class="mcf-menu-icon" />
                   </q-item-section>
                   <q-item-section>
-                    <q-item-label>Clona</q-item-label>
+                    <q-item-label class="mcf-menu-title">Clona</q-item-label>
                   </q-item-section>
                 </q-item>
                 <q-separator />
-                <q-item clickable v-close-popup @click="$emit('delete', plan)">
+                <q-item clickable v-close-popup @click="$emit('delete', plan)" class="mcf-menu-item mcf-menu-delete">
                   <q-item-section avatar>
-                    <q-icon name="delete" />
+                    <q-icon name="delete" class="mcf-menu-icon" />
                   </q-item-section>
                   <q-item-section>
-                    <q-item-label>Elimina</q-item-label>
+                    <q-item-label class="mcf-menu-title">Elimina</q-item-label>
                   </q-item-section>
                 </q-item>
               </q-list>
@@ -96,15 +74,10 @@
       </div>
     </div>
 
-    <!-- Description -->
-    <div v-if="plan.description" class="plan-description">
-      {{ plan.description }}
-    </div>
-
     <!-- Stats Section -->
     <div class="stats-section">
       <div class="stats-row">
-        <div class="stat-item" @click.stop="toggleExpansion">
+        <div class="stat-item clickable" @click.stop="toggleExpanded">
           <div class="stat-icon">
             <q-icon name="receipt_long" />
           </div>
@@ -113,7 +86,7 @@
             <div class="stat-label">Spese</div>
           </div>
           <q-icon
-            :name="isExpanded ? 'expand_less' : 'expand_more'"
+            :name="expanded ? 'expand_less' : 'expand_more'"
             class="expand-icon"
           />
         </div>
@@ -155,16 +128,15 @@
       </div>
     </div>
 
-    <!-- Expenses Preview -->
+    <!-- Expansion Spese -->
     <q-slide-transition>
-      <div v-if="hasExpenses && isExpanded" class="expenses-section">
-        <div class="section-header">
-          <q-icon name="list" size="18px" />
-          <span>Ultime spese</span>
-        </div>
-
+      <div
+        v-if="expanded && hasExpenses"
+        class="expansion-content"
+        @click.stop
+      >
         <div class="expenses-list">
-          <ExpenseCardPreview
+          <ExpenseListItem
             v-for="expense in previewExpenses"
             :key="expense.id"
             :expense="expense"
@@ -173,34 +145,36 @@
 
         <div v-if="hasMoreExpenses" class="more-indicator">
           <q-icon name="more_horiz" />
-          <span>+{{ remainingExpensesCount }} altre</span>
+          <span>+{{ remainingExpensesCount }} altre spese</span>
         </div>
       </div>
     </q-slide-transition>
-  </div>
+  </PlanCard>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue'
-import ExpenseCardPreview from './ExpenseCardPreview.vue'
+import PlanCard from './PlanCard.vue'
+import ExpenseListItem from './ExpenseListItem.vue'
 
 // Props
 const props = defineProps({
   plan: {
     type: Object,
     required: true
-  },
-  expanded: {
-    type: Boolean,
-    default: false
   }
 })
 
 // Emits
-const emit = defineEmits(['click', 'edit', 'clone', 'delete', 'toggle-expansion'])
+const emit = defineEmits(['click', 'edit', 'clone', 'delete'])
 
 // State
-const isExpanded = ref(props.expanded)
+const expanded = ref(false)
+
+// Methods
+const toggleExpanded = () => {
+  expanded.value = !expanded.value
+}
 
 // Computed properties
 const plannedCount = computed(() => props.plan.total_expenses_count || 0)
@@ -209,16 +183,11 @@ const completionPercentage = computed(() => props.plan.completion_percentage || 
 const isCompleted = computed(() => completionPercentage.value >= 100)
 
 const hasExpenses = computed(() => plannedCount.value > 0)
-const previewExpenses = computed(() => props.plan.planned_expenses?.slice(0, 3) || [])
-const hasMoreExpenses = computed(() => plannedCount.value > 3)
-const remainingExpensesCount = computed(() => plannedCount.value - 3)
+const previewExpenses = computed(() => props.plan.planned_expenses?.slice(0, 10) || [])
+const hasMoreExpenses = computed(() => plannedCount.value > 10)
+const remainingExpensesCount = computed(() => plannedCount.value - 10)
 
 // Methods
-const toggleExpansion = () => {
-  isExpanded.value = !isExpanded.value
-  emit('toggle-expansion', props.plan.id, isExpanded.value)
-}
-
 const formatAmount = (amount) => {
   return parseFloat(amount || 0).toFixed(2)
 }
@@ -230,7 +199,6 @@ const formatPeriod = (startDate, endDate) => {
 }
 
 const getStatusClass = () => {
-  if (props.plan.is_current) return 'status-indicator--active'
   if (isCompleted.value) return 'status-indicator--completed'
   return 'status-indicator--default'
 }
@@ -275,29 +243,16 @@ const getProgressClass = (percentage) => {
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-  box-shadow:
-    0 1px 3px 0 rgba(0, 0, 0, 0.1),
-    0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow:
-      0 20px 25px -5px rgba(0, 0, 0, 0.1),
-      0 10px 10px -5px rgba(0, 0, 0, 0.04);
     border-color: #d1d5db;
   }
 
   &--active {
     border-color: #10b981;
-    box-shadow:
-      0 1px 3px 0 rgba(16, 185, 129, 0.1),
-      0 1px 2px 0 rgba(16, 185, 129, 0.06);
-
-    &:hover {
-      box-shadow:
-        0 20px 25px -5px rgba(16, 185, 129, 0.1),
-        0 10px 10px -5px rgba(16, 185, 129, 0.04);
-    }
   }
 
   &--completed {
@@ -354,6 +309,12 @@ const getProgressClass = (percentage) => {
   margin-bottom: 12px;
 }
 
+.plan-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .plan-name {
   font-size: 1.25rem;
   font-weight: 700;
@@ -363,24 +324,48 @@ const getProgressClass = (percentage) => {
 }
 
 .privacy-icon {
-  color: #6b7280;
   flex-shrink: 0;
+}
+
+.privacy-indicator {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+
+  .q-icon {
+    color: #FF9800;
+    font-size: 18px;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+  }
 }
 
 .plan-meta {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 8px;
+  flex-wrap: nowrap;
+  min-height: 21px;
 }
 
 .plan-period {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.875rem;
-  color: #6b7280;
+  color: #374151;
   font-weight: 500;
-  width: 100%;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.plan-description-inline {
+  color: #6b7280;
+  font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 1;
+  min-width: 0;
 
   .q-icon {
     color: #9ca3af;
@@ -421,16 +406,13 @@ const getProgressClass = (percentage) => {
 }
 
 .menu-btn {
-  color: #6b7280;
+  color: #9E9E9E;
+  transition: color 0.2s ease;
 
   &:hover {
-    color: #374151;
+    color: #424242;
+    background: rgba(0, 0, 0, 0.04);
   }
-}
-
-.action-menu {
-  border-radius: 12px;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
 // Description
@@ -452,20 +434,25 @@ const getProgressClass = (percentage) => {
 
 .stats-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   margin-bottom: 24px;
 }
 
 .stat-item {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
+  text-align: center;
+  gap: 8px;
   padding: 16px;
   background: #f9fafb;
+  border: 1px solid #e5e7eb;
   border-radius: 12px;
   transition: all 0.2s ease;
   cursor: pointer;
+  min-width: 0;
+  position: relative;
 
   &:hover {
     background: #f3f4f6;
@@ -474,6 +461,13 @@ const getProgressClass = (percentage) => {
 
   &:first-child {
     cursor: pointer;
+
+    .expand-icon {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      font-size: 18px;
+    }
   }
 
   &:not(:first-child) {
@@ -590,46 +584,29 @@ const getProgressClass = (percentage) => {
   }
 }
 
-// Expenses Section
-.expenses-section {
-  border-top: 1px solid #f3f4f6;
-  padding: 24px;
-  margin-top: 0;
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 16px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-
-  .q-icon {
-    color: #6b7280;
-  }
+// Expansion Content
+.expansion-content {
+  padding: 16px 24px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
 }
 
 .expenses-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
+  margin-bottom: 12px;
 }
-
 
 .more-indicator {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 12px;
-  margin-top: 12px;
-  background: #f9fafb;
-  border: 2px dashed #e5e7eb;
-  border-radius: 10px;
+  padding: 10px;
+  background: #ffffff;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
   font-size: 0.75rem;
   font-weight: 600;
   color: #6b7280;
@@ -641,10 +618,39 @@ const getProgressClass = (percentage) => {
   }
 }
 
+.stat-item.clickable {
+  cursor: pointer;
+
+  &:hover {
+    background: #f3f4f6;
+  }
+}
+
+// Banner Spese
+.expenses-banner {
+  padding: 16px 24px;
+  background: #f0f9ff;
+  border-top: 1px solid #e0f2fe;
+  font-size: 0.875rem;
+  color: #0369a1;
+}
+
 // Responsive Design
 @media (max-width: 768px) {
   .card-piano-spesa2 {
     border-radius: 16px;
+  }
+
+  .expansion-content {
+    padding: 12px 0 12px 0;
+  }
+
+  .expenses-list {
+    gap: 0;
+  }
+
+  .more-indicator {
+    margin: 12px 16px 0 16px;
   }
 
   .card-header {
@@ -778,5 +784,53 @@ const getProgressClass = (percentage) => {
   .expenses-section {
     padding: 16px;
   }
+}
+</style>
+
+<style lang="scss">
+/* Stili NON scoped per il menu - devono essere globali per applicarsi correttamente */
+.mcf-planned-expense-menu {
+  min-width: 220px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #E0E0E0;
+  background: white;
+}
+
+.mcf-menu-list {
+  padding: 4px 0;
+}
+
+.mcf-menu-item {
+  padding: 10px 16px;
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #F5F5F5;
+  }
+}
+
+.mcf-menu-delete:hover {
+  background-color: #FFEBEE;
+
+  .mcf-menu-title {
+    color: #D32F2F;
+  }
+
+  .mcf-menu-icon {
+    color: #D32F2F;
+  }
+}
+
+.mcf-menu-icon {
+  font-size: 20px;
+  color: #757575;
+}
+
+.mcf-menu-title {
+  font-weight: 500;
+  font-size: 14px;
+  color: #424242;
 }
 </style>
