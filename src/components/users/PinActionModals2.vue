@@ -3,8 +3,12 @@
     :model-value="showWantPin"
     @update:model-value="$emit('update:showWantPin', $event)"
     persistent
+    position="top"
+    transition-show="slide-down"
+    transition-hide="slide-up"
   >
-    <div class="ticket-container">
+    <q-card class="modal-wrapper">
+      <div class="ticket-container">
       <div class="ticket-card">
         <!-- Header Section -->
         <div class="ticket-header">
@@ -86,6 +90,7 @@
         </div>
       </div>
     </div>
+    </q-card>
   </q-dialog>
 </template>
 
@@ -116,13 +121,21 @@ const onCancel = () => {
 </script>
 
 <style lang="scss" scoped>
+.modal-wrapper {
+  background: white;
+  width: 100%;
+  max-width: 100vw;
+  margin: 0;
+  border-radius: 0 0 24px 24px;
+  padding: 20px;
+}
+
 .ticket-container {
   width: 100%;
   max-width: 500px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 0;
   position: relative;
-  z-index: 9999;
 }
 
 .ticket-card {
