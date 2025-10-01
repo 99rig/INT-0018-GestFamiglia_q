@@ -291,23 +291,15 @@ const loginWithPin = async () => {
   }
 }
 
-const confirmDeletePin = () => {
-  $q.dialog({
-    title: 'Cancella PIN',
-    message: 'Sei sicuro di voler cancellare il PIN? Dovrai effettuare il login con email e password.',
-    cancel: true,
-    persistent: true
-  }).onOk(async () => {
-    try {
-      await authStore.clearPinData()
-      snackbar.success('PIN cancellato con successo')
-      hasPinSetup.value = false
-      showEmailLogin.value = true
-    } catch (error) {
-      console.error('Errore cancellazione PIN:', error)
-      snackbar.error('Errore nella cancellazione del PIN')
-    }
-  })
+const confirmDeletePin = async () => {
+  try {
+    await authStore.clearPinData()
+    hasPinSetup.value = false
+    showEmailLogin.value = true
+  } catch (error) {
+    console.error('Errore cancellazione PIN:', error)
+    snackbar.error('Errore nella cancellazione del PIN')
+  }
 }
 
 // Email Login Function
