@@ -14,9 +14,9 @@
         <div class="mcf-pin-icon-container">
           <q-icon name="lock" class="mcf-pin-icon" />
         </div>
-        <h3 class="mcf-pin-title">Imposta PIN</h3>
+        <h3 class="mcf-pin-title">{{ step === 1 ? 'Imposta PIN' : 'Conferma PIN' }}</h3>
         <p class="mcf-pin-subtitle">
-          Scegli un PIN di 4 cifre per accessi più veloci e sicuri
+          {{ step === 1 ? 'Scegli un PIN di 4 cifre per accessi più veloci e sicuri' : 'Reinserisci il PIN per confermare' }}
         </p>
       </q-card-section>
 
@@ -110,6 +110,8 @@ const emit = defineEmits(['update:modelValue', 'confirm', 'cancel'])
 // State
 const pinDigits = ref(['', '', '', ''])
 const pinInputs = ref([])
+const step = ref(1) // 1 = inserimento, 2 = conferma
+const firstPin = ref('')
 
 // Methods
 const handlePinInput = (index, value) => {
@@ -141,7 +143,25 @@ const handlePinInput = (index, value) => {
   // Auto-conferma quando tutti i 4 campi sono compilati
   const fullPin = pinDigits.value.join('')
   if (fullPin.length === 4 && !/[^0-9]/.test(fullPin)) {
-    setTimeout(() => onConfirm(), 300)
+    if (step.value === 1) {
+      setTimeout(() => {
+        firstPin.value = fullPin
+        step.value = 2
+        pinDigits.value = ['', '', '', '']
+        // Focus sul primo campo
+        setTimeout(() => {
+          const firstInput = pinInputs.value[0]
+          if (firstInput && firstInput.$el) {
+            const inputEl = firstInput.$el.querySelector('input')
+            if (inputEl) {
+              inputEl.focus()
+            }
+          }
+        }, 100)
+      }, 300)
+    } else {
+      setTimeout(() => onConfirm(), 300)
+    }
   }
 }
 
@@ -162,8 +182,43 @@ const handleKeydown = (event, index) => {
 
 const onConfirm = () => {
   const fullPin = pinDigits.value.join('')
-  if (fullPin.length === 4) {
-    emit('confirm', fullPin)
+
+  if (step.value === 1) {
+    // Primo step: salva il PIN e passa al secondo step
+    firstPin.value = fullPin
+    step.value = 2
+    pinDigits.value = ['', '', '', '']
+    // Focus sul primo campo
+    setTimeout(() => {
+      const firstInput = pinInputs.value[0]
+      if (firstInput && firstInput.$el) {
+        const inputEl = firstInput.$el.querySelector('input')
+        if (inputEl) {
+          inputEl.focus()
+        }
+      }
+    }, 100)
+  } else {
+    // Secondo step: verifica che i PIN corrispondano
+    if (fullPin === firstPin.value) {
+      emit('confirm', fullPin)
+      resetForm()
+    } else {
+      // I PIN non corrispondono, mostra errore e ricomincia
+      alert('I PIN non corrispondono. Riprova.')
+      step.value = 1
+      firstPin.value = ''
+      pinDigits.value = ['', '', '', '']
+      setTimeout(() => {
+        const firstInput = pinInputs.value[0]
+        if (firstInput && firstInput.$el) {
+          const inputEl = firstInput.$el.querySelector('input')
+          if (inputEl) {
+            inputEl.focus()
+          }
+        }
+      }, 100)
+    }
   }
 }
 
@@ -174,12 +229,25 @@ const onCancel = () => {
 
 const resetForm = () => {
   pinDigits.value = ['', '', '', '']
+  step.value = 1
+  firstPin.value = ''
 }
 
 // Reset form when modal closes
 watch(() => props.modelValue, (isOpen) => {
   if (!isOpen) {
     resetForm()
+  } else {
+    // Focus sul primo campo quando si apre
+    setTimeout(() => {
+      const firstInput = pinInputs.value[0]
+      if (firstInput && firstInput.$el) {
+        const inputEl = firstInput.$el.querySelector('input')
+        if (inputEl) {
+          inputEl.focus()
+        }
+      }
+    }, 300)
   }
 })
 </script>
