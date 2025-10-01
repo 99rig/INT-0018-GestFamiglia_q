@@ -3,8 +3,6 @@
     :model-value="modelValue"
     @update:model-value="$emit('update:modelValue', $event)"
     persistent
-    full-width
-    position="center"
   >
     <div class="ticket-container">
       <div class="ticket-card">
