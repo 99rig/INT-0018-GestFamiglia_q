@@ -223,7 +223,7 @@ const setupPinLoading = ref(false)
 
 // Check if PIN is setup on mount
 onMounted(async () => {
-  hasPinSetup.value = authStore.hasPin
+  hasPinSetup.value = authStore.hasPinSetup()
 })
 
 // PIN Login Functions
@@ -325,7 +325,7 @@ const handleLogin = async () => {
     snackbar.success('Login effettuato con successo!')
 
     // Se "Ricordami" è selezionato e non ha già un PIN, chiedi se vuole impostarlo
-    if (rememberMe.value && !authStore.hasPin) {
+    if (rememberMe.value && !authStore.hasPinSetup()) {
       showSetupPinModal.value = true
     } else {
       router.push('/dashboard')
