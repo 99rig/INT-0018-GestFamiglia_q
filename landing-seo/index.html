@@ -146,11 +146,19 @@
     </script>
 
     <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-RPNT5V2WM7"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TEW38QLNTR"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
+
+      // Nuova proprietà per mycrisisfamily.com
+      gtag('config', 'G-TEW38QLNTR', {
+        cookie_flags: 'SameSite=None;Secure',
+        cookie_expires: 63072000 // 2 anni
+      });
+
+      // Vecchia proprietà (manteniamo per storico)
       gtag('config', 'G-RPNT5V2WM7', {
         cookie_flags: 'SameSite=None;Secure',
         cookie_expires: 63072000 // 2 anni
