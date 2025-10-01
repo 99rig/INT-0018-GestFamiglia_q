@@ -122,7 +122,7 @@ const onCancel = () => {
 
 <style lang="scss" scoped>
 .modal-wrapper {
-  background: white;
+  background: linear-gradient(135deg, #f0f4f8 0%, #e8eef3 100%);
   width: 100%;
   max-width: 100vw;
   margin: 0;

@@ -176,6 +176,14 @@ const handlePinInput = (index, value) => {
       }
     }, 50)
   }
+
+  // Auto-submit when complete
+  if (index === 3 && digit) {
+    const fullPin = pinDigits.value.join('')
+    if (fullPin.length === 4 && !/[^0-9]/.test(fullPin)) {
+      setTimeout(() => onConfirm(), 300)
+    }
+  }
 }
 
 const handleKeydown = (event, index) => {
@@ -230,7 +238,7 @@ watch(() => props.modelValue, (isOpen) => {
 
 <style lang="scss" scoped>
 .modal-wrapper {
-  background: white;
+  background: linear-gradient(135deg, #f0f4f8 0%, #e8eef3 100%);
   width: 100%;
   max-width: 100vw;
   margin: 0;
