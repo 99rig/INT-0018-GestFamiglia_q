@@ -140,10 +140,11 @@ const handlePinInput = (index, value) => {
     }, 50)
   }
 
-  // Auto-conferma quando tutti i 4 campi sono compilati
+  // Auto-passa allo step 2 o auto-conferma quando tutti i 4 campi sono compilati
   const fullPin = pinDigits.value.join('')
   if (fullPin.length === 4 && !/[^0-9]/.test(fullPin)) {
     if (step.value === 1) {
+      // Primo step: passa automaticamente allo step 2
       setTimeout(() => {
         firstPin.value = fullPin
         step.value = 2
@@ -160,7 +161,28 @@ const handlePinInput = (index, value) => {
         }, 100)
       }, 300)
     } else {
-      setTimeout(() => onConfirm(), 300)
+      // Secondo step: verifica e conferma automaticamente
+      setTimeout(() => {
+        if (fullPin === firstPin.value) {
+          emit('confirm', fullPin)
+          resetForm()
+        } else {
+          // I PIN non corrispondono
+          alert('I PIN non corrispondono. Riprova.')
+          step.value = 1
+          firstPin.value = ''
+          pinDigits.value = ['', '', '', '']
+          setTimeout(() => {
+            const firstInput = pinInputs.value[0]
+            if (firstInput && firstInput.$el) {
+              const inputEl = firstInput.$el.querySelector('input')
+              if (inputEl) {
+                inputEl.focus()
+              }
+            }
+          }, 100)
+        }
+      }, 300)
     }
   }
 }
