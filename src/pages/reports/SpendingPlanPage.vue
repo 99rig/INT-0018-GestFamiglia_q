@@ -156,6 +156,7 @@
             @edit="editPlan"
             @clone="clonePlan"
             @delete="deletePlan"
+            @toggle-pin="togglePinPlan"
           />
         </div>
     </div>
@@ -397,6 +398,25 @@ const openPlanDetail = (plan) => {
 const editPlan = (plan) => {
   editingPlan.value = plan
   showEditDialog.value = true
+}
+
+const togglePinPlan = async (plan) => {
+  try {
+    // Toggle ottimistico
+    plan.is_pinned = !plan.is_pinned
+
+    const response = await reportsAPI.togglePinSpendingPlan(plan.id)
+
+    snackbar.success(response.detail || `Piano ${response.is_pinned ? 'pinnato' : 'spinnato'} con successo`)
+
+    // Ricarica per aggiornare l'ordinamento
+    await loadSpendingPlans()
+  } catch (error) {
+    // Rollback in caso di errore
+    plan.is_pinned = !plan.is_pinned
+    console.error('Errore nel toggle pin del piano:', error)
+    snackbar.error('Errore nell\'aggiornamento del piano')
+  }
 }
 
 const deletePlan = (plan) => {

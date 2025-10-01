@@ -96,6 +96,11 @@ export const reportsAPI = {
     return response.data
   },
 
+  async togglePinSpendingPlan(id) {
+    const response = await apiClient.post(`/spending-plans/${id}/toggle_pin/`)
+    return response.data
+  },
+
   // ===== PLANNED EXPENSES =====
   async getPlannedExpenses() {
     const response = await apiClient.get('/planned-expenses/')

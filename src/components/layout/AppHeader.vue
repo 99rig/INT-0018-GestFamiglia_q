@@ -1,36 +1,39 @@
 <template>
   <q-header class="mcf-header">
     <q-toolbar class="mcf-toolbar">
-      <!-- Brand Section with Clickable Icon -->
+      <!-- Menu Button -->
+      <q-btn
+        flat
+        dense
+        round
+        icon="menu"
+        class="mcf-menu-btn"
+        @click="toggleSidebar"
+        aria-label="Menu"
+      />
+
+      <!-- Brand Section Centered -->
       <div class="mcf-brand">
-        <q-btn
-          flat
-          dense
-          round
-          class="mcf-brand-icon-btn"
-          @click="toggleSidebar"
-          aria-label="Menu"
-        >
-          <q-icon
-            name="account_balance_wallet"
-            size="28px"
-            class="text-white"
-          />
-        </q-btn>
+        <q-icon
+          name="account_balance_wallet"
+          size="28px"
+          style="color: #ffffff"
+        />
         <div class="mcf-brand-text">
           <div class="mcf-brand-title">My Crazy Family</div>
           <div class="mcf-brand-subtitle">Gestione Spese</div>
         </div>
       </div>
 
-      <!-- Logout Button -->
+      <!-- Logout Icon Button -->
       <q-btn
         flat
         dense
+        round
         icon="logout"
-        label="Logout"
         class="mcf-logout-btn"
         @click="logout"
+        aria-label="Logout"
       />
     </q-toolbar>
   </q-header>
@@ -56,8 +59,9 @@ async function logout() {
 
 <style lang="scss" scoped>
 .mcf-header {
-  background: linear-gradient(135deg, var(--mcf-primary) 0%, var(--mcf-secondary) 50%, var(--mcf-tertiary) 100%);
+  background: #ffffff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 0 0 16px 16px;
 }
 
 .mcf-toolbar {
@@ -69,28 +73,23 @@ async function logout() {
   width: 100%;
 }
 
+.mcf-menu-btn {
+  color: #ffffff;
+  flex-shrink: 0;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
 .mcf-brand {
   display: flex;
   align-items: center;
-  flex: 1;
+  gap: 12px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   min-width: 0;
-
-  .mcf-brand-icon-btn {
-    color: white;
-    margin-right: 12px;
-    border-radius: 50%;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-
-    &:hover {
-      background-color: rgba(255, 255, 255, 0.1);
-      transform: scale(1.05);
-    }
-
-    &:active {
-      transform: scale(0.95);
-    }
-  }
 
   .mcf-brand-text {
     display: flex;
@@ -99,7 +98,7 @@ async function logout() {
     flex: 1;
 
     .mcf-brand-title {
-      color: white;
+      color: #ffffff;
       font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
       font-size: 20px;
       font-weight: 700;
@@ -108,11 +107,10 @@ async function logout() {
       overflow: hidden;
       text-overflow: ellipsis;
       letter-spacing: 0.5px;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     }
 
     .mcf-brand-subtitle {
-      color: rgba(255, 255, 255, 0.9);
+      color: #ffffff;
       font-family: 'Nunito', sans-serif;
       font-size: 12px;
       font-weight: 500;
@@ -121,21 +119,17 @@ async function logout() {
       overflow: hidden;
       text-overflow: ellipsis;
       letter-spacing: 0.3px;
+      opacity: 0.9;
     }
   }
 }
 
 .mcf-logout-btn {
-  color: white;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  padding: 8px 16px;
-  font-weight: 500;
+  color: #ffffff;
   flex-shrink: 0;
 
   &:hover {
     background-color: rgba(255, 255, 255, 0.1);
-    transform: none;
   }
 }
 

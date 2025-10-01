@@ -32,6 +32,16 @@
           <q-btn
             flat
             round
+            :icon="plan.is_pinned ? 'push_pin' : 'push_pin'"
+            size="sm"
+            :class="['pin-btn', { 'pinned': plan.is_pinned }]"
+            @click="$emit('toggle-pin', plan)"
+          >
+            <q-tooltip>{{ plan.is_pinned ? 'Spinna' : 'Pinna' }}</q-tooltip>
+          </q-btn>
+          <q-btn
+            flat
+            round
             icon="more_vert"
             size="sm"
             class="menu-btn"
@@ -323,8 +333,22 @@ const getProgressClass = (percentage) => {
   line-height: 1.2;
 }
 
-.privacy-icon {
+.privacy-icon, .pin-icon {
   flex-shrink: 0;
+}
+
+.pin-btn {
+  color: #9ca3af;
+  transition: all 0.2s ease;
+
+  &.pinned {
+    color: #7dd3fc;
+    transform: rotate(45deg);
+  }
+
+  &:hover {
+    color: #7dd3fc;
+  }
 }
 
 .privacy-indicator {

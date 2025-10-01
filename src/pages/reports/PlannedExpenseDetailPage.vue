@@ -618,9 +618,9 @@
 
           <!-- Loading More Indicator -->
           <template v-slot:loading>
-            <div class="row justify-center q-my-md">
+            <div class="column items-center q-my-md q-gutter-y-xs">
               <q-spinner-dots color="primary" size="40px" />
-              <div class="q-ml-sm">Caricamento altre spese...</div>
+              <div class="text-caption text-grey-7">Caricamento altre spese...</div>
             </div>
           </template>
         </q-infinite-scroll>

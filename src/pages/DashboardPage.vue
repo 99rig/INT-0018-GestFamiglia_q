@@ -15,120 +15,68 @@
         <h1 class="mcf-welcome-title">{{ greeting }}, {{ userName }}!</h1>
         <p class="mcf-welcome-subtitle">{{ currentDate }}</p>
       </div>
-      <div class="mcf-header-actions">
-        <q-btn
-          class="mcf-btn-primary"
-          icon="add"
-          label="Nuova Spesa"
-          @click="goToAddExpense"
-        />
+    </div>
 
+    <!-- Quick Actions (moved here) -->
+    <div class="mcf-quick-actions-compact">
+      <div class="mcf-actions-grid-square">
+        <div class="mcf-action-widget" @click="goToAddExpense">
+          <div class="mcf-action-icon-large mcf-action-icon--primary">
+            <q-icon name="add_circle" size="32px" />
+          </div>
+          <div class="mcf-action-label">Nuova spesa</div>
+        </div>
+
+        <div class="mcf-action-widget" @click="goToScanner">
+          <div class="mcf-action-icon-large mcf-action-icon--accent">
+            <q-icon name="document_scanner" size="32px" />
+          </div>
+          <div class="mcf-action-label">Scansiona</div>
+        </div>
+
+        <div class="mcf-action-widget" @click="goToBudget">
+          <div class="mcf-action-icon-large mcf-action-icon--tertiary">
+            <q-icon name="account_balance_wallet" size="32px" />
+          </div>
+          <div class="mcf-action-label">Piani Spesa</div>
+        </div>
       </div>
     </div>
 
-    <!-- Modern Stats Cards -->
-    <div class="mcf-stats-grid">
+    <!-- Modern Stats Widgets -->
+    <div class="mcf-stats-widgets">
+      <!-- Piani di Spesa -->
+      <div class="mcf-stat-widget">
+        <div class="mcf-widget-icon mcf-widget-icon--primary">
+          <q-icon name="event_note" size="28px" />
+        </div>
+        <div class="mcf-widget-content">
+          <div class="mcf-widget-value">{{ totalSpendingPlans }}</div>
+          <div class="mcf-widget-label">Piani di Spesa</div>
+        </div>
+      </div>
+
       <!-- Spese del mese -->
-      <div class="mcf-stat-card">
-        <div class="mcf-stat-header">
-          <div class="mcf-stat-label">
-            <q-icon name="receipt_long" class="mcf-stat-label-icon" />
-            Spese {{ currentMonth }}
-          </div>
-          <div class="mcf-stat-value-header">€ {{ monthExpenses }}</div>
+      <div class="mcf-stat-widget">
+        <div class="mcf-widget-icon mcf-widget-icon--accent">
+          <q-icon name="receipt_long" size="28px" />
         </div>
-        <div class="mcf-stat-content">
-          <div class="mcf-stat-trend" :class="monthTrend > 0 ? 'mcf-stat-trend--up' : 'mcf-stat-trend--down'">
-            <q-icon :name="monthTrend > 0 ? 'trending_up' : 'trending_down'" />
-            {{ Math.abs(monthTrend).toFixed(1) }}% vs mese scorso
-          </div>
-        </div>
-      </div>
-
-      <!-- Budget rimanente -->
-      <div class="mcf-stat-card">
-        <div class="mcf-stat-header">
-          <div class="mcf-stat-label">
-            <q-icon name="account_balance_wallet" class="mcf-stat-label-icon" />
-            Piano di Spesa
-          </div>
-          <div class="mcf-stat-value-header" :class="budgetRemaining > 0 ? 'text-positive' : 'text-negative'">
-            € {{ Math.abs(budgetRemaining) }}
-          </div>
-        </div>
-        <div class="mcf-stat-content">
-          <div class="mcf-stat-progress-inline">
-            <q-circular-progress
-              :value="budgetProgress * 100"
-              size="16px"
-              :thickness="0.3"
-              :color="budgetProgress > 0.8 ? 'red' : budgetProgress > 0.6 ? 'orange' : 'green'"
-              track-color="grey-3"
-            />
-            <span class="mcf-progress-text">{{ (budgetProgress * 100).toFixed(0) }}% di € {{ budgetTotal }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Ultima spesa -->
-      <div class="mcf-stat-card">
-        <div class="mcf-stat-header">
-          <div class="mcf-stat-label">
-            <q-icon name="schedule" class="mcf-stat-label-icon" />
-            Ultima spesa
-          </div>
-          <div class="mcf-stat-value-header">€ {{ lastExpense.amount || '0' }}</div>
-        </div>
-        <div class="mcf-stat-content">
-          <div class="mcf-stat-description">{{ lastExpense.description || 'Nessuna spesa' }}</div>
-          <div class="mcf-stat-date-inline">{{ lastExpense.date || '-' }}</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modern Quick Actions -->
-    <div class="mcf-quick-actions">
-      <h2 class="mcf-section-title">Azioni rapide</h2>
-      <div class="mcf-actions-grid">
-        <div class="mcf-action-card" @click="goToAddExpense">
-          <div class="mcf-action-icon mcf-action-icon--primary">
-            <q-icon name="add_circle" />
-          </div>
-          <div class="mcf-action-content">
-            <div class="mcf-action-title">Nuova spesa</div>
-            <div class="mcf-action-subtitle">Aggiungi manualmente</div>
-          </div>
-        </div>
-
-        <div class="mcf-action-card" @click="goToScanner">
-          <div class="mcf-action-icon mcf-action-icon--accent">
-            <q-icon name="document_scanner" />
-          </div>
-          <div class="mcf-action-content">
-            <div class="mcf-action-title">Scansiona</div>
-            <div class="mcf-action-subtitle">Fotografa scontrino</div>
-          </div>
-        </div>
-
-        <div class="mcf-action-card" @click="goToBudget">
-          <div class="mcf-action-icon mcf-action-icon--tertiary">
-            <q-icon name="account_balance_wallet" />
-          </div>
-          <div class="mcf-action-content">
-            <div class="mcf-action-title">Piani Spesa</div>
-            <div class="mcf-action-subtitle">Gestisci pianificazione</div>
-          </div>
+        <div class="mcf-widget-content">
+          <div class="mcf-widget-value">€{{ monthExpenses }}</div>
+          <div class="mcf-widget-label">Speso {{ currentMonth }}</div>
         </div>
       </div>
     </div>
 
     <!-- Modern Recent Expenses -->
     <div class="mcf-recent-expenses">
-      <div class="mcf-section-header">
+      <div class="mcf-section-header-inline">
         <h2 class="mcf-section-title">Ultime spese</h2>
         <q-btn
           flat
-          class="mcf-btn-ghost"
+          dense
+          no-caps
+          class="mcf-btn-link"
           label="Vedi tutte"
           icon-right="arrow_forward"
           @click="goToExpenses"
@@ -136,31 +84,40 @@
       </div>
 
       <div class="mcf-expenses-list">
-        <div
+        <q-card
           v-for="expense in recentExpenses"
           :key="expense.id"
-          class="mcf-expense-item"
-          @click="viewExpense(expense)"
+          class="mcf-expense-card"
+          :class="getExpenseStatusClass(expense)"
+          bordered
         >
-          <div class="mcf-expense-avatar">
-            <q-avatar
-              :style="{ backgroundColor: getCategoryColor(expense.category) }"
-              text-color="white"
-              size="40px"
-            >
-              <q-icon :name="getCategoryIcon(expense.category)" />
-            </q-avatar>
+          <div class="expense-main">
+            <div class="expense-left">
+              <div class="expense-description">
+                {{ expense.description }}
+                <q-icon
+                  v-if="expense.status === 'pagata'"
+                  name="check_circle"
+                  class="paid-icon"
+                  color="positive"
+                  size="16px"
+                />
+              </div>
+              <div class="expense-meta">
+                <span v-if="expense.category" class="category-chip">
+                  {{ expense.category }}
+                </span>
+                <span class="date-text">{{ formatDate(expense.date) }}</span>
+              </div>
+            </div>
+            <div class="expense-right">
+              <div class="expense-amount">€{{ expense.amount }}</div>
+              <div v-if="expense.status" class="expense-status-badge" :class="`status-${expense.status}`">
+                {{ getStatusText(expense.status) }}
+              </div>
+            </div>
           </div>
-
-          <div class="mcf-expense-content">
-            <div class="mcf-expense-title">{{ expense.description }}</div>
-            <div class="mcf-expense-meta">{{ expense.category }} • {{ formatDate(expense.date) }}</div>
-          </div>
-
-          <div class="mcf-expense-amount">
-            <div class="mcf-expense-value">€ {{ expense.amount }}</div>
-          </div>
-        </div>
+        </q-card>
 
         <div v-if="recentExpenses.length === 0" class="mcf-empty-state">
           <q-icon name="receipt_long" size="48px" class="mcf-empty-icon" />
@@ -225,8 +182,7 @@ const userName = ref('Utente')
 const recentExpenses = ref([])
 const monthExpenses = ref(0)
 const monthTrend = ref(0)
-const budgetRemaining = ref(0)
-const budgetTotal = ref(0)
+const totalSpendingPlans = ref(0)
 const activePlans = ref([])
 const lastExpense = ref({})
 
@@ -271,23 +227,33 @@ const loadDashboardData = async () => {
     await expensesStore.loadExpenses()
     const expenses = expensesStore.expenses
 
-    // Ultime 5 spese con mapping corretto dei campi
+    // Ultime 5 spese con mapping corretto dei campi e status
     recentExpenses.value = expenses.slice(0, 5).map(expense => ({
       id: expense.id,
       description: expense.description,
       amount: parseFloat(expense.amount).toFixed(2),
-      category: expense.category?.name || 'Altro',
-      date: expense.date
+      category: expense.category_detail?.name || expense.category?.name || 'Altro',
+      date: expense.date,
+      status: expense.payment_status || expense.status || 'non_pagata'
     }))
 
-    // Ultima spesa
-    if (expenses.length > 0) {
-      const last = expenses[0]
-      lastExpense.value = {
-        description: last.description,
-        amount: parseFloat(last.amount).toFixed(2),
-        date: formatDate(last.date)
+    // Carica piani di spesa (tutti, non solo quelli attivi)
+    try {
+      const plansResponse = await reportsAPI.getSpendingPlans(true)
+      console.log('Plans response:', plansResponse)
+      if (Array.isArray(plansResponse)) {
+        totalSpendingPlans.value = plansResponse.length
+      } else if (plansResponse?.data && Array.isArray(plansResponse.data)) {
+        totalSpendingPlans.value = plansResponse.data.length
+      } else if (plansResponse?.results && Array.isArray(plansResponse.results)) {
+        totalSpendingPlans.value = plansResponse.results.length
+      } else {
+        console.warn('Formato risposta piani non riconosciuto:', plansResponse)
+        totalSpendingPlans.value = 0
       }
+    } catch (error) {
+      console.error('Errore caricamento piani:', error)
+      totalSpendingPlans.value = 0
     }
 
     // Calcola totale del mese corrente
@@ -394,6 +360,21 @@ const formatDate = (dateString) => {
   return date.formatDate(dateString, 'DD/MM/YYYY')
 }
 
+const getExpenseStatusClass = (expense) => {
+  if (expense.status === 'pagata') return 'expense-paid'
+  if (expense.status === 'in_sospeso') return 'expense-pending'
+  return 'expense-unpaid'
+}
+
+const getStatusText = (status) => {
+  const statusMap = {
+    'pagata': 'Pagata',
+    'in_sospeso': 'In Sospeso',
+    'non_pagata': 'Da Pagare'
+  }
+  return statusMap[status] || status
+}
+
 // Navigation
 const goToAddExpense = () => {
   router.push('/expenses/add')
@@ -473,6 +454,92 @@ onMounted(async () => {
 }
 
 // === STATS GRID ===
+// === STATS WIDGETS ===
+.mcf-stats-widgets {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+
+  @media (max-width: 768px) {
+    gap: 10px;
+  }
+}
+
+.mcf-stat-widget {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s ease;
+
+  @media (max-width: 768px) {
+    padding: 14px;
+    gap: 10px;
+  }
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+  }
+}
+
+.mcf-widget-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+  }
+
+  &.mcf-widget-icon--primary {
+    background-color: #dbeafe;
+    color: #0c4a6e;
+  }
+
+  &.mcf-widget-icon--accent {
+    background-color: #fef3c7;
+    color: #92400e;
+  }
+}
+
+.mcf-widget-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.mcf-widget-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.2;
+  margin-bottom: 2px;
+
+  @media (max-width: 768px) {
+    font-size: 1.3rem;
+  }
+}
+
+.mcf-widget-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #6b7280;
+
+  @media (max-width: 768px) {
+    font-size: 0.75rem;
+  }
+}
+
 .mcf-stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -672,6 +739,14 @@ onMounted(async () => {
   margin-bottom: 32px;
 }
 
+.mcf-quick-actions-compact {
+  margin-bottom: 24px;
+
+  @media (max-width: 768px) {
+    margin-bottom: 20px;
+  }
+}
+
 .mcf-section-title {
   font-size: 18px;
   font-weight: 600;
@@ -684,6 +759,84 @@ onMounted(async () => {
   }
 }
 
+.mcf-actions-grid-square {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+
+  @media (max-width: 768px) {
+    gap: 10px;
+  }
+}
+
+.mcf-action-widget {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  aspect-ratio: 1;
+
+  @media (max-width: 768px) {
+    padding: 12px 8px;
+    gap: 8px;
+  }
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+}
+
+.mcf-action-icon-large {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+  }
+
+  &.mcf-action-icon--primary {
+    background-color: #dbeafe;
+    color: #0c4a6e;
+  }
+
+  &.mcf-action-icon--accent {
+    background-color: #fef3c7;
+    color: #92400e;
+  }
+
+  &.mcf-action-icon--tertiary {
+    background-color: #d1fae5;
+    color: #065f46;
+  }
+}
+
+.mcf-action-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  text-align: center;
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+  }
+}
+
+// Old styles kept for compatibility
 .mcf-actions-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -695,68 +848,6 @@ onMounted(async () => {
 
   @media (max-width: 600px) {
     grid-template-columns: 1fr;
-  }
-}
-
-.mcf-action-card {
-  background: var(--mcf-bg-surface);
-  border: 1px solid var(--mcf-border-light);
-  border-radius: 10px;
-  padding: 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-
-  @media (min-width: 768px) {
-    padding: 18px;
-    gap: 14px;
-    border-radius: 12px;
-  }
-
-  &:hover {
-    box-shadow: var(--mcf-shadow-md);
-    border-color: var(--mcf-primary);
-    transform: translateY(-1px);
-  }
-}
-
-.mcf-action-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  flex-shrink: 0;
-
-  @media (min-width: 768px) {
-    width: 40px;
-    height: 40px;
-    font-size: 20px;
-    border-radius: 10px;
-  }
-
-  &.mcf-action-icon--primary {
-    background-color: var(--mcf-primary-light);
-    color: var(--mcf-primary);
-  }
-
-  &.mcf-action-icon--accent {
-    background-color: var(--mcf-accent-light);
-    color: var(--mcf-accent);
-  }
-
-  &.mcf-action-icon--secondary {
-    background-color: var(--mcf-secondary-light);
-    color: var(--mcf-secondary);
-  }
-
-  &.mcf-action-icon--tertiary {
-    background-color: var(--mcf-tertiary-light);
-    color: var(--mcf-tertiary);
   }
 }
 
@@ -806,6 +897,27 @@ onMounted(async () => {
   }
 }
 
+.mcf-section-header-inline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 12px;
+
+  .mcf-section-title {
+    margin: 0;
+  }
+}
+
+.mcf-btn-link {
+  color: #0c4a6e;
+  font-size: 0.875rem;
+
+  &:hover {
+    color: #0ea5e9;
+  }
+}
+
 .mcf-expenses-list {
   background: var(--mcf-bg-surface);
   border: 1px solid var(--mcf-border-light);
@@ -813,51 +925,122 @@ onMounted(async () => {
   overflow: hidden;
 }
 
-.mcf-expense-item {
+// Compact expense card
+.mcf-expense-card {
+  background: white;
+  border-radius: 10px !important;
+  transition: all 0.2s ease;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+
+  @media (min-width: 768px) {
+    border-radius: 12px !important;
+  }
+
+  @media (max-width: 768px) {
+    padding: 10px 14px;
+  }
+
+  &.expense-paid {
+    border-left: 4px solid #10b981;
+  }
+
+  &.expense-pending {
+    border-left: 4px solid #f59e0b;
+  }
+
+  &.expense-unpaid {
+    border-left: 4px solid #ef4444;
+  }
+}
+
+.expense-main {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.expense-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.expense-description {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 6px;
   display: flex;
   align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--mcf-border-light);
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: 6px;
 
-  &:last-child {
-    border-bottom: none;
-  }
-
-  &:hover {
-    background-color: var(--mcf-bg-secondary);
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
   }
 }
 
-.mcf-expense-avatar {
-  margin-right: 16px;
+.paid-icon {
+  flex-shrink: 0;
 }
 
-.mcf-expense-content {
-  flex: 1;
-
-  .mcf-expense-title {
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--mcf-text-primary);
-    margin-bottom: 4px;
-    line-height: 1.2;
-  }
-
-  .mcf-expense-meta {
-    font-size: 12px;
-    color: var(--mcf-text-muted);
-  }
+.expense-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.75rem;
+  color: #6b7280;
 }
 
-.mcf-expense-amount {
+.category-chip {
+  background: #e5e7eb;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.date-text {
+  font-weight: 500;
+}
+
+.expense-right {
   text-align: right;
+  flex-shrink: 0;
+}
 
-  .mcf-expense-value {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--mcf-text-primary);
+.expense-amount {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0c4a6e;
+  margin-bottom: 4px;
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+  }
+}
+
+.expense-status-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+
+  &.status-pagata {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  &.status-in_sospeso {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  &.status-non_pagata {
+    background: #fee2e2;
+    color: #991b1b;
   }
 }
 

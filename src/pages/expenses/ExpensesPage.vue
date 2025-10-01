@@ -136,97 +136,88 @@
           </div>
 
           <!-- Expenses for this date -->
-          <div
+          <q-slide-item
             v-for="expense in group.expenses"
             :key="expense.id"
-            :class="[
-              'mcf-expense-card',
-              { 'mcf-expense-card--quick': isQuickExpense(expense) }
-            ]"
-            @click="openEditModal(expense)"
+            @left="({ reset }) => { deleteExpense(expense); reset() }"
+            left-color="negative"
+            :class="$q.screen.lt.md ? 'mobile-swipe' : 'desktop-no-swipe'"
           >
-          <!-- Header della card -->
-          <div class="mcf-expense-header">
-            <div class="mcf-expense-content">
-              <div class="mcf-expense-left">
-                <div class="mcf-expense-title">
-                  {{ expense.description }}
-                  <q-icon
-                    v-if="expense.status === 'pagata'"
-                    name="check_circle"
-                    class="mcf-paid-badge"
-                  />
-                </div>
-                <div v-if="expense.notes" class="mcf-expense-notes">{{ expense.notes }}</div>
+            <template v-slot:left>
+              <div class="row items-center q-gutter-sm">
+                <q-icon name="delete" size="24px" />
+                <span class="text-weight-medium">Elimina</span>
               </div>
-              <div class="mcf-expense-right">
-                <div class="mcf-amount-value">€{{ expense.amount }}</div>
-                <div v-if="expense.shared_with && expense.shared_with.length > 0" class="mcf-shared-indicator">
-                  <q-icon name="people" size="14px" />
-                  <span>Condivisa</span>
-                </div>
-              </div>
-            </div>
-          </div>
+            </template>
 
-          <!-- Metadata della spesa -->
-          <div class="mcf-expense-metadata">
-            <div class="mcf-metadata-left">
-              <div class="mcf-metadata-item mcf-metadata-category">
-                <q-icon name="category" />
-                <span>{{ expense.category_detail?.name || 'Categoria non specificata' }}</span>
-              </div>
-
-              <div class="mcf-metadata-item mcf-metadata-date">
-                <q-icon name="calendar_today" />
-                <span>{{ formatDate(expense.date) }}</span>
-              </div>
-            </div>
-
-            <div class="mcf-metadata-right">
-              <!-- Pulsante Paga per spese non pagate -->
-              <q-btn
-                v-if="expense.status !== 'pagata'"
-                flat
-                dense
-                round
-                icon="payments"
-                class="mcf-pay-btn"
-                @click.stop="openPaymentDialog(expense)"
-                size="sm"
-                color="positive"
-              >
-                <q-tooltip>Paga spesa</q-tooltip>
-              </q-btn>
-
-              <q-btn
-                flat
-                dense
-                round
-                icon="delete_outline"
-                class="mcf-delete-btn"
-                @click.stop="deleteExpense(expense)"
-                size="sm"
-              >
-                <q-tooltip>Elimina spesa</q-tooltip>
-              </q-btn>
-            </div>
-          </div>
-
-          <!-- Note OCR (se presenti) -->
-          <div v-if="expense.note && expense.note.includes('OCR')" class="mcf-expense-ocr">
-            <q-expansion-item
-              icon="text_snippet"
-              label="Testo OCR riconosciuto"
-              class="mcf-ocr-expansion"
-              header-class="mcf-ocr-header"
+            <q-card
+              :class="[
+                'mcf-expense-card',
+                { 'mcf-expense-card--quick': isQuickExpense(expense) },
+                getPaymentStatusClass(expense)
+              ]"
+              @click="openEditModal(expense)"
+              bordered
             >
-              <div class="mcf-ocr-content">
-                {{ expense.note }}
+              <!-- Main Content -->
+              <div class="expense-main">
+                <div class="expense-left">
+                  <div class="expense-description">
+                    {{ expense.description }}
+                    <q-icon
+                      v-if="expense.status === 'pagata'"
+                      name="check_circle"
+                      class="paid-icon"
+                      color="positive"
+                    />
+                  </div>
+                  <div class="expense-meta">
+                    <span v-if="expense.category_detail" class="category-chip">
+                      {{ expense.category_detail.name }}
+                    </span>
+                    <span class="date-text">{{ formatDate(expense.date) }}</span>
+                    <span v-if="expense.shared_with && expense.shared_with.length > 0" class="shared-indicator">
+                      <q-icon name="people" size="12px" />
+                      Condivisa
+                    </span>
+                  </div>
+                </div>
+                <div class="expense-right">
+                  <div class="expense-amount">€{{ expense.amount }}</div>
+                  <div class="expense-status-badge" :class="`status-${expense.status}`">
+                    {{ getStatusText(expense.status) }}
+                  </div>
+                </div>
               </div>
-            </q-expansion-item>
-          </div>
-          </div>
+
+              <!-- Actions Row -->
+              <div class="expense-actions" @click.stop>
+                <q-btn
+                  v-if="expense.status !== 'pagata'"
+                  flat
+                  dense
+                  size="sm"
+                  icon="payments"
+                  color="positive"
+                  @click="openPaymentDialog(expense)"
+                >
+                  <q-tooltip>Paga spesa</q-tooltip>
+                </q-btn>
+                <!-- Delete button only on desktop -->
+                <q-btn
+                  v-if="$q.screen.gt.sm"
+                  flat
+                  dense
+                  size="sm"
+                  icon="delete_outline"
+                  color="negative"
+                  @click="deleteExpense(expense)"
+                >
+                  <q-tooltip>Elimina spesa</q-tooltip>
+                </q-btn>
+              </div>
+            </q-card>
+          </q-slide-item>
         </div>
       </div>
 
@@ -916,12 +907,15 @@
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
+import { useQuasar } from 'quasar'
 import { useSnackbar } from 'src/composables/useSnackbar'
 import { expensesAPI } from 'src/services/api/expenses.js'
 import { reportsAPI } from 'src/services/api/reports.js'
 import { contributionsAPI } from 'src/services/api/contributions.js'
 import { categoriesAPI } from 'src/services/api/categories.js'
 import MCFAutocomplete from 'components/forms/MCFAutocomplete.vue'
+
+const $q = useQuasar()
 import MCFSelect from 'components/forms/MCFSelect.vue'
 import MCFDatePicker from 'components/MCFDatePicker.vue'
 import DeleteExpenseModal from 'components/DeleteExpenseModal.vue'
@@ -1172,6 +1166,21 @@ const formatDateHeader = (dateString) => {
   } catch {
     return dateString
   }
+}
+
+const getPaymentStatusClass = (expense) => {
+  if (expense.status === 'pagata') return 'expense-paid'
+  if (expense.status === 'in_sospeso') return 'expense-pending'
+  return 'expense-unpaid'
+}
+
+const getStatusText = (status) => {
+  const statusMap = {
+    'pagata': 'Pagata',
+    'in_sospeso': 'In Sospeso',
+    'non_pagata': 'Da Pagare'
+  }
+  return statusMap[status] || status
 }
 
 
@@ -2100,203 +2109,192 @@ onMounted(async () => {
 }
 
 .mcf-expense-card {
-  background: #f1f8ff;
-  border: 1px solid var(--mcf-border-medium);
-  border-radius: 8px;
-  box-shadow: var(--mcf-shadow-md);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-  width: 100%;
+  background: white;
+  border-radius: 10px !important;
+  transition: all 0.2s ease;
   cursor: pointer;
+  padding: 12px 16px;
 
   @media (min-width: 768px) {
-    border-radius: 10px;
+    border-radius: 12px !important;
+  }
+
+  @media (max-width: 768px) {
+    padding: 10px 14px;
   }
 
   &:hover {
     transform: translateY(-1px);
-    box-shadow: var(--mcf-shadow-md);
-    border-color: var(--mcf-primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
 
-  // Variante per spese rapide - bordo arancione
+  &.expense-paid {
+    border-left: 4px solid #10b981;
+  }
+
+  &.expense-pending {
+    border-left: 4px solid #f59e0b;
+  }
+
+  &.expense-unpaid {
+    border-left: 4px solid #ef4444;
+  }
+
   &--quick {
-    border-color: #ff9800;
-    border-width: 1px;
+    border: 2px solid #ff9800;
 
     &:hover {
-      border-color: #f57c00;
       box-shadow: 0 4px 16px rgba(255, 152, 0, 0.2);
     }
   }
 }
 
-// === EXPENSE HEADER ===
-.mcf-expense-header {
-  padding: 10px 12px 0 12px;
-
-  @media (min-width: 768px) {
-    padding: 12px 16px 0 16px;
-  }
-
-  @media (max-width: 600px) {
-    padding: 8px 12px 0 12px;
-  }
-}
-
-.mcf-expense-content {
+// Compact Card Layout
+.expense-main {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-
-  @media (min-width: 768px) {
-    gap: 16px;
-  }
+  margin-bottom: 8px;
 }
 
-.mcf-expense-left {
+.expense-left {
   flex: 1;
   min-width: 0;
 }
 
-.mcf-expense-right {
+.expense-description {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+  }
+}
+
+.paid-icon {
+  flex-shrink: 0;
+}
+
+.expense-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.category-chip {
+  background: #e5e7eb;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.date-text {
+  font-weight: 500;
+}
+
+.shared-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #0ea5e9;
+  font-weight: 500;
+}
+
+.expense-right {
   text-align: right;
   flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
 }
 
-.mcf-expense-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--mcf-text-primary);
-  line-height: 1.2;
-  margin-bottom: 2px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  word-wrap: break-word;
-
-  @media (min-width: 768px) {
-    font-size: 16px;
-    margin-bottom: 4px;
-  }
-}
-
-// === PAID BADGE ===
-.mcf-paid-badge {
-  font-size: 16px;
-  color: var(--mcf-accent);
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
-  flex-shrink: 0;
-
-  @media (min-width: 768px) {
-    font-size: 18px;
-  }
-
-  &:hover {
-    opacity: 1;
-  }
-}
-
-.mcf-expense-notes {
-  font-size: 12px;
-  color: var(--mcf-text-secondary);
-  line-height: 1.2;
-  margin-top: 1px;
-
-  @media (min-width: 768px) {
-    font-size: 13px;
-    line-height: 1.3;
-    margin-top: 2px;
-  }
-}
-
-.mcf-amount-value {
-  font-size: 20px;
+.expense-amount {
+  font-size: 1.1rem;
   font-weight: 700;
-  color: var(--mcf-primary);
-  font-feature-settings: 'tnum';
-  line-height: 1;
-  margin-bottom: 2px;
+  color: #0c4a6e;
+  margin-bottom: 4px;
 
-  @media (min-width: 768px) {
-    font-size: 22px;
-    margin-bottom: 4px;
+  @media (max-width: 768px) {
+    font-size: 1rem;
   }
 }
 
-.mcf-shared-indicator {
+.expense-status-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+
+  &.status-pagata {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  &.status-in_sospeso {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  &.status-non_pagata {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+}
+
+.expense-actions {
   display: flex;
-  align-items: center;
+  justify-content: flex-end;
   gap: 4px;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--mcf-accent);
-
-  span {
-    line-height: 1;
-  }
+  padding-top: 8px;
+  border-top: 1px solid #f3f4f6;
 }
 
-.mcf-expense-actions {
-  margin-top: 2px;
-}
-
-.mcf-edit-btn {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--mcf-primary);
-  padding: 4px 8px;
-  min-height: 28px;
-  text-transform: lowercase;
-  border: 1px solid var(--mcf-border-light);
-  border-radius: 6px;
-
-  &:hover {
-    background-color: var(--mcf-primary);
-    color: white;
-    border-color: var(--mcf-primary);
-  }
-}
-
-// === EXPENSE METADATA ===
-.mcf-expense-metadata {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px 10px 12px;
+// Swipe styles
+.mobile-swipe {
+  margin-bottom: 8px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 
   @media (min-width: 768px) {
-    padding: 10px 16px 12px 16px;
+    border-radius: 12px;
   }
 
-  @media (max-width: 600px) {
-    padding: 6px 12px 8px 12px;
+  // Hide the background completely when not swiping
+  :deep(.q-slide-item__left) {
+    border-radius: 10px;
+
+    @media (min-width: 768px) {
+      border-radius: 12px;
+    }
+  }
+
+  // Make sure card covers everything
+  :deep(.q-slide-item__content) {
+    background: white;
+    border-radius: 10px;
+
+    @media (min-width: 768px) {
+      border-radius: 12px;
+    }
   }
 }
 
-.mcf-metadata-left {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  flex: 1;
+.desktop-no-swipe {
+  margin-bottom: 8px;
 
-  @media (min-width: 768px) {
-    gap: 8px;
+  // Disable swipe on desktop
+  .q-slide-item__content {
+    pointer-events: auto;
   }
-
-  @media (max-width: 600px) {
-    gap: 4px;
-  }
-}
-
-.mcf-metadata-right {
-  margin-left: 12px;
 }
 
 .mcf-metadata-item {

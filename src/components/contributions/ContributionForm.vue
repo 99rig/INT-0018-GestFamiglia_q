@@ -95,9 +95,6 @@
 
       <!-- Informativa Contributi -->
       <q-banner class="contribution-info-banner" rounded>
-        <template v-slot:avatar>
-          <q-icon name="info" color="primary" />
-        </template>
         <div class="text-caption">
           <strong>Cos'è un contributo?</strong><br>
           Un contributo è una somma che aggiungi alla cassa comune della famiglia.

@@ -166,16 +166,41 @@ const settingsLinks = [
 ]
 </script>
 
+<style lang="scss">
+// Stili NON scoped per il q-drawer
+.mcf-sidebar {
+  background: #ffffff !important;
+
+  .q-drawer__content {
+    overflow-x: hidden;
+    background: #ffffff !important;
+  }
+
+  .mcf-sidebar-header {
+    background: #ffffff !important;
+    border-radius: 0 0 16px 16px !important;
+    padding: 24px 20px;
+    border-bottom: 1px solid var(--mcf-border-light);
+
+    .mcf-sidebar-name {
+      color: #239db0 !important;
+    }
+
+    .mcf-sidebar-subtitle {
+      color: #239db0 !important;
+    }
+
+    .mcf-user-info {
+      color: #239db0 !important;
+    }
+  }
+}
+</style>
+
 <style lang="scss" scoped>
 .mcf-sidebar {
-  background: var(--mcf-bg-surface);
+  background: #ffffff !important;
   border-right: 1px solid var(--mcf-border-light);
-}
-
-.mcf-sidebar-header {
-  padding: 24px 20px;
-  border-bottom: 1px solid var(--mcf-border-light);
-  background: var(--mcf-bg-primary);
 }
 
 .mcf-sidebar-brand {
@@ -200,15 +225,13 @@ const settingsLinks = [
   .mcf-sidebar-name {
     font-family: var(--mcf-logo-font, 'Fredoka One'), cursive;
     font-size: 16px;
-    font-weight: bold !important; // Logo sempre bold
-    color: var(--mcf-text-primary);
+    font-weight: bold !important;
     line-height: 1.2;
   }
 
   .mcf-sidebar-subtitle {
     font-size: 12px;
     font-weight: 400;
-    color: var(--mcf-text-muted);
     line-height: 1.3;
     margin-top: 2px;
   }
@@ -216,7 +239,6 @@ const settingsLinks = [
 
 .mcf-user-info {
   font-size: 12px;
-  color: var(--mcf-text-muted);
   margin-top: 4px;
   opacity: 0.9;
   font-weight: 600;
