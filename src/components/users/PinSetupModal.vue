@@ -229,6 +229,8 @@ watch(() => props.modelValue, (isOpen) => {
   max-width: 500px;
   margin: 0 auto;
   padding: 20px;
+  position: relative;
+  z-index: 9999;
 }
 
 .ticket-card {
