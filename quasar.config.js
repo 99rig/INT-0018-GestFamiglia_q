@@ -57,7 +57,7 @@ export default defineConfig((ctx) => {
       env: {
         API_BASE_URL: ctx.dev
           ? 'http://localhost:8000'
-          : 'https://lacrazyfamily.com'
+          : 'https://mycrisisfamily.com'
       },
       // rawDefine: {}
       // ignorePublicFolder: true,

@@ -3,7 +3,7 @@ Allow: /
 Allow: /app/
 
 # Sitemap
-Sitemap: https://lacrazyfamily.com/sitemap.xml
+Sitemap: https://mycrisisfamily.com/sitemap.xml
 
 # Disallow sensitive paths
 Disallow: /app/#settings
