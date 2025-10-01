@@ -7,7 +7,7 @@
           size="128px" 
           class="text-mcf-primary q-mb-lg"
         />
-        <h4 class="text-h4 q-mt-md q-mb-sm text-mcf-primary">My Crazy Family</h4>
+        <h4 class="text-h4 q-mt-md q-mb-sm text-mcf-primary">MyCrisisFamily</h4>
         <p class="text-subtitle1 text-mcf-accent q-mb-lg">
           Gestione Spese Famigliari
         </p>

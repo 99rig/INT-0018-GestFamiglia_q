@@ -1,4 +1,4 @@
-// Service Worker minimal per My Crazy Family Landing
+// Service Worker minimal per MyCrisisFamily Landing
 // Versione: 1.0.0
 
 const CACHE_NAME = 'mcf-landing-v1';

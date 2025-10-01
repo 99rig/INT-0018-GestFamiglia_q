@@ -489,12 +489,12 @@
             <div class="mcf-font-group">
               <h4 class="mcf-font-group-title">
                 <q-icon name="account_balance_wallet" class="mcf-font-group-icon" />
-                Font Logo "My Crazy Family"
+                Font Logo "MyCrisisFamily"
               </h4>
 
               <div class="mcf-font-preview-container">
                 <div class="mcf-font-preview" :style="{ fontFamily: selectedLogoFont }">
-                  My Crazy Family
+                  MyCrisisFamily
                 </div>
               </div>
 
@@ -1056,7 +1056,7 @@ const selectedPalette = ref('default')
 const colorPalettes = [
   {
     id: 'default',
-    name: 'My Crazy Family (Default)',
+    name: 'MyCrisisFamily (Default)',
     colors: [
       { name: 'Primary', value: '#239db0' },
       { name: 'Secondary', value: '#2a5f82' },
@@ -1555,7 +1555,7 @@ const applyThemePalette = async (paletteId) => {
   // Apply CSS custom properties based on the selected palette
   switch (paletteId) {
     case 'default':
-      // My Crazy Family original colors (fixed default)
+      // MyCrisisFamily original colors (fixed default)
       root.style.setProperty('--mcf-primary', '#239db0')
       root.style.setProperty('--mcf-secondary', '#2a5f82')
       root.style.setProperty('--mcf-accent', '#10B981')
@@ -1747,8 +1747,8 @@ const copyInviteCode = async () => {
 
 const shareInviteCode = async () => {
   const shareData = {
-    title: 'Invito Famiglia - My Crazy Family',
-    text: `Unisciti alla mia famiglia su My Crazy Family! Usa questo codice: ${inviteCode.value}`,
+    title: 'Invito Famiglia - MyCrisisFamily',
+    text: `Unisciti alla mia famiglia su MyCrisisFamily! Usa questo codice: ${inviteCode.value}`,
     url: window.location.origin
   }
 

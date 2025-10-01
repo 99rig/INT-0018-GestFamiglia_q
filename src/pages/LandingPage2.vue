@@ -5,7 +5,7 @@
       <div class="nav-container">
         <div class="nav-brand">
           <q-icon name="account_balance_wallet" size="32px" />
-          <span class="brand-text">MyCrazyFamily</span>
+          <span class="brand-text">MyCrisisFamily</span>
         </div>
         <div class="nav-actions">
           <q-btn flat label="Demo" @click="goToLogin" class="nav-btn" />
@@ -98,7 +98,7 @@
             <div class="phone-screen">
               <div class="app-preview">
                 <div class="app-header">
-                  <div class="app-title">My Crazy Family</div>
+                  <div class="app-title">MyCrisisFamily</div>
                   <q-icon name="account_balance_wallet" size="24px" />
                 </div>
                 <div class="app-content">
@@ -159,7 +159,7 @@
         <div class="cta-content">
           <h2 class="cta-title">Pronto per iniziare?</h2>
           <p class="cta-description">
-            Unisciti alle famiglie che hanno già scelto My Crazy Family.<br>
+            Unisciti alle famiglie che hanno già scelto MyCrisisFamily.<br>
             <small>App iOS in arrivo prossimamente!</small>
           </p>
           <div class="cta-buttons">
@@ -244,7 +244,7 @@
               <h4 class="disclaimer-title">Termini di Utilizzo</h4>
               <div class="disclaimer-text">
                 <p>
-                  Utilizzando My Crazy Family accetti i nostri termini di servizio.
+                  Utilizzando MyCrisisFamily accetti i nostri termini di servizio.
                   L'app è fornita "così com'è" senza garanzie esplicite o implicite.
                   Non siamo responsabili per eventuali perdite di dati o danni derivanti dall'uso dell'applicazione.
                 </p>
@@ -259,7 +259,7 @@
           <!-- Copyright -->
           <div class="footer-copyright">
             <div class="copyright-text">
-              © {{ currentYear }} My Crazy Family - Tutti i diritti riservati
+              © {{ currentYear }} MyCrisisFamily - Tutti i diritti riservati
             </div>
             <div class="version-info">
               Versione {{ latestVersion }} • Sviluppato con Vue.js e Quasar
@@ -274,7 +274,7 @@
       <q-card class="download-card">
         <q-card-section class="text-center">
           <q-icon name="download" size="64px" color="primary" />
-          <div class="text-h5 q-mt-md">Scarica My Crazy Family</div>
+          <div class="text-h5 q-mt-md">Scarica MyCrisisFamily</div>
           <div class="text-body2 text-grey-6 q-mt-sm">
             Versione corrente: v{{ latestVersion }}
           </div>

@@ -1,4 +1,4 @@
-# My Crazy Family
+# MyCrisisFamily
 
 Gestione Spese Famigliari
 
@@ -27,7 +27,7 @@ quasar build -m capacitor -T android # Android
 ### 📱 Configurazione
 
 - **App ID**: com.mumble.crazyfamily
-- **Nome**: My Crazy Family
+- **Nome**: MyCrisisFamily
 - **Tema**: #874E14
 
 ### 🛠️ Stack Tecnologico

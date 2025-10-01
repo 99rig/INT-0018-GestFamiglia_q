@@ -192,7 +192,7 @@ ${updateInfo.is_mandatory ? '\n⚠️ Questo aggiornamento è obbligatorio.' : '
       }
 
       const blob = await response.blob()
-      const fileName = `MyCrazyFamily-v${updateInfo.version_name}.apk`
+      const fileName = `MyCrisisFamily-v${updateInfo.version_name}.apk`
 
       // Chiudi progress dialog
       progressDialog.hide()

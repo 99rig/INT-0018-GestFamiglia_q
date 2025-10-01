@@ -1,6 +1,6 @@
 {
   "appId": "com.mumble.crazyfamily",
-  "appName": "My Crazy Family",
+  "appName": "MyCrisisFamily",
   "webDir": "www",
   "bundledWebRuntime": false,
   "backgroundColor": "#239db0",
@@ -14,7 +14,7 @@
     "preferredContentMode": "mobile",
     "allowsLinkPreview": true,
     "scheme": "App",
-    "overrideUserAgent": "My Crazy Family/1.0"
+    "overrideUserAgent": "MyCrisisFamily/1.0"
   },
   "android": {
     "backgroundColor": "#239db0",

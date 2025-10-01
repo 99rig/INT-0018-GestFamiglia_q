@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 
 export const useAppStore = defineStore('app', {
   state: () => ({
-    appName: 'My Crazy Family',
+    appName: 'MyCrisisFamily',
     versions: {
       web: { name: '1.0.37', code: 32 },
       android: { name: '1.0.37', code: 32 },

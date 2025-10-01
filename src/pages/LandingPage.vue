@@ -8,7 +8,7 @@
           <div class="app-icon">
             <q-icon name="account_balance_wallet" size="80px" color="white" />
           </div>
-          <h1 class="hero-title">My Crazy Family</h1>
+          <h1 class="hero-title">MyCrisisFamily</h1>
           <p class="hero-subtitle">La gestione delle spese familiari non è mai stata così semplice</p>
         </div>
 
@@ -54,7 +54,7 @@
     <!-- Features Section -->
     <section class="features-section">
       <div class="section-container">
-        <h2 class="section-title">Perché scegliere My Crazy Family?</h2>
+        <h2 class="section-title">Perché scegliere MyCrisisFamily?</h2>
 
         <div class="features-grid">
           <!-- Feature 1: Gestione Familiare -->
@@ -259,7 +259,7 @@
         <div class="cta-content">
           <h2 class="cta-title">Pronto per iniziare?</h2>
           <p class="cta-description">
-            Unisciti alle famiglie che hanno già scelto My Crazy Family per organizzare le loro finanze.
+            Unisciti alle famiglie che hanno già scelto MyCrisisFamily per organizzare le loro finanze.
           </p>
           <div class="cta-buttons">
             <q-btn
@@ -284,7 +284,7 @@
       <q-card class="download-card">
         <q-card-section class="text-center">
           <q-icon name="download" size="64px" color="primary" />
-          <div class="text-h5 q-mt-md">Scarica My Crazy Family</div>
+          <div class="text-h5 q-mt-md">Scarica MyCrisisFamily</div>
           <div class="text-body2 text-grey-6 q-mt-sm">
             Versione corrente: v{{ latestVersion }}
           </div>
@@ -338,7 +338,7 @@ const downloadAPK = async () => {
     // Simula il download dell'APK
     const link = document.createElement('a')
     link.href = '/api/updates/latest/download/'
-    link.download = `MyCrazyFamily-v${latestVersion.value}.apk`
+    link.download = `MyCrisisFamily-v${latestVersion.value}.apk`
     link.click()
 
     $q.notify({
