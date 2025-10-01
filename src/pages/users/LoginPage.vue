@@ -746,6 +746,16 @@ const closePinSetupModal = () => {
     color: #000000;
     text-align: center;
   }
+
+  // Focus styling
+  :deep(.q-field--focused .q-field__control) {
+    box-shadow: 0 0 0 2px #2a5f82 !important;
+  }
+
+  :deep(.q-field__control:before),
+  :deep(.q-field__control:after) {
+    border: none !important;
+  }
 }
 
 .switch-btn,
