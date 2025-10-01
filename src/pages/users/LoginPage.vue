@@ -115,6 +115,21 @@
       </q-page>
     </q-page-container>
   </q-layout>
+
+  <!-- PIN Components -->
+  <PinActionModals2
+    :show-want-pin="showSetupPinModal"
+    @update:show-want-pin="showSetupPinModal = $event"
+    @confirm="confirmPin"
+    @cancel="cancelPin"
+  />
+
+  <PinSetupModal
+    v-model="showPinSetupModal"
+    :loading="setupPinLoading"
+    @confirm="confirmSetupPin"
+    @cancel="closePinSetupModal"
+  />
 </template>
 
 <script setup>
@@ -122,6 +137,8 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from 'stores/auth.js'
 import { useSnackbar } from 'src/composables/useSnackbar'
+import PinActionModals2 from 'components/users/PinActionModals2.vue'
+import PinSetupModal from 'components/users/PinSetupModal.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -131,6 +148,11 @@ const email = ref('')
 const password = ref('')
 const rememberMe = ref(false)
 const loading = ref(false)
+
+// PIN setup
+const showSetupPinModal = ref(false)
+const showPinSetupModal = ref(false)
+const setupPinLoading = ref(false)
 
 const handleLogin = async () => {
   if (!email.value || !password.value) {
@@ -143,13 +165,50 @@ const handleLogin = async () => {
     await authStore.login(email.value, password.value)
 
     snackbar.success('Login effettuato con successo!')
-    router.push('/dashboard')
+
+    // Se "Ricordami" è selezionato e non ha già un PIN, chiedi se vuole impostarlo
+    if (rememberMe.value && !authStore.hasPin) {
+      showSetupPinModal.value = true
+    } else {
+      router.push('/dashboard')
+    }
   } catch (error) {
     console.error('Errore login:', error)
     snackbar.error('Credenziali non valide')
   } finally {
     loading.value = false
   }
+}
+
+const confirmPin = () => {
+  showSetupPinModal.value = false
+  showPinSetupModal.value = true
+}
+
+const cancelPin = () => {
+  showSetupPinModal.value = false
+  router.push('/dashboard')
+}
+
+const confirmSetupPin = async (pin) => {
+  setupPinLoading.value = true
+  try {
+    await authStore.setupPin(pin)
+    snackbar.success('PIN impostato con successo!')
+    showPinSetupModal.value = false
+    router.push('/dashboard')
+  } catch (error) {
+    console.error('Errore setup PIN:', error)
+    snackbar.error('Errore durante l\'impostazione del PIN')
+  } finally {
+    setupPinLoading.value = false
+  }
+}
+
+const closePinSetupModal = () => {
+  showPinSetupModal.value = false
+  setupPinLoading.value = false
+  router.push('/dashboard')
 }
 </script>
 
