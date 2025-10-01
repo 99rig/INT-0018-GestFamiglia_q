@@ -195,13 +195,17 @@ const confirmSetupPin = async (pin) => {
   try {
     await authStore.setupPin(pin)
     snackbar.success('PIN impostato con successo!')
-    showPinSetupModal.value = false
-    router.push('/dashboard')
   } catch (error) {
     console.error('Errore setup PIN:', error)
     snackbar.error('Errore durante l\'impostazione del PIN')
   } finally {
     setupPinLoading.value = false
+    showPinSetupModal.value = false
+
+    // Naviga alla dashboard dopo un piccolo delay per permettere alla modale di chiudersi
+    setTimeout(() => {
+      router.push('/dashboard')
+    }, 300)
   }
 }
 
