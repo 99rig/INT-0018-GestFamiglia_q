@@ -47,8 +47,53 @@
             </div>
 
 
-            <!-- Login Form Section -->
-            <div class="event-info">
+            <!-- PIN Login (se configurato) -->
+            <div v-if="hasPinSetup && !showEmailLogin" class="event-info">
+              <div class="info-label">INSERT PIN</div>
+
+              <!-- PIN Input Fields -->
+              <div class="pin-input-container">
+                <q-input
+                  v-for="i in 4"
+                  :key="i"
+                  v-model="pinDigits[i-1]"
+                  class="pin-field"
+                  outlined
+                  dense
+                  maxlength="1"
+                  inputmode="numeric"
+                  pattern="[0-9]"
+                  @update:model-value="(val) => handlePinInput(i-1, val)"
+                  @keydown.delete="() => handleBackspace(i-1)"
+                  :ref="el => { if (el) pinInputs[i-1] = el }"
+                />
+              </div>
+
+              <!-- Switch to Email & Delete PIN -->
+              <div class="login-actions" style="margin-top: 15px;">
+                <q-btn
+                  label="Usa Email"
+                  flat
+                  dense
+                  color="grey-7"
+                  size="sm"
+                  @click="showEmailLogin = true"
+                  class="switch-btn"
+                />
+                <q-btn
+                  label="Cancella PIN"
+                  flat
+                  dense
+                  color="negative"
+                  size="sm"
+                  @click="confirmDeletePin"
+                  class="delete-pin-btn"
+                />
+              </div>
+            </div>
+
+            <!-- Email/Password Login -->
+            <div v-else class="event-info">
               <div class="info-label">INSERT EMAIL</div>
               <q-input
                 v-model="email"
@@ -66,6 +111,7 @@
                 dense
                 class="login-input"
                 placeholder="Enter your password"
+                @keyup.enter="handleLogin"
               />
 
               <!-- Remember Me & Login Button -->
@@ -83,6 +129,18 @@
                   class="login-btn"
                   @click="handleLogin"
                   :loading="loading"
+                />
+              </div>
+
+              <!-- Back to PIN (if available) -->
+              <div v-if="hasPinSetup" class="text-center" style="margin-top: 10px;">
+                <q-btn
+                  label="Usa PIN"
+                  flat
+                  dense
+                  color="grey-7"
+                  size="sm"
+                  @click="showEmailLogin = false"
                 />
               </div>
             </div>
@@ -133,27 +191,127 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from 'stores/auth.js'
 import { useSnackbar } from 'src/composables/useSnackbar'
+import { useQuasar } from 'quasar'
 import PinActionModals2 from 'components/users/PinActionModals2.vue'
 import PinSetupModal from 'components/users/PinSetupModal.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const snackbar = useSnackbar()
+const $q = useQuasar()
 
 const email = ref('')
 const password = ref('')
 const rememberMe = ref(false)
 const loading = ref(false)
 
+// PIN data
+const pin = ref('')
+const pinDigits = ref(['', '', '', ''])
+const pinInputs = ref([])
+const hasPinSetup = ref(false)
+const showEmailLogin = ref(false)
+
 // PIN setup
 const showSetupPinModal = ref(false)
 const showPinSetupModal = ref(false)
 const setupPinLoading = ref(false)
 
+// Check if PIN is setup on mount
+onMounted(async () => {
+  hasPinSetup.value = authStore.hasPin
+})
+
+// PIN Login Functions
+const handlePinInput = (index, value) => {
+  const digit = value.toString().slice(-1)
+
+  if (!/^\d*$/.test(digit)) {
+    pinDigits.value[index] = ''
+    return
+  }
+
+  pinDigits.value[index] = digit
+  pin.value = pinDigits.value.join('')
+
+  // Auto-focus next field
+  if (digit && index < 3) {
+    setTimeout(() => {
+      const nextInput = pinInputs.value[index + 1]
+      if (nextInput && nextInput.$el) {
+        const inputEl = nextInput.$el.querySelector('input')
+        if (inputEl) {
+          inputEl.focus()
+          inputEl.select()
+        }
+      }
+    }, 50)
+  }
+
+  // Auto-login when complete
+  if (pin.value.length === 4 && !/[^0-9]/.test(pin.value)) {
+    setTimeout(() => loginWithPin(), 300)
+  }
+}
+
+const handleBackspace = (index) => {
+  if (!pinDigits.value[index] && index > 0) {
+    setTimeout(() => {
+      const prevInput = pinInputs.value[index - 1]
+      if (prevInput && prevInput.$el) {
+        const inputEl = prevInput.$el.querySelector('input')
+        if (inputEl) {
+          inputEl.focus()
+        }
+      }
+    }, 10)
+  }
+}
+
+const loginWithPin = async () => {
+  if (pin.value.length !== 4) return
+
+  loading.value = true
+  try {
+    const success = await authStore.loginWithPin(pin.value)
+
+    if (success) {
+      snackbar.success('Accesso riuscito!')
+      router.push('/dashboard')
+    } else {
+      snackbar.error('PIN non corretto')
+      pin.value = ''
+      pinDigits.value = ['', '', '', '']
+    }
+  } finally {
+    loading.value = false
+  }
+}
+
+const confirmDeletePin = () => {
+  $q.dialog({
+    title: 'Cancella PIN',
+    message: 'Sei sicuro di voler cancellare il PIN?',
+    cancel: true,
+    persistent: true
+  }).onOk(async () => {
+    try {
+      await authStore.deletePin()
+      snackbar.success('PIN cancellato con successo')
+      hasPinSetup.value = false
+      showEmailLogin.value = true
+    } catch (error) {
+      console.error('Errore cancellazione PIN:', error)
+      snackbar.error('Errore nella cancellazione del PIN')
+    }
+  })
+}
+
+// Email Login Function
 const handleLogin = async () => {
   if (!email.value || !password.value) {
     snackbar.error('Inserisci email e password')
@@ -560,5 +718,40 @@ const closePinSetupModal = () => {
   font-weight: 700;
   color: #000000;
   letter-spacing: 0.5px;
+}
+
+/* PIN Input Styles */
+.pin-input-container {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.pin-field {
+  width: 50px;
+
+  :deep(.q-field__control) {
+    background: #ffffff;
+    border-radius: 8px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #000000;
+    min-height: 50px;
+    text-align: center;
+  }
+
+  :deep(.q-field__native) {
+    font-weight: 700;
+    color: #000000;
+    text-align: center;
+  }
+}
+
+.switch-btn,
+.delete-pin-btn {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
 }
 </style>
