@@ -529,6 +529,18 @@
 
             <!-- Scanner Form -->
             <div v-else-if="inputMethod === 'scanner'">
+              <!-- Banner informativo -->
+              <q-banner class="mcf-info-banner bg-info text-white q-mb-md">
+                <template v-slot:avatar>
+                  <q-icon name="info" size="24px" />
+                </template>
+                <div class="text-subtitle1 q-mb-xs"><strong>Funzionalità in Sviluppo</strong></div>
+                <div class="text-body2">
+                  Lo scanner automatico e l'upload delle ricevute sono in fase di sviluppo.
+                  Usa il metodo manuale per inserire le spese.
+                </div>
+              </q-banner>
+
               <div class="mcf-scanner-section">
                 <div class="mcf-scanner-header">
                   <q-icon name="document_scanner" size="48px" color="primary" />

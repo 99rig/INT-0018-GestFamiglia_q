@@ -34,15 +34,29 @@
         </div>
       </div>
 
-      <!-- Document Scanner Component -->
+      <!-- Banner informativo al posto del componente scanner -->
       <div class="mcf-scanner-component">
-        <DocumentScanner
-          :show-debug-info="false"
-          :show-buttons="true"
-          @document-scanned="onDocumentScanned"
-          @data-extracted="onDataExtracted"
-          @expense-created="onExpenseCreated"
-        />
+        <q-banner class="mcf-info-banner">
+          <template v-slot:avatar>
+            <q-icon name="construction" size="48px" color="warning" />
+          </template>
+          <div class="text-h5 q-mb-sm">Funzionalità in Sviluppo</div>
+          <div class="text-body1 q-mb-md">
+            Lo scanner automatico delle ricevute è attualmente in fase di sviluppo.
+            Questa funzionalità permetterà di:
+          </div>
+          <ul class="text-body2 q-pl-md">
+            <li>Fotografare o caricare ricevute dalla galleria</li>
+            <li>Estrarre automaticamente importi, date e descrizioni</li>
+            <li>Creare spese in pochi secondi</li>
+          </ul>
+          <div class="text-body1 q-mt-md">
+            <strong>Nel frattempo:</strong> puoi aggiungere le spese manualmente dalla pagina "Nuova Spesa".
+          </div>
+          <template v-slot:action>
+            <q-btn flat color="primary" label="Vai a Nuova Spesa" icon-right="arrow_forward" @click="$router.push('/expenses/add')" />
+          </template>
+        </q-banner>
       </div>
     </div>
   </q-page>
@@ -80,6 +94,93 @@ const onExpenseCreated = (expenseData) => {
 </script>
 
 <style lang="scss" scoped>
+/* === INFO BANNER === */
+.mcf-info-banner {
+  margin-bottom: 20px;
+  border-radius: 12px;
+  padding: 16px;
+  background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+  border: 2px solid #bbdefb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+  @media (min-width: 768px) {
+    padding: 24px;
+  }
+
+  :deep(.q-banner__avatar) {
+    align-self: flex-start;
+    margin-top: 4px;
+
+    @media (max-width: 599px) {
+      .q-icon {
+        font-size: 32px !important;
+      }
+    }
+  }
+
+  :deep(.q-banner__content) {
+    padding-right: 0;
+  }
+
+  .text-h5 {
+    font-size: 1.25rem;
+    line-height: 1.3;
+
+    @media (min-width: 768px) {
+      font-size: 1.5rem;
+    }
+  }
+
+  .text-body1 {
+    font-size: 0.9rem;
+    line-height: 1.5;
+
+    @media (min-width: 768px) {
+      font-size: 1rem;
+    }
+  }
+
+  .text-body2 {
+    font-size: 0.85rem;
+    line-height: 1.4;
+
+    @media (min-width: 768px) {
+      font-size: 0.95rem;
+    }
+  }
+
+  ul {
+    list-style: disc;
+    margin-left: 16px;
+    padding-left: 0;
+
+    @media (min-width: 768px) {
+      margin-left: 20px;
+    }
+
+    li {
+      margin-bottom: 6px;
+
+      @media (min-width: 768px) {
+        margin-bottom: 8px;
+      }
+    }
+  }
+
+  :deep(.q-banner__actions) {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+
+    @media (max-width: 599px) {
+      .q-btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  }
+}
+
 /* === MAIN CONTAINER === */
 .mcf-scanner-page-content {
   width: 100%;

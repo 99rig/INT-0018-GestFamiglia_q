@@ -163,7 +163,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useQuasar, date } from 'quasar'
+import { useQuasar, date, Notify } from 'quasar'
 import { useAuthStore } from 'stores/auth'
 import { useExpensesStore } from 'stores/expenses'
 import { reportsAPI } from 'src/services/api/reports.js'
@@ -185,6 +185,8 @@ const monthTrend = ref(0)
 const totalSpendingPlans = ref(0)
 const activePlans = ref([])
 const lastExpense = ref({})
+const budgetTotal = ref(0)
+const budgetRemaining = ref(0)
 
 // Computed
 const greeting = computed(() => {

@@ -1,758 +1,501 @@
 <template>
   <q-layout view="lHh Lpr lFf">
     <q-page-container>
-      <q-page class="flex flex-center mcf-login-page">
-        <div class="mcf-login-container">
-          <!-- Modern App Logo -->
-          <div class="mcf-login-header">
-            <div class="mcf-welcome-text">
-              <h6 class="mcf-app-title">My Crazy Family</h6>
-              <p class="mcf-app-subtitle">Gestione Spese Familiari</p>
-            </div>
-          </div>
-
-          <!-- Logo with overlap effect -->
-          <div class="mcf-logo-overlay">
-            <img
-              src="~/assets/wallet-logo.png"
-              alt="App Logo"
-              class="mcf-logo-image"
-            />
-          </div>
-
-          <!-- PIN Login (se configurato) -->
-          <q-card v-if="hasPinSetup && !showEmailLogin" class="mcf-login-card">
-            <q-card-section class="q-pa-lg">
-              <!-- PIN Input Fields -->
-              <div class="pin-input-container">
-                <div class="pin-fields">
-                  <q-input
-                    v-for="i in 4"
-                    :key="i"
-                    v-model="pinDigits[i-1]"
-                    class="pin-field"
-                    input-class="pin-input"
-                    maxlength="1"
-                    inputmode="numeric"
-                    pattern="[0-9]"
-                    dense
-                    outlined
-                    @update:model-value="(val) => handlePinInput(i-1, val)"
-                    @keydown.delete="() => handleBackspace(i-1)"
-                    :ref="el => { if (el) pinInputs[i-1] = el }"
-                  />
+      <q-page class="flex flex-center ticket-page">
+        <div class="ticket-container">
+          <!-- Ticket Card -->
+          <div class="ticket-card">
+            <!-- Header Section -->
+            <div class="ticket-header">
+              <div class="ticket-logo">
+                <img src="~/assets/wallet-icon-only.svg" alt="Logo" class="logo-img" />
+                <div class="brand-section">
+                  <div class="brand-badge">
+                    <span class="logo-text">MyCrisisFamily</span>
+                  </div>
+                  <svg class="barcode" viewBox="0 0 120 30" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="0" y="0" width="3" height="30" fill="#000"/>
+                    <rect x="5" y="0" width="2" height="30" fill="#000"/>
+                    <rect x="9" y="0" width="4" height="30" fill="#000"/>
+                    <rect x="15" y="0" width="2" height="30" fill="#000"/>
+                    <rect x="19" y="0" width="3" height="30" fill="#000"/>
+                    <rect x="24" y="0" width="2" height="30" fill="#000"/>
+                    <rect x="28" y="0" width="5" height="30" fill="#000"/>
+                    <rect x="35" y="0" width="2" height="30" fill="#000"/>
+                    <rect x="39" y="0" width="3" height="30" fill="#000"/>
+                    <rect x="44" y="0" width="2" height="30" fill="#000"/>
+                    <rect x="48" y="0" width="4" height="30" fill="#000"/>
+                    <rect x="54" y="0" width="2" height="30" fill="#000"/>
+                    <rect x="58" y="0" width="3" height="30" fill="#000"/>
+                    <rect x="63" y="0" width="5" height="30" fill="#000"/>
+                    <rect x="70" y="0" width="2" height="30" fill="#000"/>
+                    <rect x="74" y="0" width="3" height="30" fill="#000"/>
+                    <rect x="79" y="0" width="2" height="30" fill="#000"/>
+                    <rect x="83" y="0" width="4" height="30" fill="#000"/>
+                    <rect x="89" y="0" width="2" height="30" fill="#000"/>
+                    <rect x="93" y="0" width="3" height="30" fill="#000"/>
+                    <rect x="98" y="0" width="2" height="30" fill="#000"/>
+                    <rect x="102" y="0" width="5" height="30" fill="#000"/>
+                    <rect x="109" y="0" width="2" height="30" fill="#000"/>
+                    <rect x="113" y="0" width="4" height="30" fill="#000"/>
+                  </svg>
                 </div>
               </div>
-
-              <!-- Switch to Email -->
-              <div class="text-center q-mt-md">
-                <q-btn
-                  label="Usa email e password"
-                  flat
-                  dense
-                  no-caps
-                  color="grey-7"
-                  @click="showEmailLogin = true"
-                />
+              <div class="checkin-code">
+                <img src="~/assets/wallet-icon-only.svg" alt="Logo" class="logo-img-right" />
               </div>
+            </div>
 
-              <!-- Delete PIN -->
-              <div class="text-center q-mt-sm">
-                <q-btn
-                  label="Cancella PIN"
-                  flat
-                  dense
-                  no-caps
-                  color="negative"
-                  size="sm"
-                  @click="confirmDeletePin"
-                />
-              </div>
-            </q-card-section>
-          </q-card>
 
-          <!-- Email/Password Login -->
-          <q-card v-else class="mcf-login-card q-pa-md">
-            <q-card-section>
+            <!-- Login Form Section -->
+            <div class="event-info">
+              <div class="info-label">INSERT EMAIL</div>
               <q-input
                 v-model="email"
-                label="Email"
                 type="email"
                 outlined
                 dense
-                class="q-mb-md"
-                :rules="[val => !!val || 'Email richiesta']"
-              >
-                <template v-slot:prepend>
-                  <q-icon name="mail" />
-                </template>
-              </q-input>
-
+                class="login-input"
+                placeholder="your.email@example.com"
+              />
+              <div class="info-label">INSERT PASSWORD</div>
               <q-input
                 v-model="password"
-                label="Password"
-                :type="showPassword ? 'text' : 'password'"
+                type="password"
                 outlined
                 dense
-                class="q-mb-md"
-                :rules="[val => !!val || 'Password richiesta']"
-                @keyup.enter="loginWithEmail"
-              >
-                <template v-slot:prepend>
-                  <q-icon name="lock" />
-                </template>
-                <template v-slot:append>
-                  <q-icon
-                    :name="showPassword ? 'visibility' : 'visibility_off'"
-                    class="cursor-pointer"
-                    @click="showPassword = !showPassword"
-                  />
-                </template>
-              </q-input>
+                class="login-input"
+                placeholder="Enter your password"
+              />
 
-              <!-- Remember Me and Forgot Password -->
-              <div class="row items-center justify-between q-mb-md">
+              <!-- Remember Me & Login Button -->
+              <div class="login-actions">
                 <q-checkbox
                   v-model="rememberMe"
                   label="Ricordami"
+                  dense
+                  class="remember-checkbox"
                 />
                 <q-btn
-                  label="Password dimenticata?"
+                  label="ACCEDI"
                   flat
-                  dense
-                  no-caps
-                  color="primary"
-                  size="sm"
-                  @click="goToForgotPassword"
-                  class="forgot-password-btn"
+                  icon-right="arrow_forward"
+                  class="login-btn"
+                  @click="handleLogin"
+                  :loading="loading"
                 />
               </div>
+            </div>
 
-              <!-- Login Button -->
-              <q-btn
-                label="Accedi"
-                @click="loginWithEmail"
-                class="full-width mcf-btn-primary"
-                :loading="loading"
-                :disable="!email || !password"
-              />
+            <!-- Dashed Line Separator -->
+            <div class="ticket-separator">
+              <div class="dashed-line"></div>
+            </div>
 
-              <!-- Back to PIN (if available) -->
-              <div v-if="hasPinSetup" class="text-center q-mt-md">
-                <q-btn
-                  label="Usa PIN"
-                  flat
-                  dense
-                  color="grey-7"
-                  @click="showEmailLogin = false"
-                />
+            <!-- Bottom Section -->
+            <div class="ticket-bottom">
+              <div class="bottom-left">
+                <div class="info-label">PASSWORD DIMENTICATA?</div>
+                <router-link to="/forgot-password" class="info-value reset-link">REIMPOSTA PASSWORD</router-link>
+                <div class="info-label">NON HAI UN ACCOUNT?</div>
+                <router-link to="/register" class="info-value reset-link">REGISTRATI</router-link>
               </div>
-
-              <!-- Registration Link -->
-              <div class="text-center q-mt-md">
-                <span class="text-body2 text-grey-7">Non hai ancora un account? </span>
-                <q-btn
-                  label="Registrati"
-                  flat
-                  dense
-                  no-caps
-                  color="primary"
-                  @click="goToRegister"
-                />
+              <div class="bottom-right">
+                <div class="info-label">SEAT NUMBER</div>
+                <div class="seat-number">A6</div>
               </div>
-            </q-card-section>
-          </q-card>
+            </div>
+
+            <!-- Footer -->
+            <div class="ticket-footer">
+              <div class="footer-text">MUMBLE.GROUP</div>
+            </div>
+          </div>
         </div>
       </q-page>
     </q-page-container>
   </q-layout>
-
-  <!-- PIN Components -->
-  <PinSetupModal
-    v-model="showPinSetupModal"
-    :loading="setupPinLoading"
-    @confirm="confirmSetupPin"
-    @cancel="closePinSetupModal"
-  />
-
-  <PinActionModals
-    :show-want-pin="showWantPinModal"
-    :show-delete-pin="showDeletePinModal"
-    @update:show-want-pin="showWantPinModal = $event"
-    @update:show-delete-pin="showDeletePinModal = $event"
-    @accept="openSetupPinModal"
-    @decline="declinePin"
-    @confirm-delete="handleDeletePin"
-    @cancel-delete="cancelDeletePin"
-  />
-
-  <PinActionModals2
-    :show-want-pin="showSetupPinModal"
-    @update:show-want-pin="showSetupPinModal = $event"
-    @confirm="confirmPin"
-    @cancel="cancelPin"
-  />
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from 'stores/auth.js'
 import { useSnackbar } from 'src/composables/useSnackbar'
-import PinSetupModal from 'components/users/PinSetupModal.vue'
-import PinActionModals from 'components/users/PinActionModals.vue'
-import PinActionModals2 from 'components/users/PinActionModals2.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const snackbar = useSnackbar()
 
-// Removed server info - now in settings page
-
-// Form data
 const email = ref('')
 const password = ref('')
 const rememberMe = ref(false)
-const showPassword = ref(false)
 const loading = ref(false)
 
-// PIN data
-const pin = ref('')
-const pinDigits = ref(['', '', '', ''])
-const pinInputs = ref([])
-const hasPinSetup = ref(false)
-const showEmailLogin = ref(false)
-const lastUserEmail = ref('')
-
-// PIN Setup Modal
-const showPinSetupModal = ref(false)
-const setupPinLoading = ref(false)
-
-// Removed debug info - now in settings page
-
-// Computed
-
-// Methods
-const handlePinInput = (index, value) => {
-  console.log('handlePinInput:', index, value)
-
-  // Prendi solo l'ultima cifra se inserito più di un carattere
-  const digit = value.toString().slice(-1)
-
-  // Accetta solo numeri
-  if (!/^\d*$/.test(digit)) {
-    pinDigits.value[index] = ''
+const handleLogin = async () => {
+  if (!email.value || !password.value) {
+    snackbar.error('Inserisci email e password')
     return
   }
 
-  pinDigits.value[index] = digit
-
-  // Aggiorna il PIN completo
-  pin.value = pinDigits.value.join('')
-  console.log('PIN completo:', pin.value)
-
-  // Auto-focus al campo successivo
-  if (digit && index < 3) {
-    console.log('Trying to focus next field:', index + 1)
-    setTimeout(() => {
-      const nextInput = pinInputs.value[index + 1]
-      console.log('Next input ref:', nextInput)
-      if (nextInput) {
-        // Prova diversi metodi per il focus
-        if (nextInput.focus) {
-          nextInput.focus()
-        } else if (nextInput.$el) {
-          const inputEl = nextInput.$el.querySelector('input')
-          console.log('Input element:', inputEl)
-          if (inputEl) {
-            inputEl.focus()
-            inputEl.select()
-          }
-        }
-      }
-    }, 50)
-  }
-
-  // Auto-login quando tutti i 4 campi sono compilati
-  if (pin.value.length === 4 && !/[^0-9]/.test(pin.value)) {
-    console.log('Auto-login triggered')
-    setTimeout(() => loginWithPin(), 300)
-  }
-}
-
-const handleBackspace = (index) => {
-  // Focus al campo precedente se il corrente è vuoto
-  if (!pinDigits.value[index] && index > 0) {
-    setTimeout(() => {
-      const prevInput = pinInputs.value[index - 1]
-      if (prevInput) {
-        prevInput.$el.querySelector('input')?.focus()
-      }
-    }, 10)
-  }
-}
-
-const loginWithPin = async () => {
-  if (pin.value.length !== 4) return
-
   loading.value = true
   try {
-    const success = await authStore.loginWithPin(pin.value)
+    await authStore.login(email.value, password.value)
 
-    if (success) {
-      snackbar.success('Accesso riuscito!')
-
-      try {
-        console.log('🔐 loginWithPin - Router push to /dashboard')
-        await router.push('/dashboard')
-        console.log('🔐 loginWithPin - Router push completed successfully')
-      } catch (error) {
-        console.error('🔐 loginWithPin - Router push failed:', error)
-        // Fallback
-        try {
-          await router.replace('/dashboard')
-        } catch (replaceError) {
-          console.error('🔐 loginWithPin - Router replace failed:', replaceError)
-          window.location.href = '/dashboard'
-        }
-      }
-    } else {
-      snackbar.error('PIN non corretto')
-      pin.value = ''
-      pinDigits.value = ['', '', '', '']
-    }
-  } finally {
-    loading.value = false
-  }
-}
-
-const loginWithEmail = async () => {
-  if (!email.value || !password.value) return
-
-  loading.value = true
-  try {
-    const success = await authStore.login(email.value, password.value)
-
-    if (success) {
-      // Se Remember Me, chiedi di impostare PIN
-      if (rememberMe.value && !hasPinSetup.value) {
-        showWantPinModal.value = true
-        // Non fare redirect qui, la modale gestirà il flusso
-        return
-      }
-
-      snackbar.success('Accesso riuscito!')
-
-      try {
-        console.log('🔐 loginWithEmail - Router push to /dashboard')
-        await router.push('/dashboard')
-        console.log('🔐 loginWithEmail - Router push completed successfully')
-      } catch (error) {
-        console.error('🔐 loginWithEmail - Router push failed:', error)
-        // Fallback
-        try {
-          await router.replace('/dashboard')
-        } catch (replaceError) {
-          console.error('🔐 loginWithEmail - Router replace failed:', replaceError)
-          window.location.href = '/dashboard'
-        }
-      }
-    } else {
-      snackbar.error('Credenziali non valide')
-    }
-  } finally {
-    loading.value = false
-  }
-}
-
-const setupPin = () => {
-  showPinSetupModal.value = true
-}
-
-// PIN Setup Modal Functions
-const confirmSetupPin = async (pin) => {
-  setupPinLoading.value = true
-  try {
-    await authStore.setupPin(pin)
-    snackbar.success('PIN configurato con successo!')
-    closePinSetupModal()
-
-    // Procedi con il redirect dopo aver configurato il PIN
+    snackbar.success('Login effettuato con successo!')
     router.push('/dashboard')
   } catch (error) {
-    console.error('Errore setup PIN:', error)
-    snackbar.error('Errore nella configurazione del PIN')
+    console.error('Errore login:', error)
+    snackbar.error('Credenziali non valide')
   } finally {
-    setupPinLoading.value = false
+    loading.value = false
   }
 }
-
-const closePinSetupModal = () => {
-  showPinSetupModal.value = false
-  setupPinLoading.value = false
-}
-
-// Want PIN Modal
-const showWantPinModal = ref(false)
-const showSetupPinModal = ref(false)
-
-// Delete PIN Function
-const showDeletePinModal = ref(false)
-
-
-
-const confirmDeletePin = () => {
-  showDeletePinModal.value = true
-}
-
-const handleDeletePin = async () => {
-
-  try {
-    await authStore.clearPinData()
-    snackbar.success('PIN cancellato con successo')
-
-    // Aggiorna lo stato locale
-    hasPinSetup.value = false
-    showEmailLogin.value = true
-    showDeletePinModal.value = false
-
-  } catch (error) {
-    console.error('Errore cancellazione PIN:', error)
-    snackbar.error('Errore nella cancellazione del PIN')
-  }
-}
-
-const cancelDeletePin = () => {
-  showDeletePinModal.value = false
-}
-
-// Want PIN Modal Functions
-const openSetupPinModal = () => {
-  showWantPinModal.value = false
-  showSetupPinModal.value = true
-}
-
-const closeSetupPinModal = () => {
-  showSetupPinModal.value = false
-}
-
-const confirmPin = async (pin) => {
-  if (!pin || pin.length !== 4) {
-    snackbar.error('PIN deve essere di 4 cifre')
-    return
-  }
-
-  try {
-    // Qui puoi salvare il PIN
-    console.log('PIN da salvare:', pin)
-
-    // Simula il salvataggio
-    await new Promise(resolve => setTimeout(resolve, 500))
-
-    showSetupPinModal.value = false
-    snackbar.success('PIN impostato con successo!')
-
-    // Redirect alla dashboard dopo aver impostato il PIN
-    console.log('🔐 confirmPin - Router push to /dashboard')
-    await router.push('/dashboard')
-    console.log('🔐 confirmPin - Router push completed successfully')
-  } catch (error) {
-    console.error('Errore impostazione PIN:', error)
-    snackbar.error('Errore nell\'impostazione del PIN')
-  }
-}
-
-const cancelPin = () => {
-  showSetupPinModal.value = false
-  snackbar.info('Impostazione PIN annullata')
-}
-
-const declinePin = async () => {
-  console.log('🔐 declinePin - Starting redirect to dashboard')
-  showWantPinModal.value = false
-
-  snackbar.success('Accesso riuscito!')
-
-  try {
-    console.log('🔐 Router push to /dashboard')
-    await router.push('/dashboard')
-    console.log('🔐 Router push completed successfully')
-  } catch (error) {
-    console.error('🔐 Router push failed:', error)
-    // Fallback: prova con replace
-    try {
-      console.log('🔐 Trying router replace as fallback')
-      await router.replace('/dashboard')
-      console.log('🔐 Router replace completed successfully')
-    } catch (replaceError) {
-      console.error('🔐 Router replace also failed:', replaceError)
-      // Ultimo fallback: ricarica la pagina direttamente
-      console.log('🔐 Final fallback: direct window location change')
-      window.location.href = '/dashboard'
-    }
-  }
-}
-
-const goToRegister = () => {
-  router.push('/register')
-}
-
-const goToForgotPassword = () => {
-  router.push('/forgot-password')
-}
-
-
-
-// Watchers
-watch(pinDigits, (newVal, oldVal) => {
-  console.log('pinDigits changed:', oldVal, '->', newVal)
-
-  // Trova quale campo è stato modificato
-  for (let i = 0; i < 4; i++) {
-    if (newVal[i] !== oldVal[i] && newVal[i]) {
-      console.log(`Campo ${i} modificato con: ${newVal[i]}`)
-
-      // Aggiorna PIN completo
-      pin.value = newVal.join('')
-
-      // Auto-focus al prossimo campo
-      if (i < 3 && newVal[i]) {
-        setTimeout(() => {
-          const nextInput = pinInputs.value[i + 1]
-          if (nextInput && nextInput.$el) {
-            const inputEl = nextInput.$el.querySelector('input')
-            if (inputEl) {
-              inputEl.focus()
-              inputEl.select()
-            }
-          }
-        }, 100)
-      }
-
-      // Auto-login quando completo
-      if (pin.value.length === 4) {
-        console.log('PIN completo, auto-login...')
-        setTimeout(() => loginWithPin(), 300)
-      }
-      break
-    }
-  }
-}, { deep: true })
-
-
-// Debug functions removed - moved to settings page
-
-// Lifecycle
-onMounted(() => {
-  // Check if user has PIN setup
-  hasPinSetup.value = authStore.hasPinSetup()
-  lastUserEmail.value = authStore.getLastUserEmail()
-
-  // If no PIN, show email login
-  if (!hasPinSetup.value) {
-    showEmailLogin.value = true
-  }
-})
 </script>
 
 <style lang="scss" scoped>
-.mcf-login-page {
-  background: linear-gradient(135deg, var(--mcf-primary) 0%, var(--mcf-secondary) 100%);
+.ticket-page {
+  background: linear-gradient(135deg, #f0f4f8 0%, #e8eef3 100%);
   min-height: 100vh;
-  padding: 20px;
+  padding: 40px 20px;
 }
 
-.mcf-login-container {
+.ticket-container {
   width: 100%;
-  max-width: 400px;
+  max-width: 500px;
   margin: 0 auto;
 }
 
-/* === MODERN LOGIN HEADER === */
-.mcf-login-header {
-  background: linear-gradient(135deg, #ffffff 0%, #F4F8FA 100%);
+.ticket-card {
+  background: #f5f5f5;
   border-radius: 20px;
-  text-align: center;
-  margin-bottom: 60px;
-  padding: 10px;
-
-  @media (min-width: 768px) {
-    margin-bottom: 70px;
-  }
-}
-
-/* === LOGO OVERLAY === */
-.mcf-logo-overlay {
+  padding: 25px 20px;
   position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  overflow: visible;
+
+  /* Perforations using radial gradients */
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 20px;
+    bottom: 20px;
+    width: 8px;
+    background:
+      radial-gradient(circle at 0 10px, transparent 4px, #f5f5f5 4px),
+      radial-gradient(circle at 0 30px, transparent 4px, #f5f5f5 4px),
+      radial-gradient(circle at 0 50px, transparent 4px, #f5f5f5 4px),
+      radial-gradient(circle at 0 70px, transparent 4px, #f5f5f5 4px),
+      radial-gradient(circle at 0 90px, transparent 4px, #f5f5f5 4px);
+    background-size: 8px 20px;
+    background-repeat: repeat-y;
+    z-index: 10;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 20px;
+    bottom: 20px;
+    width: 8px;
+    background:
+      radial-gradient(circle at 8px 10px, transparent 4px, #f5f5f5 4px),
+      radial-gradient(circle at 8px 30px, transparent 4px, #f5f5f5 4px),
+      radial-gradient(circle at 8px 50px, transparent 4px, #f5f5f5 4px),
+      radial-gradient(circle at 8px 70px, transparent 4px, #f5f5f5 4px),
+      radial-gradient(circle at 8px 90px, transparent 4px, #f5f5f5 4px);
+    background-size: 8px 20px;
+    background-repeat: repeat-y;
+    z-index: 10;
+  }
+
+  @media (min-width: 768px) {
+    padding: 30px 25px;
+  }
+}
+
+/* Header */
+.ticket-header {
   display: flex;
-  justify-content: center;
-  margin-bottom: -60px;
-  z-index: 10;
-
-  @media (min-width: 768px) {
-    margin-bottom: -70px;
-  }
-}
-
-.mcf-logo-image {
-  width: 100px;
-  height: 100px;
-  background: white;
-  border-radius: 50%;
-  padding: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-
-  @media (min-width: 768px) {
-    width: 120px;
-    height: 120px;
-    padding: 15px;
-  }
-}
-
-.mcf-welcome-text {
-  margin-top: 15px;
+  justify-content: space-between;
+  align-items: flex-start;
   margin-bottom: 15px;
-
-  @media (min-width: 768px) {
-    margin-top: 20px;
-    margin-bottom: 20px;
-  }
+  margin-left: -20px;
+  margin-right: -20px;
+  padding-left: 20px;
+  padding-right: 20px;
 }
 
-.mcf-app-title {
-  font-family: 'Nunito', sans-serif;
-  font-size: 28px;
-  font-weight: 600;
-  margin: 0 0 2px 0;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-
-  @media (min-width: 768px) {
-    font-size: 32px;
-    margin-bottom: 4px;
-  }
-}
-
-.mcf-app-subtitle {
-  font-family: 'Nunito', sans-serif;
-  font-size: 16px;
-  font-weight: 500;
-  margin: 0;
-  opacity: 0.9;
-
-  @media (min-width: 768px) {
-    font-size: 18px;
-  }
-}
-
-/* === LOGIN CARD === */
-.mcf-login-card {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  overflow: hidden;
-  padding-top: 60px;
-
-  @media (min-width: 768px) {
-    padding-top: 70px;
-  }
-}
-
-/* === PIN STYLES === */
-.pin-input-container {
+.ticket-logo {
   display: flex;
-  justify-content: center;
-  padding: 16px 0;
+  align-items: center;
+  gap: 8px;
+  margin-left: -20px;
+}
 
-  @media (min-width: 768px) {
-    padding: 20px 0;
+.logo-img {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  margin-left: 20px;
+}
+
+.brand-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.brand-badge {
+  background: #2a5f82;
+  padding: 4px 10px;
+  border-radius: 4px;
+  display: inline-block;
+  align-self: flex-start;
+  margin-left: -40px;
+  padding-left: 20px;
+}
+
+.logo-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+}
+
+.barcode {
+  width: 100px;
+  height: 20px;
+  margin-left: -40px;
+  padding-left: 20px;
+}
+
+.checkin-code {
+  text-align: right;
+  margin-right: -10px;
+  padding-right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.logo-img-right {
+  width: 80px;
+  height: 80px;
+  margin-top: -20px;
+  position: relative;
+  filter: brightness(0) saturate(100%) invert(32%) sepia(38%) saturate(863%) hue-rotate(162deg) brightness(93%) contrast(87%);
+  border: 1px solid #2a5f82;
+  border-radius: 25px;
+}
+
+@keyframes hologram {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 200% 200%;
   }
 }
 
-.pin-fields {
+.code-value {
+  font-size: 12px;
+  font-weight: 700;
+  color: #000000;
+  letter-spacing: 0.5px;
+}
+
+/* Logo Section */
+.qr-section {
   display: flex;
-  gap: 16px;
   justify-content: center;
   align-items: center;
+  margin: 20px 0;
+}
 
-  @media (min-width: 768px) {
-    gap: 20px;
+.logo-placeholder {
+  width: 180px;
+  height: 180px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 15px;
+}
+
+.main-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Event Info */
+.event-info {
+  margin-bottom: 20px;
+}
+
+.info-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: #666666;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  margin-top: 10px;
+
+  &:first-child {
+    margin-top: 0;
   }
 }
 
-.pin-field {
-  width: 56px;
-  height: 56px;
+.info-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #000000;
+  letter-spacing: 0.5px;
+  line-height: 1.3;
+}
 
-  @media (min-width: 768px) {
-    width: 64px;
-    height: 64px;
+.reset-link {
+  text-decoration: none;
+  color: #000000;
+  display: block;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 0.7;
   }
 }
 
-.pin-field :deep(.q-field__control) {
-  height: 56px !important;
-  border-radius: 12px !important;
-  border: 2px solid var(--mcf-border-light, #e0e0e0) !important;
-  background: white !important;
-  transition: all 0.2s ease !important;
+.login-input {
+  margin-bottom: 6px;
 
-  @media (min-width: 768px) {
-    height: 64px !important;
-    border-radius: 16px !important;
+  :deep(.q-field__control) {
+    background: #ffffff;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #000000;
+    min-height: 40px;
+  }
+
+  :deep(.q-field__native) {
+    font-weight: 500;
+    color: #000000;
+  }
+
+  :deep(input::placeholder) {
+    color: #999999;
+    font-weight: 400;
   }
 }
 
-.pin-field :deep(.q-field__control-container) {
-  padding-top: 0 !important;
+.login-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15px;
+  gap: 10px;
 }
 
-.pin-field :deep(.q-field__native) {
-  padding: 0 !important;
-  text-align: center !important;
-  font-size: 24px !important;
-  font-weight: 600 !important;
-  color: var(--mcf-primary) !important;
-  line-height: 56px !important;
-
-  @media (min-width: 768px) {
-    font-size: 28px !important;
-    line-height: 64px !important;
+.remember-checkbox {
+  :deep(.q-checkbox__label) {
+    font-size: 13px;
+    font-weight: 500;
+    color: #000000;
   }
 }
 
-.pin-field :deep(.q-field__marginal) {
-  height: 56px !important;
+.login-btn {
+  flex: 1;
+  max-width: 180px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  font-size: 16px;
+  color: #000000;
+}
 
-  @media (min-width: 768px) {
-    height: 64px !important;
+/* Dashed Separator */
+.ticket-separator {
+  margin: 20px -20px;
+  padding: 0 20px;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: -15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 26px;
+    height: 26px;
+    background: #B4B8BB;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 20;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: -15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 26px;
+    height: 26px;
+    background: #B3B6B9;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 20;
   }
 }
 
-.pin-field:hover :deep(.q-field__control) {
-  border-color: var(--mcf-primary) !important;
-  box-shadow: 0 0 0 2px rgba(35, 157, 176, 0.1) !important;
+.dashed-line {
+  width: 100%;
+  height: 2px;
+  background-image: repeating-linear-gradient(
+    to right,
+    #cccccc 0,
+    #cccccc 8px,
+    transparent 8px,
+    transparent 16px
+  );
 }
 
-.pin-field.q-field--focused :deep(.q-field__control) {
-  border-color: var(--mcf-primary) !important;
-  box-shadow: 0 0 0 3px rgba(35, 157, 176, 0.2) !important;
+/* Bottom Section */
+.ticket-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 15px;
 }
 
-/* Rimuovi il label e hint space */
-.pin-field :deep(.q-field__label) {
-  display: none !important;
+.bottom-left {
+  flex: 1;
 }
 
-.pin-field :deep(.q-field__bottom) {
-  display: none !important;
+.bottom-right {
+  text-align: right;
 }
 
+.seat-number {
+  font-size: 48px;
+  font-weight: 900;
+  color: #000000;
+  line-height: 1;
+  letter-spacing: -2px;
+}
 
+/* Footer */
+.ticket-footer {
+  text-align: center;
+}
 
-
-
-
-
+.footer-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: #000000;
+  letter-spacing: 0.5px;
+}
 </style>

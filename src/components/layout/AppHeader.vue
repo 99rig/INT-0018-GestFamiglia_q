@@ -14,13 +14,13 @@
 
       <!-- Brand Section Centered -->
       <div class="mcf-brand">
-        <q-icon
-          name="account_balance_wallet"
-          size="28px"
-          style="color: #ffffff"
+        <img
+          src="~/assets/wallet-icon-only.svg"
+          alt="MyCrisisFamily Logo"
+          class="mcf-brand-logo"
         />
         <div class="mcf-brand-text">
-          <div class="mcf-brand-title">My Crazy Family</div>
+          <div class="mcf-brand-title">MyCrisisFamily</div>
           <div class="mcf-brand-subtitle">Gestione Spese</div>
         </div>
       </div>
@@ -85,43 +85,47 @@ async function logout() {
 .mcf-brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0;
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
   min-width: 0;
+}
 
-  .mcf-brand-text {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    flex: 1;
+.mcf-brand-logo {
+  width: 50px;
+  height: 50px;
+  flex-shrink: 0;
+}
 
-    .mcf-brand-title {
-      color: #ffffff;
-      font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-      font-size: 20px;
-      font-weight: 700;
-      line-height: 1.2;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      letter-spacing: 0.5px;
-    }
+.mcf-brand-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
 
-    .mcf-brand-subtitle {
-      color: #ffffff;
-      font-family: 'Nunito', sans-serif;
-      font-size: 12px;
-      font-weight: 500;
-      line-height: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      letter-spacing: 0.3px;
-      opacity: 0.9;
-    }
-  }
+.mcf-brand-title {
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.5px;
+}
+
+.mcf-brand-subtitle {
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.3px;
+  opacity: 0.9;
 }
 
 .mcf-logout-btn {

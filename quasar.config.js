@@ -188,8 +188,8 @@ export default defineConfig((ctx) => {
 
       // Configurazione del manifest base
       extendManifestJson (json) {
-        json.name = 'My Crazy Family'
-        json.short_name = 'CrazyFamily'
+        json.name = 'MyCrisisFamily'
+        json.short_name = 'CrisisFamily'
         json.description = 'Gestione Spese Familiari'
         json.display = 'standalone'
         json.orientation = 'portrait-primary'

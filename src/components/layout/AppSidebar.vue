@@ -9,14 +9,14 @@
     <div class="mcf-sidebar-header">
       <div class="mcf-sidebar-brand">
         <div class="mcf-sidebar-icon">
-          <q-icon
-            name="account_balance_wallet"
-            size="40px"
-            class="text-primary"
+          <img
+            src="~/assets/wallet-logo.svg"
+            alt="MyCrisisFamily Logo"
+            class="mcf-sidebar-logo"
           />
         </div>
         <div class="mcf-sidebar-title">
-          <div class="mcf-sidebar-name">My Crazy Family</div>
+          <div class="mcf-sidebar-name">MyCrisisFamily</div>
           <div class="mcf-sidebar-subtitle">
             Gestione Spese
             <div v-if="currentUser" class="mcf-user-info">
@@ -215,7 +215,13 @@ const settingsLinks = [
   justify-content: center;
   width: 48px;
   height: 48px;
-  background: var(--mcf-primary-light);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.mcf-sidebar-logo {
+  width: 48px;
+  height: 48px;
   border-radius: 12px;
 }
 
@@ -223,7 +229,6 @@ const settingsLinks = [
   flex: 1;
 
   .mcf-sidebar-name {
-    font-family: var(--mcf-logo-font, 'Fredoka One'), cursive;
     font-size: 16px;
     font-weight: bold !important;
     line-height: 1.2;

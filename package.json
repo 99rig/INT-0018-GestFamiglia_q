@@ -2,7 +2,7 @@
   "name": "frontend",
   "version": "0.0.2",
   "description": "Gestione Spese Famigliari",
-  "productName": "My Crazy Family",
+  "productName": "MyCrisisFamily",
   "author": "99rig <unblockchain@gmail.com>",
   "type": "module",
   "private": true,

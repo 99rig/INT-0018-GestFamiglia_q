@@ -22,6 +22,12 @@ const routes = [
     component: () => import('pages/users/LoginPage.vue')
   },
 
+  // Login old route (backup)
+  {
+    path: '/login-old',
+    component: () => import('pages/users/LoginPage-old.vue')
+  },
+
   // Register route (no layout) - for Vue.js app
   {
     path: '/register',
