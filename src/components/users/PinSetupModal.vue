@@ -11,7 +11,7 @@
         <!-- Header Section -->
         <div class="ticket-header">
           <div class="ticket-logo">
-            <img src="~/assets/wallet-icon-only.svg" alt="Logo" class="logo-img" />
+            <img :src="walletIcon" alt="Logo" class="logo-img" />
             <div class="brand-section">
               <div class="brand-badge">
                 <span class="logo-text">IMPOSTA PIN</span>
@@ -45,7 +45,7 @@
             </div>
           </div>
           <div class="checkin-code">
-            <img src="~/assets/wallet-icon-only.svg" alt="Logo" class="logo-img-right" />
+            <img :src="walletIcon" alt="Logo" class="logo-img-right" />
           </div>
         </div>
 
@@ -130,6 +130,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
+import walletIcon from 'assets/wallet-icon-only.svg'
 
 const props = defineProps({
   modelValue: {
