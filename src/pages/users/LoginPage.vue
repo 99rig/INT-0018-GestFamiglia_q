@@ -295,12 +295,12 @@ const loginWithPin = async () => {
 const confirmDeletePin = () => {
   $q.dialog({
     title: 'Cancella PIN',
-    message: 'Sei sicuro di voler cancellare il PIN?',
+    message: 'Sei sicuro di voler cancellare il PIN? Dovrai effettuare il login con email e password.',
     cancel: true,
     persistent: true
   }).onOk(async () => {
     try {
-      await authStore.deletePin()
+      await authStore.clearPinData()
       snackbar.success('PIN cancellato con successo')
       hasPinSetup.value = false
       showEmailLogin.value = true
