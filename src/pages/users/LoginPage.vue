@@ -280,7 +280,6 @@ const loginWithPin = async () => {
     const success = await authStore.loginWithPin(pin.value)
 
     if (success) {
-      snackbar.success('Accesso riuscito!')
       router.push('/dashboard')
     } else {
       snackbar.error('PIN non corretto')
@@ -321,8 +320,6 @@ const handleLogin = async () => {
   loading.value = true
   try {
     await authStore.login(email.value, password.value)
-
-    snackbar.success('Login effettuato con successo!')
 
     // Se "Ricordami" è selezionato e non ha già un PIN, chiedi se vuole impostarlo
     if (rememberMe.value && !authStore.hasPinSetup()) {
