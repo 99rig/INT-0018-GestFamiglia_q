@@ -391,7 +391,7 @@ const goToExpenses = () => {
 }
 
 const goToBudget = () => {
-  router.push('/planned-expenses')
+  router.push('/spending-plans')
 }
 
 
