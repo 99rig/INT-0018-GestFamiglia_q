@@ -1162,6 +1162,21 @@
       @cancel="cancelDeleteExpense"
     />
 
+    <!-- Floating Back Button -->
+    <q-page-sticky position="bottom-left" :offset="[18, 18]">
+      <q-btn
+        fab
+        icon="arrow_back"
+        color="primary"
+        @click="$router.go(-1)"
+        class="shadow-8"
+      >
+        <q-tooltip anchor="top middle" self="bottom middle" :offset="[0, 8]">
+          Torna ai Piani
+        </q-tooltip>
+      </q-btn>
+    </q-page-sticky>
+
   </q-page>
 </template>
 
