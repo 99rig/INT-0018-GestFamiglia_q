@@ -26,12 +26,15 @@
 
         <!-- Family Management -->
         <div class="mcf-settings-section">
-          <div class="mcf-section-header">
-            <q-icon name="family_restroom" class="mcf-section-icon" />
-            <h3 class="mcf-section-title">Gestione Famiglia</h3>
-          </div>
-
-          <div class="mcf-family-section">
+          <q-expansion-item
+            icon="family_restroom"
+            label="Gestione Famiglia"
+            header-class="mcf-expansion-header"
+            expand-icon-class="mcf-expansion-icon"
+            default-opened
+          >
+            <div class="mcf-expansion-content">
+              <div class="mcf-family-section">
             <!-- Current Family Info -->
             <div v-if="currentFamily" class="mcf-family-info">
               <div class="mcf-family-header">
@@ -236,17 +239,22 @@
                 </div>
               </div>
             </div>
-          </div>
+              </div>
+            </div>
+          </q-expansion-item>
         </div>
 
         <!-- Security & Account -->
         <div class="mcf-settings-section">
-          <div class="mcf-section-header">
-            <q-icon name="security" class="mcf-section-icon" />
-            <h3 class="mcf-section-title">Sicurezza e Account</h3>
-          </div>
-
-          <div class="mcf-security-section">
+          <q-expansion-item
+            icon="security"
+            label="Sicurezza e Account"
+            header-class="mcf-expansion-header"
+            expand-icon-class="mcf-expansion-icon"
+            default-opened
+          >
+            <div class="mcf-expansion-content">
+              <div class="mcf-security-section">
             <!-- Password Change Card -->
             <div class="mcf-password-card">
               <div class="mcf-password-header">
@@ -269,7 +277,9 @@
                 </q-btn>
               </div>
             </div>
-          </div>
+              </div>
+            </div>
+          </q-expansion-item>
         </div>
 
         <!-- System Information -->
