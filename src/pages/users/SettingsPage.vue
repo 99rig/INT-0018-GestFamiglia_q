@@ -454,12 +454,15 @@
 
         <!-- App Updates Section -->
         <div class="mcf-settings-section" v-if="isAndroidDevice">
-          <div class="mcf-section-header">
-            <q-icon name="system_update" class="mcf-section-icon" />
-            <h3 class="mcf-section-title">Aggiornamenti</h3>
-          </div>
-
-          <div class="mcf-updates-section">
+          <q-expansion-item
+            icon="system_update"
+            label="Aggiornamenti"
+            header-class="mcf-expansion-header"
+            expand-icon-class="mcf-expansion-icon"
+            default-opened
+          >
+            <div class="mcf-expansion-content">
+              <div class="mcf-updates-section">
             <p class="mcf-section-description">
               Controlla e installa gli aggiornamenti dell'applicazione per avere sempre le ultime funzionalità.
             </p>
@@ -484,7 +487,9 @@
                 </span>
               </div>
             </div>
-          </div>
+              </div>
+            </div>
+          </q-expansion-item>
         </div>
 
         <!-- Font Settings Section - HIDDEN -->
@@ -3217,29 +3222,37 @@ onUnmounted(() => {
 }
 
 /* === EXPANSION STYLES === */
-.mcf-expansion-header {
-  background: var(--mcf-card-bg);
-  border-radius: 16px;
-  padding: 16px 20px;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--mcf-text-primary);
-  transition: all 0.2s ease;
+:deep(.mcf-expansion-header) {
+  background: var(--mcf-card-bg) !important;
+  border-radius: 16px !important;
+  padding: 16px 20px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: var(--mcf-text-primary) !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  margin-bottom: 4px !important;
 }
 
-.mcf-expansion-header:hover {
-  background: var(--mcf-card-hover);
+:deep(.mcf-expansion-header:hover) {
+  background: var(--mcf-card-hover) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
 }
 
-.mcf-expansion-icon {
-  color: var(--mcf-primary);
+:deep(.mcf-expansion-header .q-item__label) {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+}
+
+:deep(.mcf-expansion-icon) {
+  color: var(--mcf-primary) !important;
+  font-size: 24px !important;
 }
 
 .mcf-expansion-content {
   padding: 20px;
-  background: var(--mcf-bg-secondary);
-  border-radius: 0 0 16px 16px;
-  margin-top: -8px;
+  background: transparent;
+  margin-top: 0;
 }
 
 /* === THEME PALETTE STYLES === */
