@@ -1066,54 +1066,77 @@
               :key="payment.id"
               class="payment-item"
             >
-              <div class="payment-header">
-                <div class="payment-main">
-                  <div class="payment-user-info">
-                    <q-avatar
-                      size="32px"
-                      :color="payment.user ? 'primary' : 'grey-5'"
-                      text-color="white"
-                      class="payment-avatar"
-                    >
-                      {{ getUserInitials(payment.user?.first_name + ' ' + payment.user?.last_name) }}
-                    </q-avatar>
-                    <div class="payment-details">
-                      <div class="payment-description">{{ payment.description }}</div>
-                      <div class="payment-meta">
-                        <span class="payment-user">{{ payment.user?.first_name }} {{ payment.user?.last_name }}</span>
-                        <span class="payment-date">• {{ formatDate(payment.date) }}</span>
-                      </div>
-                    </div>
+              <div class="payment-row">
+                <q-avatar
+                  size="28px"
+                  :color="payment.user ? 'primary' : 'grey-5'"
+                  text-color="white"
+                  class="payment-avatar"
+                >
+                  {{ getUserInitials(payment.user?.first_name + ' ' + payment.user?.last_name) }}
+                </q-avatar>
+
+                <div class="payment-content">
+                  <div class="payment-line-1">
+                    <span class="payment-user">{{ payment.user?.first_name }} {{ payment.user?.last_name }}</span>
+                    <span class="payment-separator">•</span>
+                    <span class="payment-date">{{ formatDate(payment.date) }}</span>
+                  </div>
+                  <div class="payment-line-2">
+                    <span class="payment-description">{{ payment.description }}</span>
+                    <span v-if="payment.notes" class="payment-notes-inline">- {{ payment.notes }}</span>
                   </div>
                 </div>
-                <div class="payment-amount">€{{ formatAmount(payment.amount) }}</div>
+
+                <div class="payment-right">
+                  <div class="payment-amount">€{{ formatAmount(payment.amount) }}</div>
+                  <div class="action-buttons">
+                    <q-btn
+                      flat
+                      dense
+                      round
+                      size="xs"
+                      icon="edit"
+                      color="primary"
+                      @click="editPayment(payment)"
+                    >
+                      <q-tooltip>Modifica</q-tooltip>
+                    </q-btn>
+                    <q-btn
+                      flat
+                      dense
+                      round
+                      size="xs"
+                      icon="delete"
+                      color="negative"
+                      @click="confirmDeletePayment(payment)"
+                    >
+                      <q-tooltip>Elimina</q-tooltip>
+                    </q-btn>
+                  </div>
+                </div>
               </div>
-              <div v-if="payment.notes" class="payment-notes">{{ payment.notes }}</div>
             </div>
 
             <!-- Summary by User -->
             <div v-if="paymentsByUser.length > 0" class="payments-by-user">
-              <div class="section-title">Pagamenti per utente</div>
+              <div class="section-title">Riepilogo per utente</div>
               <div
                 v-for="userPayment in paymentsByUser"
                 :key="userPayment.userId"
                 class="user-payment-summary"
               >
-                <div class="user-summary-info">
-                  <q-avatar
-                    size="24px"
-                    color="primary"
-                    text-color="white"
-                    class="user-summary-avatar"
-                  >
-                    {{ getUserInitials(userPayment.fullName) }}
-                  </q-avatar>
-                  <span class="user-summary-name">{{ userPayment.fullName }}</span>
-                </div>
-                <div class="user-summary-stats">
-                  <span class="user-summary-count">{{ userPayment.count }} pagamenti</span>
-                  <span class="user-summary-amount">€{{ formatAmount(userPayment.total) }}</span>
-                </div>
+                <q-avatar
+                  size="22px"
+                  color="primary"
+                  text-color="white"
+                  class="user-summary-avatar"
+                >
+                  {{ getUserInitials(userPayment.fullName) }}
+                </q-avatar>
+                <span class="user-summary-name">{{ userPayment.fullName }}</span>
+                <span class="user-summary-count">({{ userPayment.count }})</span>
+                <span class="user-summary-amount">€{{ formatAmount(userPayment.total) }}</span>
               </div>
             </div>
 
@@ -1149,6 +1172,47 @@
             color="primary"
             @click="addPaymentFromPaymentsView"
           />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <!-- Edit Payment Dialog -->
+    <q-dialog v-model="showEditPaymentDialog" persistent>
+      <q-card style="min-width: 350px">
+        <q-card-section>
+          <div class="text-h6">Modifica Pagamento</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <q-form @submit.prevent="savePaymentEdit">
+            <MCFInput
+              v-model.number="editPaymentForm.amount"
+              label="Importo"
+              type="number"
+              step="0.01"
+              prepend-icon="euro"
+              required
+              :rules="[val => val > 0 || 'L\'importo deve essere maggiore di zero']"
+            />
+
+            <MCFInput
+              v-model="editPaymentForm.description"
+              label="Descrizione"
+              prepend-icon="description"
+            />
+
+            <MCFInput
+              v-model="editPaymentForm.notes"
+              label="Note"
+              type="textarea"
+              prepend-icon="notes"
+            />
+          </q-form>
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Annulla" v-close-popup @click="cancelEditPayment"/>
+          <q-btn flat label="Salva" color="primary" @click="savePaymentEdit" :loading="saving"/>
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -1271,6 +1335,15 @@ const payments = ref([])
 const showDeleteModal = ref(false)
 const expenseToDelete = ref(null)
 const deleting = ref(false)
+
+// Edit payment state
+const showEditPaymentDialog = ref(false)
+const editPaymentForm = ref({
+  amount: '',
+  description: '',
+  notes: ''
+})
+const editingPayment = ref(null)
 
 // Toggle per visualizzare percentuale per numero o per importo
 const showAmountProgress = ref(false)
@@ -1979,8 +2052,6 @@ const editExpense = (expense) => {
     }
   }
 
-  console.log('🔍 Priority from backend:', expense.priority, typeof expense.priority)
-
   editExpenseForm.value = {
     description: expense.description,
     amount: expense.amount,
@@ -2025,42 +2096,43 @@ const cancelDeleteExpense = () => {
   expenseToDelete.value = null
 }
 
-const viewPayments = async (expense) => {
-  selectedExpense.value = expense
-  showPaymentsDialog.value = true
-
+const loadPayments = async (expense) => {
   try {
     loading.value = true
-
-    // Debug: loggiamo i dettagli della spesa
-    console.log('🔍 DEBUG - Expense object:', {
-      id: expense.id,
-      description: expense.description,
-      is_real_expense: expense.is_real_expense,
-      planned_expense_id: expense.planned_expense_id,
-      parent_recurring_id: expense.parent_recurring_id,
-      type: expense.is_real_expense ? 'REAL_EXPENSE' : 'PLANNED_EXPENSE'
-    })
 
     // Se è una spesa reale non pianificata, usa l'endpoint delle quote
     if (expense.is_real_expense) {
       const response = await expensesAPI.getExpenseQuotes(expense.id)
       payments.value = response || []
-      console.log('📋 Quote spesa reale caricate:', payments.value.length)
     } else {
       // È una spesa pianificata, usa l'endpoint delle planned expenses
       const response = await reportsAPI.getPlannedExpensePayments(expense.id)
       payments.value = response.results || response || []
-      console.log('📋 Pagamenti spesa pianificata caricati:', payments.value.length)
     }
   } catch (error) {
     console.error('❌ Errore nel caricamento dei pagamenti:', error)
-    console.error('❌ Expense che ha causato l\'errore:', expense)
     snackbar.error('Errore nel caricamento dei pagamenti')
     payments.value = []
   } finally {
     loading.value = false
   }
+}
+
+const viewPayments = async (expense) => {
+  selectedExpense.value = expense
+  showPaymentsDialog.value = true
+
+  // Debug: loggiamo i dettagli della spesa
+  console.log('🔍 DEBUG - Expense object:', {
+    id: expense.id,
+    description: expense.description,
+    is_real_expense: expense.is_real_expense,
+    planned_expense_id: expense.planned_expense_id,
+    parent_recurring_id: expense.parent_recurring_id,
+    type: expense.is_real_expense ? 'REAL_EXPENSE' : 'PLANNED_EXPENSE'
+  })
+
+  await loadPayments(expense)
 }
 
 const closePaymentsDialog = () => {
@@ -2072,6 +2144,123 @@ const closePaymentsDialog = () => {
 const addPaymentFromPaymentsView = () => {
   showPaymentsDialog.value = false
   openPaymentDialog(selectedExpense.value)
+}
+
+const editPayment = (payment) => {
+  editingPayment.value = payment
+  editPaymentForm.value = {
+    amount: parseFloat(payment.amount),
+    description: payment.description,
+    notes: payment.notes || ''
+  }
+  showEditPaymentDialog.value = true
+}
+
+const cancelEditPayment = () => {
+  showEditPaymentDialog.value = false
+  editingPayment.value = null
+  editPaymentForm.value = {
+    amount: '',
+    description: '',
+    notes: ''
+  }
+}
+
+const savePaymentEdit = async () => {
+  if (!editingPayment.value || !selectedExpense.value) return
+
+  saving.value = true
+  try {
+    await reportsAPI.updatePlannedExpensePayment(
+      selectedExpense.value.id,
+      editingPayment.value.id,
+      editPaymentForm.value
+    )
+
+    snackbar.success('Pagamento modificato con successo')
+
+    // Chiudi il dialog prima di ricaricare
+    cancelEditPayment()
+
+    // Ricarica la spesa pianificata per aggiornare i totali
+    try {
+      const updatedExpense = await reportsAPI.getPlannedExpense(selectedExpense.value.id)
+      selectedExpense.value = updatedExpense
+    } catch (loadError) {
+      console.error('Errore nel ricaricamento della spesa:', loadError)
+    }
+
+    // Ricarica i pagamenti
+    try {
+      await loadPayments(selectedExpense.value)
+    } catch (loadError) {
+      console.error('Errore nel ricaricamento dei pagamenti:', loadError)
+    }
+
+    // Ricarica il piano per aggiornare i totali nella lista
+    try {
+      await loadPlanData()
+    } catch (loadError) {
+      console.error('Errore nel ricaricamento del piano:', loadError)
+    }
+  } catch (error) {
+    console.error('Errore nella modifica del pagamento:', error)
+    snackbar.error('Errore nella modifica del pagamento')
+  } finally {
+    saving.value = false
+  }
+}
+
+const confirmDeletePayment = (payment) => {
+  $q.dialog({
+    title: 'Conferma Eliminazione',
+    message: `Sei sicuro di voler eliminare questo pagamento di €${formatAmount(payment.amount)}?`,
+    cancel: true,
+    persistent: true
+  }).onOk(async () => {
+    await deletePayment(payment)
+  })
+}
+
+const deletePayment = async (payment) => {
+  if (!selectedExpense.value) return
+
+  saving.value = true
+  try {
+    await reportsAPI.deletePlannedExpensePayment(
+      selectedExpense.value.id,
+      payment.id
+    )
+
+    snackbar.success('Pagamento eliminato con successo')
+
+    // Ricarica la spesa pianificata per aggiornare i totali
+    try {
+      const updatedExpense = await reportsAPI.getPlannedExpense(selectedExpense.value.id)
+      selectedExpense.value = updatedExpense
+    } catch (loadError) {
+      console.error('Errore nel ricaricamento della spesa:', loadError)
+    }
+
+    // Ricarica i pagamenti
+    try {
+      await loadPayments(selectedExpense.value)
+    } catch (loadError) {
+      console.error('Errore nel ricaricamento dei pagamenti:', loadError)
+    }
+
+    // Ricarica il piano per aggiornare i totali nella lista
+    try {
+      await loadPlanData()
+    } catch (loadError) {
+      console.error('Errore nel ricaricamento del piano:', loadError)
+    }
+  } catch (error) {
+    console.error('Errore nell\'eliminazione del pagamento:', error)
+    snackbar.error('Errore nell\'eliminazione del pagamento')
+  } finally {
+    saving.value = false
+  }
 }
 
 // Utility functions
@@ -3341,10 +3530,10 @@ watch(activeTab, async (newFilter, oldFilter) => {
 }
 
 .payment-item {
-  padding: 12px;
+  padding: 10px;
   border: 1px solid var(--mcf-border-light);
-  border-radius: 8px;
-  margin-bottom: 8px;
+  border-radius: 6px;
+  margin-bottom: 6px;
   background: var(--mcf-bg-surface);
   transition: all 0.2s ease;
 
@@ -3357,45 +3546,95 @@ watch(activeTab, async (newFilter, oldFilter) => {
   }
 }
 
-.payment-header {
+.payment-row {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
 }
 
-.payment-main {
+.payment-avatar {
+  flex-shrink: 0;
+}
+
+.payment-content {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.payment-description {
-  font-size: 14px;
+.payment-line-1 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.payment-user {
   font-weight: 600;
   color: var(--mcf-text-primary);
-  margin-bottom: 4px;
+}
+
+.payment-separator {
+  color: var(--mcf-text-secondary);
+  font-weight: 400;
 }
 
 .payment-date {
-  font-size: 12px;
   color: var(--mcf-text-secondary);
+  font-weight: 400;
+}
+
+.payment-line-2 {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.payment-description {
+  color: var(--mcf-text-primary);
   font-weight: 500;
 }
 
+.payment-notes-inline {
+  color: var(--mcf-text-muted);
+  font-size: 12px;
+  font-style: italic;
+  flex-shrink: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.payment-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .payment-amount {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--mcf-primary);
   font-feature-settings: 'tnum';
 }
 
-.payment-notes {
-  margin-top: 8px;
-  font-size: 12px;
-  color: var(--mcf-text-muted);
-  font-style: italic;
-  padding-top: 8px;
-  border-top: 1px solid var(--mcf-border-light);
+.action-buttons {
+  display: flex;
+  gap: 2px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.payment-item:hover .action-buttons {
+  opacity: 1;
 }
 
 .payments-summary {
@@ -3451,72 +3690,34 @@ watch(activeTab, async (newFilter, oldFilter) => {
   color: var(--mcf-text-secondary);
 }
 
-/* Payments dialog improvements */
-.payment-user-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-}
-
-.payment-avatar {
-  flex-shrink: 0;
-}
-
-.payment-details {
-  flex: 1;
-  min-width: 0;
-}
-
-.payment-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 4px;
-  font-size: 13px;
-  color: var(--mcf-text-secondary);
-}
-
-.payment-user {
-  font-weight: 500;
-  color: var(--mcf-text-primary);
-}
-
-.payment-date {
-  color: var(--mcf-text-secondary);
-}
 
 /* Payments by user section */
 .payments-by-user {
-  margin: 20px 0;
-  padding: 16px;
+  margin: 16px 0;
+  padding: 12px;
   background: var(--mcf-bg-surface);
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid var(--mcf-border-light);
 }
 
 .section-title {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--mcf-text-primary);
-  margin-bottom: 12px;
+  color: var(--mcf-text-secondary);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .user-payment-summary {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 8px 0;
+  gap: 8px;
+  padding: 6px 0;
 
   &:not(:last-child) {
     border-bottom: 1px solid var(--mcf-border-light);
   }
-}
-
-.user-summary-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .user-summary-avatar {
@@ -3526,38 +3727,24 @@ watch(activeTab, async (newFilter, oldFilter) => {
 .user-summary-name {
   font-weight: 500;
   color: var(--mcf-text-primary);
-  font-size: 14px;
-}
-
-.user-summary-stats {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
+  font-size: 13px;
+  flex: 1;
 }
 
 .user-summary-count {
   font-size: 12px;
   color: var(--mcf-text-secondary);
+  font-weight: 400;
 }
 
 .user-summary-amount {
   font-size: 14px;
-  font-weight: 600;
-  color: var(--mcf-text-primary);
+  font-weight: 700;
+  color: var(--mcf-primary);
+  font-feature-settings: 'tnum';
+  margin-left: auto;
 }
 
-@media (max-width: 600px) {
-  .payment-meta {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
-  }
-
-  .user-summary-stats {
-    align-items: flex-end;
-  }
-}
 
 /* Installment checkboxes styling */
 .recurring-checkboxes-desktop {

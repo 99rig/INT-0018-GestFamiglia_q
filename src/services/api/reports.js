@@ -151,6 +151,18 @@ export const reportsAPI = {
     return response.data
   },
 
+  async updatePlannedExpensePayment(plannedExpenseId, paymentId, paymentData) {
+    const response = await apiClient.patch(`/planned-expenses/${plannedExpenseId}/update_payment/`, {
+      ...paymentData,
+      payment_id: paymentId
+    })
+    return response.data
+  },
+
+  async deletePlannedExpensePayment(plannedExpenseId, paymentId) {
+    await apiClient.delete(`/planned-expenses/${plannedExpenseId}/delete_payment/?payment_id=${paymentId}`)
+  },
+
   async generateRecurringInstallments(plannedExpenseId) {
     const response = await apiClient.post(`/planned-expenses/${plannedExpenseId}/generate_recurring/`)
     return response.data

@@ -1,0 +1,54 @@
+
+## Session 2025-10-02: Settings Improvements & UI Fixes
+
+### 1. Fix Versione Display in Settings (v1.0.14-15)
+**Problema**: La sezione "Aggiornamenti" mostrava versione hardcoded obsoleta (1.0.37) invece della versione corretta.
+
+**Soluzione**:
+- Rimosso uso di `useAppStore.getCurrentVersion` (hardcoded)
+- Usato direttamente `useAppVersion` composable che viene aggiornato automaticamente dallo script `update_and_build.py`
+- File modificato: `frontend/src/pages/users/SettingsPage.vue`
+  - Linea 955: `const { fullVersion: appVersion } = useAppVersion()`
+  - Linea 483: `Versione corrente: {{ appVersion }}`
+- Ottimizzato anche `updateService.js` per usare `ConfigService.getApiBaseUrl()` invece di multipli fallback
+
+### 2. Nuova Sezione Visualizzazione con Modalità Landscape
+**Feature**: Toggle per forzare orientamento landscape sui tablet Android.
+
+**Implementazione**:
+- File: `frontend/src/pages/users/SettingsPage.vue`
+- Nuova sezione expansion "Visualizzazione" (righe 453-485)
+- Toggle `forceLandscapeMode` che salva preferenza in localStorage
+- Funzione `toggleLandscapeMode()` (righe 1482-1502) applica CSS variable `--mcf-orientation`
+- Caricamento automatico all'avvio in `loadUIPreferences()` (righe 1527-1532)
+- CSS dedicato (righe 2361-2411)
+
+**Note**: La sezione "Aggiornamenti" rimane visibile solo su Android (`v-if="isAndroidDevice"`)
+
+### 3. Floating Back Button in PlannedExpenseDetailPage
+**Problema**: Con liste lunghe (50-60 spese) difficile tornare indietro (bottone solo in alto).
+
+**Soluzione**:
+- Aggiunto `q-page-sticky` con FAB button in basso a sinistra
+- File: `frontend/src/pages/reports/PlannedExpenseDetailPage.vue` (righe 1165-1178)
+- Sempre visibile durante lo scroll
+- Include tooltip "Torna ai Piani"
+
+### 4. Fix Dashboard Link "Piani Spesa"
+**Problema**: Widget "Piani Spesa" portava a 404 (`/planned-expenses` non esiste).
+
+**Soluzione**:
+- File: `frontend/src/pages/DashboardPage.vue` (riga 394)
+- Cambiato `router.push('/planned-expenses')` → `router.push('/spending-plans')`
+- Route corretta definita in `router/routes.js:59`
+
+### File Principali Modificati
+- `frontend/src/pages/users/SettingsPage.vue` - Settings con versione fix e landscape mode
+- `frontend/src/services/updateService.js` - ConfigService per download URL
+- `frontend/src/pages/reports/PlannedExpenseDetailPage.vue` - Floating back button
+- `frontend/src/pages/DashboardPage.vue` - Fix link piani spesa
+
+### Versioni
+- v1.0.14: Fix versione display e landscape mode
+- v1.0.15: Floating button + fix dashboard link
+

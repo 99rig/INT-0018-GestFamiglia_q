@@ -249,15 +249,16 @@ const onSubcategoryChange = (subcategoryId) => {
 }
 
 
-// Watch for external changes
-watch(() => props.modelValue, (newValue) => {
+// Function to initialize model value
+const initializeModelValue = (newValue) => {
   if (newValue) {
     selectedCategory.value = newValue.category
     selectedSubcategory.value = newValue.subcategory
 
     // Load subcategories if category is selected
-    if (newValue.category) {
+    if (newValue.category && categories.value.length > 0) {
       const category = categories.value.find(cat => cat.id === newValue.category)
+
       if (category) {
         subcategoryOptions.value = (category.subcategories || []).map(sub => ({
           label: sub.name || sub.nome,
@@ -270,7 +271,19 @@ watch(() => props.modelValue, (newValue) => {
     selectedSubcategory.value = null
     subcategoryOptions.value = []
   }
+}
+
+// Watch for external changes
+watch(() => props.modelValue, (newValue) => {
+  initializeModelValue(newValue)
 }, { immediate: true })
+
+// Watch for categories being loaded - re-initialize if categories load after modelValue is set
+watch(() => categories.value, (newCategories) => {
+  if (props.modelValue && newCategories.length > 0) {
+    initializeModelValue(props.modelValue)
+  }
+})
 
 // Lifecycle
 onMounted(() => {
