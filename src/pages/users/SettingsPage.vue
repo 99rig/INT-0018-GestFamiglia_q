@@ -1488,7 +1488,7 @@ const toggleLandscapeMode = async (enabled) => {
     if (enabled) {
       document.documentElement.style.setProperty('--mcf-orientation', 'landscape')
       // Mostra messaggio di conferma
-      snackbar.success('Modalità Landscape attivata. Ruota il dispositivo per vedere l'effetto.')
+      snackbar.success('Modalità Landscape attivata. Ruota il dispositivo per vedere l\'effetto.')
     } else {
       document.documentElement.style.setProperty('--mcf-orientation', 'unset')
       snackbar.success('Orientamento automatico ripristinato')
