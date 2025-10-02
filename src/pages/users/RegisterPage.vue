@@ -140,8 +140,8 @@
                 <router-link to="/login" class="info-value reset-link">ACCEDI</router-link>
               </div>
               <div class="bottom-right">
-                <div class="info-label">SEAT NUMBER</div>
-                <div class="seat-number">R1</div>
+                <div class="info-label">APP VERSION</div>
+                <div class="seat-number">V{{ versionNumber }}</div>
               </div>
             </div>
 
@@ -175,6 +175,13 @@ const confirmPassword = ref('')
 const invitationCode = ref('')
 const acceptTerms = ref(false)
 const loading = ref(false)
+
+// App version
+const appVersion = ref('1.0.3')
+const versionNumber = computed(() => {
+  const parts = appVersion.value.split('.')
+  return parts[parts.length - 1].padStart(2, '0')
+})
 
 const isFormValid = computed(() => {
   return firstName.value &&

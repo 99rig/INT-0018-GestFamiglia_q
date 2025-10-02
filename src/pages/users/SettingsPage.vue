@@ -1000,7 +1000,7 @@ const currentVersion = computed(() => appStore.getCurrentVersion)
 const publicIP = ref('Rilevamento...')
 const deviceIP = ref('Rilevamento...')
 const platform = ref('Sconosciuto')
-const appVersion = ref('1.0.3')
+const appVersion = ref('1.0.4')
 const serverStatus = ref({ text: 'Controllo...', color: 'grey' })
 const refreshing = ref(false)
 
