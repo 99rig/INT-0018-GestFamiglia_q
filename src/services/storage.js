@@ -38,7 +38,7 @@ class StorageService {
   async set(key, value) {
     const fullKey = `${this.prefix}${key}`
     const stringValue = typeof value === 'string' ? value : JSON.stringify(value)
-    
+
     try {
       if (this.isNative) {
         // Storage nativo sicuro per mobile
@@ -46,17 +46,19 @@ class StorageService {
           key: fullKey,
           value: stringValue
         })
+        // Preferences.set() ritorna undefined quando ha successo
       } else {
         // localStorage per web/development
         localStorage.setItem(fullKey, stringValue)
       }
-      
+
       if (import.meta.env.VITE_DEBUG === 'true') {
         console.log(`💾 Saved to storage: ${key}`)
       }
       return true
     } catch (error) {
       console.error(`❌ Storage set error for ${key}:`, error)
+      alert(`SET ERROR for ${key}: ${error.message}`) // DEBUG
       return false
     }
   }
@@ -157,7 +159,7 @@ class StorageService {
       // Assicuriamoci che siano stringhe
       const accessStr = typeof accessToken === 'string' ? accessToken : String(accessToken || '')
       const refreshStr = typeof refreshToken === 'string' ? refreshToken : String(refreshToken || '')
-      
+
       if (import.meta.env.VITE_DEBUG === 'true') {
         console.log('💾 Saving tokens:', {
           accessLength: accessStr.length,
@@ -165,7 +167,7 @@ class StorageService {
           isNative: this.isNative
         })
       }
-      
+
       // Salva entrambi e aspetta il completamento
       const results = await Promise.all([
         this.set(STORAGE_KEYS.ACCESS_TOKEN, accessStr),

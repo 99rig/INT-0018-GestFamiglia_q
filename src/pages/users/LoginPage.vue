@@ -160,7 +160,7 @@
               </div>
               <div class="bottom-right">
                 <div class="info-label">APP VERSION</div>
-                <div class="seat-number">V{{ versionNumber }}</div>
+                <div class="seat-number">{{ versionNumber }}</div>
               </div>
             </div>
 
@@ -289,7 +289,13 @@ const loginWithPin = async () => {
       // Aspetta che lo storage sia completamente sincronizzato (importante per APK)
       await new Promise(resolve => setTimeout(resolve, 500))
       console.log('🚀 Navigating to dashboard...')
-      await router.push('/dashboard')
+
+      // Su APK Capacitor, router.push() a volte non funziona
+      if ($q.platform.is.capacitor) {
+        window.location.hash = '#/dashboard'
+      } else {
+        await router.push('/dashboard')
+      }
     } else {
       snackbar.error('PIN non corretto')
       pin.value = ''
@@ -321,7 +327,6 @@ const handleLogin = async () => {
   loading.value = true
   try {
     console.log('🔐 Starting login...')
-
     const success = await authStore.login(email.value, password.value)
 
     if (!success) {
@@ -361,7 +366,19 @@ const handleLogin = async () => {
       showSetupPinModal.value = true
     } else {
       console.log('🚀 Navigating to dashboard...')
-      await router.push({ path: '/dashboard', replace: true })
+
+      // Su APK Capacitor, usa un approccio diverso
+      if ($q.platform.is.capacitor) {
+        // Forza il re-check dello stato auth nel router
+        authStore.isInitialized = false
+
+        // Poi naviga - il router guard reinizializzerà lo store
+        setTimeout(() => {
+          window.location.hash = '#/dashboard'
+        }, 100)
+      } else {
+        await router.push({ path: '/dashboard', replace: true })
+      }
     }
   } catch (error) {
     console.error('❌ Errore login:', error)
@@ -378,7 +395,13 @@ const confirmPin = () => {
 
 const cancelPin = async () => {
   showSetupPinModal.value = false
-  await router.push('/dashboard')
+
+  // Su APK Capacitor, router.push() a volte non funziona
+  if ($q.platform.is.capacitor) {
+    window.location.hash = '#/dashboard'
+  } else {
+    await router.push('/dashboard')
+  }
 }
 
 const confirmSetupPin = async (pin) => {
@@ -395,7 +418,11 @@ const confirmSetupPin = async (pin) => {
 
     // Naviga alla dashboard dopo un piccolo delay per permettere alla modale di chiudersi
     setTimeout(() => {
-      router.push('/dashboard')
+      if ($q.platform.is.capacitor) {
+        window.location.hash = '#/dashboard'
+      } else {
+        router.push('/dashboard')
+      }
     }, 300)
   }
 }

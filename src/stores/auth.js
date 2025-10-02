@@ -30,20 +30,6 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     // Inizializza lo store con dati salvati
     async initialize() {
-      // Verifica se il server è cambiato e pulisce i token se necessario
-      const currentServer = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-      const savedServer = await storage.get('last_server_url')
-
-      if (savedServer && savedServer !== currentServer) {
-        console.log('🔄 Server changed from', savedServer, 'to', currentServer, '- Clearing tokens')
-        // Server cambiato, pulisci i token ma mantieni PIN
-        await storage.clearAuth()
-        await storage.set('last_server_url', currentServer)
-      } else if (!savedServer) {
-        // Prima volta, salva il server corrente
-        await storage.set('last_server_url', currentServer)
-      }
-
       // Carica dati dal storage sicuro
       const [accessToken, refreshToken, userData, pinData] = await Promise.all([
         storage.getAccessToken(),
