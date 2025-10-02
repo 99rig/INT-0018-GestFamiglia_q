@@ -136,8 +136,9 @@
           </div>
 
           <!-- Expenses for this date -->
+          <!-- Spesa NON associata a piano: swipe per eliminare -->
           <q-slide-item
-            v-for="expense in group.expenses"
+            v-for="expense in group.expenses.filter(e => !e.spending_plan)"
             :key="expense.id"
             @left="({ reset }) => { deleteExpense(expense); reset() }"
             left-color="negative"
@@ -174,6 +175,33 @@
                   <div class="expense-meta">
                     <span v-if="expense.category_detail" class="category-chip">
                       {{ expense.category_detail.name }}
+                    </span>
+                    <!-- Icone per payment_type e stato pagamento -->
+                    <span v-if="expense.spending_plan" class="payment-indicators">
+                      <q-icon
+                        v-if="expense.payment_type === 'individual'"
+                        name="person"
+                        color="blue-grey-5"
+                        size="14px"
+                      >
+                        <q-tooltip>Spesa individuale - Pagata da te</q-tooltip>
+                      </q-icon>
+                      <q-icon
+                        v-if="expense.payment_type === 'partial'"
+                        name="call_split"
+                        color="amber-7"
+                        size="14px"
+                      >
+                        <q-tooltip>Spesa parziale - Divisa ({{ expense.my_share ? '€' + expense.my_share : 'metà ciascuno' }})</q-tooltip>
+                      </q-icon>
+                      <q-icon
+                        v-if="expense.status === 'pagata'"
+                        name="check_circle"
+                        color="positive"
+                        size="14px"
+                      >
+                        <q-tooltip>Pagata</q-tooltip>
+                      </q-icon>
                     </span>
                     <span class="date-text">{{ formatDate(expense.date) }}</span>
                     <span v-if="expense.shared_with && expense.shared_with.length > 0" class="shared-indicator">
@@ -218,6 +246,109 @@
               </div>
             </q-card>
           </q-slide-item>
+
+          <!-- Spesa associata a piano: swipe per payment_type -->
+          <PlanExpenseSwipeItem
+            v-for="expense in group.expenses.filter(e => e.spending_plan)"
+            :key="expense.id"
+            :expense="expense"
+            @update-payment-type="handleUpdateExpensePaymentType"
+          >
+            <q-card
+              :class="[
+                'mcf-expense-card',
+                { 'mcf-expense-card--quick': isQuickExpense(expense) },
+                getPaymentStatusClass(expense)
+              ]"
+              @click="openEditModal(expense)"
+              bordered
+            >
+              <!-- Main Content -->
+              <div class="expense-main">
+                <div class="expense-left">
+                  <div class="expense-description">
+                    {{ expense.description }}
+                    <q-icon
+                      v-if="expense.status === 'pagata'"
+                      name="check_circle"
+                      class="paid-icon"
+                      color="positive"
+                    />
+                  </div>
+                  <div class="expense-meta">
+                    <span v-if="expense.category_detail" class="category-chip">
+                      {{ expense.category_detail.name }}
+                    </span>
+                    <!-- Icone per payment_type e stato pagamento -->
+                    <span v-if="expense.spending_plan" class="payment-indicators">
+                      <q-icon
+                        v-if="expense.payment_type === 'individual'"
+                        name="person"
+                        color="blue-grey-5"
+                        size="14px"
+                      >
+                        <q-tooltip>Spesa individuale - Pagata da te</q-tooltip>
+                      </q-icon>
+                      <q-icon
+                        v-if="expense.payment_type === 'partial'"
+                        name="call_split"
+                        color="amber-7"
+                        size="14px"
+                      >
+                        <q-tooltip>Spesa parziale - Divisa ({{ expense.my_share ? '€' + expense.my_share : 'metà ciascuno' }})</q-tooltip>
+                      </q-icon>
+                      <q-icon
+                        v-if="expense.status === 'pagata'"
+                        name="check_circle"
+                        color="positive"
+                        size="14px"
+                      >
+                        <q-tooltip>Pagata</q-tooltip>
+                      </q-icon>
+                    </span>
+                    <span class="date-text">{{ formatDate(expense.date) }}</span>
+                    <span v-if="expense.shared_with && expense.shared_with.length > 0" class="shared-indicator">
+                      <q-icon name="people" size="12px" />
+                      Condivisa
+                    </span>
+                  </div>
+                </div>
+                <div class="expense-right">
+                  <div class="expense-amount">€{{ expense.amount }}</div>
+                  <div class="expense-status-badge" :class="`status-${expense.status}`">
+                    {{ getStatusText(expense.status) }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Actions Row -->
+              <div class="expense-actions" @click.stop>
+                <q-btn
+                  v-if="expense.status !== 'pagata'"
+                  flat
+                  dense
+                  size="sm"
+                  icon="payments"
+                  color="positive"
+                  @click="openPaymentDialog(expense)"
+                >
+                  <q-tooltip>Paga spesa</q-tooltip>
+                </q-btn>
+                <!-- Delete button only on desktop -->
+                <q-btn
+                  v-if="$q.screen.gt.sm"
+                  flat
+                  dense
+                  size="sm"
+                  icon="delete_outline"
+                  color="negative"
+                  @click="deleteExpense(expense)"
+                >
+                  <q-tooltip>Elimina spesa</q-tooltip>
+                </q-btn>
+              </div>
+            </q-card>
+          </PlanExpenseSwipeItem>
         </div>
       </div>
 
@@ -921,6 +1052,7 @@
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
 import { useSnackbar } from 'src/composables/useSnackbar'
+import { useAuthStore } from 'src/stores/auth.js'
 import { expensesAPI } from 'src/services/api/expenses.js'
 import { reportsAPI } from 'src/services/api/reports.js'
 import { contributionsAPI } from 'src/services/api/contributions.js'
@@ -936,8 +1068,10 @@ import MCFInput from 'components/forms/MCFInput.vue'
 import MCFFile from 'components/forms/MCFFile.vue'
 import CategorySelect from 'components/CategorySelect.vue'
 import MCFLoading from 'components/MCFLoading.vue'
+import PlanExpenseSwipeItem from 'src/components/PlanExpenseSwipeItem.vue'
 
 const snackbar = useSnackbar()
+const authStore = useAuthStore()
 
 // State
 const loading = ref(false)
@@ -1651,6 +1785,37 @@ const deleteExpense = (expense) => {
   showDeleteModal.value = true
 }
 
+const handleUpdateExpensePaymentType = async ({ expense, paymentType }) => {
+  try {
+    const updateData = {
+      payment_type: paymentType
+    }
+
+    // Per spese individuali, imposto l'utente corrente come pagatore
+    if (paymentType === 'individual') {
+      updateData.paid_by_user = authStore.user?.id
+    } else {
+      // Per shared/partial, rimuovo paid_by_user
+      updateData.paid_by_user = null
+    }
+
+    await expensesAPI.updateExpense(expense.id, updateData)
+
+    // Aggiorna localmente la spesa nella lista
+    const updatedExpense = expenses.value.find(e => e.id === expense.id)
+    if (updatedExpense) {
+      updatedExpense.payment_type = paymentType
+      updatedExpense.paid_by_user = updateData.paid_by_user
+    }
+
+    const typeLabel = paymentType === 'individual' ? 'Individuale' : 'Parziale'
+    snackbar.success(`Spesa marcata come ${typeLabel}`)
+  } catch (error) {
+    console.error('Errore nell\'aggiornamento del tipo di pagamento:', error)
+    snackbar.error('Errore nell\'aggiornamento del tipo di pagamento')
+  }
+}
+
 const confirmDeleteExpense = async () => {
   if (!expenseToDelete.value) return
 
@@ -2200,6 +2365,12 @@ onMounted(async () => {
   flex-wrap: wrap;
   font-size: 0.75rem;
   color: #6b7280;
+}
+
+.payment-indicators {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .category-chip {

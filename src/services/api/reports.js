@@ -118,7 +118,7 @@ export const reportsAPI = {
   },
 
   async updatePlannedExpense(id, plannedExpenseData) {
-    const response = await apiClient.put(`/planned-expenses/${id}/`, plannedExpenseData)
+    const response = await apiClient.patch(`/planned-expenses/${id}/`, plannedExpenseData)
     return response.data
   },
 

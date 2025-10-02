@@ -42,7 +42,7 @@ export const expensesAPI = {
   },
 
   async updateExpense(id, expenseData) {
-    const response = await apiClient.put(`/expenses/${id}/`, expenseData)
+    const response = await apiClient.patch(`/expenses/${id}/`, expenseData)
     return response.data
   },
 
