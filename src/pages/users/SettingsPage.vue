@@ -31,7 +31,6 @@
             label="Gestione Famiglia"
             header-class="mcf-expansion-header"
             expand-icon-class="mcf-expansion-icon"
-            default-opened
           >
             <div class="mcf-expansion-content">
               <div class="mcf-family-section">
@@ -251,7 +250,6 @@
             label="Sicurezza e Account"
             header-class="mcf-expansion-header"
             expand-icon-class="mcf-expansion-icon"
-            default-opened
           >
             <div class="mcf-expansion-content">
               <div class="mcf-security-section">
@@ -459,7 +457,6 @@
             label="Aggiornamenti"
             header-class="mcf-expansion-header"
             expand-icon-class="mcf-expansion-icon"
-            default-opened
           >
             <div class="mcf-expansion-content">
               <div class="mcf-updates-section">
