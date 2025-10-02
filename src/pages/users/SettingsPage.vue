@@ -967,6 +967,7 @@ import { usersAPI } from 'src/services/api/users.js'
 import { useAuthStore } from 'stores/auth.js'
 import { useAppStore } from 'stores/useAppStore.js'
 import { useSnackbar } from 'src/composables/useSnackbar'
+import { useAppVersion } from 'src/composables/useAppVersion'
 
 const $q = useQuasar()
 const authStore = useAuthStore()
@@ -1000,7 +1001,7 @@ const currentVersion = computed(() => appStore.getCurrentVersion)
 const publicIP = ref('Rilevamento...')
 const deviceIP = ref('Rilevamento...')
 const platform = ref('Sconosciuto')
-const appVersion = ref('1.0.4')
+const { fullVersion: appVersion } = useAppVersion()  // Usa composable per versione app
 const serverStatus = ref({ text: 'Controllo...', color: 'grey' })
 const refreshing = ref(false)
 

@@ -4,7 +4,7 @@
       <q-page class="flex flex-center ticket-page">
         <div class="ticket-container">
           <!-- Ticket Card -->
-          <div class="ticket-card">
+          <div class="ticket-card shadow-24">
             <!-- Header Section -->
             <div class="ticket-header">
               <div class="ticket-logo">
@@ -162,6 +162,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from 'stores/auth.js'
 import { authAPI } from 'src/services/api/auth.js'
 import { useSnackbar } from 'src/composables/useSnackbar'
+import { useAppVersion } from 'src/composables/useAppVersion'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -176,12 +177,8 @@ const invitationCode = ref('')
 const acceptTerms = ref(false)
 const loading = ref(false)
 
-// App version
-const appVersion = ref('1.0.3')
-const versionNumber = computed(() => {
-  const parts = appVersion.value.split('.')
-  return parts[parts.length - 1].padStart(2, '0')
-})
+// App version from composable
+const { versionNumber } = useAppVersion()
 
 const isFormValid = computed(() => {
   return firstName.value &&
@@ -219,10 +216,13 @@ const register = async () => {
       authStore.accessToken = response.access
       authStore.refreshToken = response.refresh
       authStore.user = response.user || { email: email.value }
-      router.push('/dashboard')
+
+      // Aspetta un attimo per assicurarsi che tutto sia salvato (importante per APK)
+      await new Promise(resolve => setTimeout(resolve, 100))
+      await router.push('/dashboard')
     } else {
-      setTimeout(() => {
-        router.push('/dashboard')
+      setTimeout(async () => {
+        await router.push('/dashboard')
       }, 1500)
     }
   } catch (error) {
@@ -257,8 +257,13 @@ const register = async () => {
 
 .ticket-container {
   width: 100%;
-  max-width: 500px;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 0;
+
+  @media (min-width: 1024px) {
+    max-width: 500px;
+    margin: 0 auto;
+  }
 }
 
 .ticket-card {
@@ -266,48 +271,22 @@ const register = async () => {
   border-radius: 20px;
   padding: 25px 20px;
   position: relative;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   overflow: visible;
-
-  /* Perforations using radial gradients */
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 20px;
-    bottom: 20px;
-    width: 8px;
-    background:
-      radial-gradient(circle at 0 10px, transparent 4px, #f5f5f5 4px),
-      radial-gradient(circle at 0 30px, transparent 4px, #f5f5f5 4px),
-      radial-gradient(circle at 0 50px, transparent 4px, #f5f5f5 4px),
-      radial-gradient(circle at 0 70px, transparent 4px, #f5f5f5 4px),
-      radial-gradient(circle at 0 90px, transparent 4px, #f5f5f5 4px);
-    background-size: 8px 20px;
-    background-repeat: repeat-y;
-    z-index: 10;
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 20px;
-    bottom: 20px;
-    width: 8px;
-    background:
-      radial-gradient(circle at 8px 10px, transparent 4px, #f5f5f5 4px),
-      radial-gradient(circle at 8px 30px, transparent 4px, #f5f5f5 4px),
-      radial-gradient(circle at 8px 50px, transparent 4px, #f5f5f5 4px),
-      radial-gradient(circle at 8px 70px, transparent 4px, #f5f5f5 4px),
-      radial-gradient(circle at 8px 90px, transparent 4px, #f5f5f5 4px);
-    background-size: 8px 20px;
-    background-repeat: repeat-y;
-    z-index: 10;
-  }
 
   @media (min-width: 768px) {
     padding: 30px 25px;
+  }
+
+  @media (min-width: 1024px) {
+    /* Create notches with mask */
+    -webkit-mask-image:
+      radial-gradient(circle 13px at 0 63%, transparent 0, transparent 13px, black 13px),
+      radial-gradient(circle 13px at 100% 63%, transparent 0, transparent 13px, black 13px);
+    mask-image:
+      radial-gradient(circle 13px at 0 63%, transparent 0, transparent 13px, black 13px),
+      radial-gradient(circle 13px at 100% 63%, transparent 0, transparent 13px, black 13px);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
   }
 }
 
@@ -490,6 +469,10 @@ const register = async () => {
     border-radius: 50%;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     z-index: 20;
+
+    @media (min-width: 1024px) {
+      display: none;
+    }
   }
 
   &::after {
@@ -504,6 +487,10 @@ const register = async () => {
     border-radius: 50%;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     z-index: 20;
+
+    @media (min-width: 1024px) {
+      display: none;
+    }
   }
 }
 

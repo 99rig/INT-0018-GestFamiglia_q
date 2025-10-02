@@ -191,10 +191,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from 'stores/auth.js'
 import { useSnackbar } from 'src/composables/useSnackbar'
+import { useAppVersion } from 'src/composables/useAppVersion'
 import { useQuasar } from 'quasar'
 import PinActionModals2 from 'components/users/PinActionModals2.vue'
 import PinSetupModal from 'components/users/PinSetupModal.vue'
@@ -209,12 +210,8 @@ const password = ref('')
 const rememberMe = ref(false)
 const loading = ref(false)
 
-// App version
-const appVersion = ref('1.0.3')
-const versionNumber = computed(() => {
-  const parts = appVersion.value.split('.')
-  return parts[parts.length - 1].padStart(2, '0')
-})
+// App version from composable
+const { versionNumber } = useAppVersion()
 
 // PIN data
 const pin = ref('')
@@ -287,7 +284,9 @@ const loginWithPin = async () => {
     const success = await authStore.loginWithPin(pin.value)
 
     if (success) {
-      router.push('/dashboard')
+      // Aspetta un attimo per assicurarsi che tutto sia salvato (importante per APK)
+      await new Promise(resolve => setTimeout(resolve, 100))
+      await router.push('/dashboard')
     } else {
       snackbar.error('PIN non corretto')
       pin.value = ''
@@ -318,13 +317,21 @@ const handleLogin = async () => {
 
   loading.value = true
   try {
-    await authStore.login(email.value, password.value)
+    const success = await authStore.login(email.value, password.value)
+
+    if (!success) {
+      snackbar.error('Credenziali non valide')
+      return
+    }
+
+    // Aspetta un attimo per assicurarsi che tutto sia salvato (importante per APK)
+    await new Promise(resolve => setTimeout(resolve, 100))
 
     // Se "Ricordami" è selezionato e non ha già un PIN, chiedi se vuole impostarlo
     if (rememberMe.value && !authStore.hasPinSetup()) {
       showSetupPinModal.value = true
     } else {
-      router.push('/dashboard')
+      await router.push('/dashboard')
     }
   } catch (error) {
     console.error('Errore login:', error)
@@ -339,9 +346,9 @@ const confirmPin = () => {
   showPinSetupModal.value = true
 }
 
-const cancelPin = () => {
+const cancelPin = async () => {
   showSetupPinModal.value = false
-  router.push('/dashboard')
+  await router.push('/dashboard')
 }
 
 const confirmSetupPin = async (pin) => {
@@ -363,10 +370,10 @@ const confirmSetupPin = async (pin) => {
   }
 }
 
-const closePinSetupModal = () => {
+const closePinSetupModal = async () => {
   showPinSetupModal.value = false
   setupPinLoading.value = false
-  router.push('/dashboard')
+  await router.push('/dashboard')
 }
 </script>
 

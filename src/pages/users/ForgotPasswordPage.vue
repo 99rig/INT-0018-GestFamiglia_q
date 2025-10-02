@@ -114,10 +114,11 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { usersAPI } from 'src/services/api/users.js'
 import { useSnackbar } from 'src/composables/useSnackbar'
+import { useAppVersion } from 'src/composables/useAppVersion'
 
 const router = useRouter()
 const snackbar = useSnackbar()
@@ -126,12 +127,8 @@ const email = ref('')
 const loading = ref(false)
 const showSuccess = ref(false)
 
-// App version
-const appVersion = ref('1.0.3')
-const versionNumber = computed(() => {
-  const parts = appVersion.value.split('.')
-  return parts[parts.length - 1].padStart(2, '0')
-})
+// App version from composable
+const { versionNumber } = useAppVersion()
 
 const handleSubmit = async () => {
   if (!email.value) {
