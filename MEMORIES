@@ -52,3 +52,91 @@
 - v1.0.14: Fix versione display e landscape mode
 - v1.0.15: Floating button + fix dashboard link
 
+---
+
+## Session 2025-10-02: Payment Modification & Compact UI (v1.0.16)
+
+### 1. Fix Subcategory Not Displaying in Edit Dialog
+**Problema**: Quando si apriva in modifica una spesa pianificata, la sottocategoria salvata non veniva visualizzata nel campo select.
+
+**Causa**: Timing issue - il componente `CategoryAutocomplete` riceveva il `modelValue` prima che le categorie fossero caricate dall'API.
+
+**Soluzione**:
+- File: `frontend/src/components/CategoryAutocomplete.vue`
+- Aggiunto watcher su `categories.value` (righe 282-286) che reinizializza `modelValue` quando le categorie vengono caricate
+- Funzione `initializeModelValue()` (righe 253-274) per centralizzare la logica di inizializzazione
+- Fix applicato anche al campo category principale oltre che subcategory
+
+### 2. Payment Modification Feature
+**Feature**: Possibilità di modificare ed eliminare pagamenti già effettuati su spese pianificate.
+
+**Backend**:
+- File: `backend/apps/reports/api/views.py`
+- Nuovi endpoint in `PlannedExpenseViewSet`:
+  - `update_payment` (PATCH) - righe 884-955: Modifica importo/data/note di un pagamento
+  - `delete_payment` (DELETE) - righe 957-1004: Elimina pagamento e ripristina saldo contributi se necessario
+- Validazioni:
+  - L'importo modificato non può superare l'importo disponibile
+  - Controllo stato spesa dopo modifica
+  - Ripristino automatico saldo contributore se pagamento da contributo viene eliminato
+- Aggiunto campo `payment_source` in `ExpenseSerializer` e `ExpenseCreateUpdateSerializer` (backend/apps/expenses/api/serializers.py)
+
+**Frontend API**:
+- File: `frontend/src/services/api/reports.js`
+- `updatePlannedExpensePayment(plannedExpenseId, paymentId, paymentData)` - riga 154-160
+- `deletePlannedExpensePayment(plannedExpenseId, paymentId)` - riga 162-164
+
+**Frontend UI**:
+- File: `frontend/src/pages/reports/PlannedExpenseDetailPage.vue`
+- Bottoni edit/delete su ogni payment item (righe 1094-1116)
+- Dialog per modifica pagamento (righe 1182-1221) con form completo
+- Funzioni:
+  - `editPayment()` (righe 2102-2114): Apre dialog con dati precompilati
+  - `savePaymentEdit()` (righe 2116-2196): Salva modifiche e aggiorna tutti i widget
+  - `deletePayment()` (righe 2198-2267): Elimina con conferma e aggiorna dati
+- Fix importante: reload di `selectedExpense` dopo modifica per aggiornare totali nei widget header
+
+### 3. Compact Payments Dialog UI
+**Feature**: Ristrutturazione completa del layout dei pagamenti per renderlo più compatto e leggibile.
+
+**Modifiche Payment Items** (righe 1064-1119):
+- Layout a singola riga con 3 sezioni: avatar, content, right
+- Avatar ridotto da 32px a 28px
+- Content in 2 linee:
+  - Linea 1: `Nome Utente • Data` (font 12px)
+  - Linea 2: `Descrizione - Note` (font 13px, note inline invece che sotto)
+- Right section: importo (15px bold) + action buttons (size xs)
+- Padding item ridotto da 12px a 10px
+- Margin tra items ridotto da 8px a 6px
+- Border radius ridotto da 8px a 6px
+
+**Modifiche Riepilogo per Utente** (righe 1122-1141):
+- Titolo cambiato in "RIEPILOGO PER UTENTE" (uppercase, 12px, secondary color)
+- Layout completamente inline: `Avatar Nome (Count) Importo`
+- Avatar da 24px a 22px
+- Count tra parentesi `(3)` invece di "3 pagamenti" su riga separata
+- Padding sezione ridotto da 16px a 12px
+- Tutto su una sola riga per utente
+
+**CSS** (righe 3536-3746):
+- Nuove classi: `.payment-row`, `.payment-content`, `.payment-line-1`, `.payment-line-2`, `.payment-right`
+- `.payment-notes-inline` per note inline con ellipsis
+- Action buttons con opacity 0.6 che diventa 1 su hover
+- Rimosso vecchio CSS: `.payment-header`, `.payment-main`, `.payment-meta`, `.payment-user-info`, `.user-summary-info`, `.user-summary-stats`
+
+### File Principali Modificati
+**Backend**:
+- `apps/reports/api/views.py` - Payment update/delete endpoints
+- `apps/expenses/api/serializers.py` - Campo payment_source
+- `apps/expenses/api/views.py` - Logging per debugging
+
+**Frontend**:
+- `src/pages/reports/PlannedExpenseDetailPage.vue` - UI modifica pagamenti e layout compatto
+- `src/services/api/reports.js` - API methods per update/delete
+- `src/components/CategoryAutocomplete.vue` - Fix timing subcategory
+- `src/composables/useAppVersion.js` - Version 1.0.16
+- `landing-seo/index.html` - Version 1.0.16
+
+### Versione
+- v1.0.16: Payment modification + compact UI + subcategory fix
+
