@@ -274,105 +274,109 @@
 
         <!-- System Information -->
         <div class="mcf-settings-section">
-          <div class="mcf-section-header">
-            <q-icon name="info" class="mcf-section-icon" />
-            <h3 class="mcf-section-title">Informazioni Sistema</h3>
-          </div>
+          <q-expansion-item
+            icon="info"
+            label="Informazioni Sistema"
+            header-class="mcf-expansion-header"
+            expand-icon-class="mcf-expansion-icon"
+          >
+            <div class="mcf-expansion-content">
+              <div class="mcf-info-grid">
+                <div class="mcf-info-card">
+                  <div class="mcf-info-header">
+                    <q-icon name="dns" class="mcf-info-icon" />
+                    <span class="mcf-info-label">Server API</span>
+                    <q-btn
+                      round
+                      flat
+                      size="sm"
+                      icon="refresh"
+                      color="primary"
+                      @click="refreshNetworkInfo"
+                      :loading="refreshing"
+                      class="mcf-refresh-btn"
+                    >
+                      <q-tooltip>Aggiorna informazioni</q-tooltip>
+                    </q-btn>
+                  </div>
+                  <div class="mcf-info-value" :class="serverClass">{{ apiServer }}</div>
+                  <div class="mcf-info-status">
+                    <q-icon name="circle" :color="serverStatus.color" />
+                    <span :class="'text-' + serverStatus.color">{{ serverStatus.text }}</span>
+                  </div>
+                </div>
 
-          <div class="mcf-info-grid">
-            <div class="mcf-info-card">
-              <div class="mcf-info-header">
-                <q-icon name="dns" class="mcf-info-icon" />
-                <span class="mcf-info-label">Server API</span>
-                <q-btn
-                  round
-                  flat
-                  size="sm"
-                  icon="refresh"
-                  color="primary"
-                  @click="refreshNetworkInfo"
-                  :loading="refreshing"
-                  class="mcf-refresh-btn"
-                >
-                  <q-tooltip>Aggiorna informazioni</q-tooltip>
-                </q-btn>
-              </div>
-              <div class="mcf-info-value" :class="serverClass">{{ apiServer }}</div>
-              <div class="mcf-info-status">
-                <q-icon name="circle" :color="serverStatus.color" />
-                <span :class="'text-' + serverStatus.color">{{ serverStatus.text }}</span>
+                <div class="mcf-info-card">
+                  <div class="mcf-info-header">
+                    <q-icon name="wifi" class="mcf-info-icon" />
+                    <span class="mcf-info-label">IP Pubblico</span>
+                  </div>
+                  <div class="mcf-info-value">{{ publicIP }}</div>
+                </div>
+
+                <div class="mcf-info-card">
+                  <div class="mcf-info-header">
+                    <q-icon name="devices" class="mcf-info-icon" />
+                    <span class="mcf-info-label">IP Dispositivo</span>
+                  </div>
+                  <div class="mcf-info-value">{{ deviceIP }}</div>
+                </div>
+
+                <div class="mcf-info-card">
+                  <div class="mcf-info-header">
+                    <q-icon name="smartphone" class="mcf-info-icon" />
+                    <span class="mcf-info-label">Piattaforma</span>
+                  </div>
+                  <div class="mcf-info-value">{{ platform }}</div>
+                </div>
+
+                <div class="mcf-info-card">
+                  <div class="mcf-info-header">
+                    <q-icon name="info" class="mcf-info-icon" />
+                    <span class="mcf-info-label">Versione App</span>
+                  </div>
+                  <div class="mcf-info-value">{{ appVersion }}</div>
+                </div>
+
+                <!-- Download APK for Android -->
+                <div v-if="isAndroidDevice" class="mcf-info-card mcf-download-card">
+                  <div class="mcf-info-header">
+                    <q-icon name="android" class="mcf-info-icon" />
+                    <span class="mcf-info-label">App Android</span>
+                  </div>
+                  <div class="mcf-info-value">Migliore esperienza</div>
+                  <q-btn
+                    flat
+                    dense
+                    color="primary"
+                    label="Scarica APK"
+                    icon="download"
+                    @click="downloadAPK"
+                    class="mcf-download-btn"
+                  />
+                </div>
+
+                <!-- Force Refresh for PWA issues -->
+                <div class="mcf-info-card mcf-force-refresh-card">
+                  <div class="mcf-info-header">
+                    <q-icon name="refresh" class="mcf-info-icon" />
+                    <span class="mcf-info-label">Forza Aggiornamento</span>
+                  </div>
+                  <div class="mcf-info-value">Risolve problemi di cache PWA</div>
+                  <q-btn
+                    flat
+                    dense
+                    color="warning"
+                    label="Force Refresh"
+                    icon="cached"
+                    @click="forceAppRefresh"
+                    :loading="forceRefreshing"
+                    class="mcf-force-refresh-btn"
+                  />
+                </div>
               </div>
             </div>
-
-            <div class="mcf-info-card">
-              <div class="mcf-info-header">
-                <q-icon name="wifi" class="mcf-info-icon" />
-                <span class="mcf-info-label">IP Pubblico</span>
-              </div>
-              <div class="mcf-info-value">{{ publicIP }}</div>
-            </div>
-
-            <div class="mcf-info-card">
-              <div class="mcf-info-header">
-                <q-icon name="devices" class="mcf-info-icon" />
-                <span class="mcf-info-label">IP Dispositivo</span>
-              </div>
-              <div class="mcf-info-value">{{ deviceIP }}</div>
-            </div>
-
-            <div class="mcf-info-card">
-              <div class="mcf-info-header">
-                <q-icon name="smartphone" class="mcf-info-icon" />
-                <span class="mcf-info-label">Piattaforma</span>
-              </div>
-              <div class="mcf-info-value">{{ platform }}</div>
-            </div>
-
-            <div class="mcf-info-card">
-              <div class="mcf-info-header">
-                <q-icon name="info" class="mcf-info-icon" />
-                <span class="mcf-info-label">Versione App</span>
-              </div>
-              <div class="mcf-info-value">{{ appVersion }}</div>
-            </div>
-
-            <!-- Download APK for Android -->
-            <div v-if="isAndroidDevice" class="mcf-info-card mcf-download-card">
-              <div class="mcf-info-header">
-                <q-icon name="android" class="mcf-info-icon" />
-                <span class="mcf-info-label">App Android</span>
-              </div>
-              <div class="mcf-info-value">Migliore esperienza</div>
-              <q-btn
-                flat
-                dense
-                color="primary"
-                label="Scarica APK"
-                icon="download"
-                @click="downloadAPK"
-                class="mcf-download-btn"
-              />
-            </div>
-
-            <!-- Force Refresh for PWA issues -->
-            <div class="mcf-info-card mcf-force-refresh-card">
-              <div class="mcf-info-header">
-                <q-icon name="refresh" class="mcf-info-icon" />
-                <span class="mcf-info-label">Forza Aggiornamento</span>
-              </div>
-              <div class="mcf-info-value">Risolve problemi di cache PWA</div>
-              <q-btn
-                flat
-                dense
-                color="warning"
-                label="Force Refresh"
-                icon="cached"
-                @click="forceAppRefresh"
-                :loading="forceRefreshing"
-                class="mcf-force-refresh-btn"
-              />
-            </div>
-          </div>
+          </q-expansion-item>
         </div>
 
         <!-- Camera Testing - HIDDEN -->
@@ -549,6 +553,7 @@
         -->
 
         <!-- Theme Palette Settings Section -->
+        <!--
         <div class="mcf-settings-section">
           <div class="mcf-section-header">
             <q-icon name="palette" class="mcf-section-icon" />
@@ -611,9 +616,8 @@
               </div>
             </div>
           </div>
-        </div>
+        -->
 
-      </div>
     </div>
 
     <!-- Family Management Dialogs -->
@@ -3200,6 +3204,32 @@ onUnmounted(() => {
     background: var(--mcf-text-disabled);
     color: white;
   }
+}
+
+/* === EXPANSION STYLES === */
+.mcf-expansion-header {
+  background: var(--mcf-card-bg);
+  border-radius: 16px;
+  padding: 16px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--mcf-text-primary);
+  transition: all 0.2s ease;
+}
+
+.mcf-expansion-header:hover {
+  background: var(--mcf-card-hover);
+}
+
+.mcf-expansion-icon {
+  color: var(--mcf-primary);
+}
+
+.mcf-expansion-content {
+  padding: 20px;
+  background: var(--mcf-bg-secondary);
+  border-radius: 0 0 16px 16px;
+  margin-top: -8px;
 }
 
 /* === THEME PALETTE STYLES === */
