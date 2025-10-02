@@ -54,8 +54,8 @@
                 <span class="stat-label">Spese</span>
               </div>
               <div class="stat-compact">
-                <span class="stat-value">{{ Math.round(progressPercentage) }}%</span>
-                <span class="stat-label">Progresso</span>
+                <span class="stat-value">€{{ formatAmount(myAssignedExpenses) }}</span>
+                <span class="stat-label">Mie</span>
               </div>
             </div>
             <div class="progress-bar-container">
@@ -1570,6 +1570,21 @@ const totalPlanned = computed(() => {
 const totalPaid = computed(() => {
   // Usa il dato calcolato dal backend che include spese pianificate + effettive
   return parseFloat(currentPlan.value?.completed_expenses_amount || 0)
+})
+
+const myAssignedExpenses = computed(() => {
+  // Calcola il totale delle spese assegnate a me
+  return plannedExpenses.value.reduce((total, expense) => {
+    if (expense.payment_type === 'individual' && expense.paid_by_user === authStore.user?.id) {
+      // Spesa individuale pagata da me: conto tutto
+      return total + parseFloat(expense.amount || 0)
+    } else if (expense.payment_type === 'partial') {
+      // Spesa parziale: conto la mia quota
+      return total + parseFloat(expense.my_share || 0)
+    }
+    // Spese condivise o individuali di altri: non conto
+    return total
+  }, 0)
 })
 
 const totalRemaining = computed(() => {
