@@ -145,17 +145,27 @@
         class="expansion-content"
         @click.stop
       >
-        <div class="expenses-list">
+        <div v-if="loadingExpenses" class="loading-expenses">
+          <q-spinner color="primary" size="24px" />
+          <span>Caricamento spese...</span>
+        </div>
+
+        <div v-else-if="previewExpenses.length > 0" class="expenses-list">
           <ExpenseListItem
             v-for="expense in previewExpenses"
             :key="expense.id"
             :expense="expense"
           />
+
+          <div v-if="hasMoreExpenses" class="more-indicator">
+            <q-icon name="more_horiz" />
+            <span>+{{ remainingExpensesCount }} altre spese</span>
+          </div>
         </div>
 
-        <div v-if="hasMoreExpenses" class="more-indicator">
-          <q-icon name="more_horiz" />
-          <span>+{{ remainingExpensesCount }} altre spese</span>
+        <div v-else class="no-expenses">
+          <q-icon name="info" size="20px" />
+          <span>Nessuna spesa pianificata</span>
         </div>
       </div>
     </q-slide-transition>
@@ -163,7 +173,8 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { reportsAPI } from 'src/services/api/reports.js'
 import PlanCard from './PlanCard.vue'
 import ExpenseListItem from './ExpenseListItem.vue'
 
@@ -180,10 +191,30 @@ const emit = defineEmits(['click', 'edit', 'clone', 'delete', 'toggle-pin'])
 
 // State
 const expanded = ref(false)
+const loadingExpenses = ref(false)
+const expenses = ref([])
 
 // Methods
-const toggleExpanded = () => {
+const toggleExpanded = async () => {
   expanded.value = !expanded.value
+
+  // Carica le spese quando si apre l'expansion (solo la prima volta)
+  if (expanded.value && hasExpenses.value && expenses.value.length === 0) {
+    await loadExpenses()
+  }
+}
+
+const loadExpenses = async () => {
+  try {
+    loadingExpenses.value = true
+    const planData = await reportsAPI.getSpendingPlan(props.plan.id)
+    expenses.value = planData.planned_expenses || []
+  } catch (error) {
+    console.error('Errore nel caricamento delle spese:', error)
+    expenses.value = []
+  } finally {
+    loadingExpenses.value = false
+  }
 }
 
 // Computed properties
@@ -193,7 +224,7 @@ const completionPercentage = computed(() => props.plan.completion_percentage || 
 const isCompleted = computed(() => completionPercentage.value >= 100)
 
 const hasExpenses = computed(() => plannedCount.value > 0)
-const previewExpenses = computed(() => props.plan.planned_expenses?.slice(0, 10) || [])
+const previewExpenses = computed(() => expenses.value.slice(0, 10) || [])
 const hasMoreExpenses = computed(() => plannedCount.value > 10)
 const remainingExpensesCount = computed(() => plannedCount.value - 10)
 
@@ -613,6 +644,17 @@ const getProgressClass = (percentage) => {
   padding: 16px 24px;
   border-top: 1px solid #e5e7eb;
   background: #f9fafb;
+}
+
+.loading-expenses,
+.no-expenses {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  color: #6b7280;
+  font-size: 14px;
 }
 
 .expenses-list {
