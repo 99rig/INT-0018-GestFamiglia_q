@@ -476,11 +476,11 @@
               />
             </div>
 
-            <div v-if="currentVersion" class="mcf-version-info">
+            <div class="mcf-version-info">
               <div class="mcf-version-current">
                 <q-icon name="info" class="mcf-version-icon" />
                 <span class="mcf-version-text">
-                  Versione corrente: v{{ currentVersion.name }} ({{ currentVersion.code }})
+                  Versione corrente: {{ appVersion }}
                 </span>
               </div>
             </div>
@@ -916,7 +916,6 @@ import { useQuasar } from 'quasar'
 import { updateService } from 'src/services/updateService.js'
 import { usersAPI } from 'src/services/api/users.js'
 import { useAuthStore } from 'stores/auth.js'
-import { useAppStore } from 'stores/useAppStore.js'
 import { useSnackbar } from 'src/composables/useSnackbar'
 import { useAppVersion } from 'src/composables/useAppVersion'
 
@@ -944,9 +943,6 @@ const passwordErrors = ref({})
 // Update refs
 const updateChecking = ref(false)
 const forceRefreshing = ref(false)
-// Usa versione dallo store
-const appStore = useAppStore()
-const currentVersion = computed(() => appStore.getCurrentVersion)
 
 // Debug info refs (moved from LoginPage)
 const publicIP = ref('Rilevamento...')
@@ -1071,9 +1067,8 @@ onMounted(async () => {
   console.log('🔧 SettingsPage onMounted started')
   console.log('🔧 Auth status:', authStore.isAuthenticated, 'Token:', !!authStore.accessToken)
 
-  // Ottieni versione corrente
+  // Inizializza updateService per il pulsante "Verifica Aggiornamenti"
   await updateService.init()
-  currentVersion.value = updateService.currentVersion
 
   // Get device info for debugging (moved from LoginPage)
   getDeviceInfo()

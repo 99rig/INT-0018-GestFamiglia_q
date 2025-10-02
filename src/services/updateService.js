@@ -9,6 +9,7 @@ import { FileOpener } from '@capacitor-community/file-opener'
 import { Dialog } from 'quasar'
 import { API } from './api/index.js'
 import { useAppStore } from '../stores/useAppStore.js'
+import ConfigService from './config.js'
 
 class UpdateService {
   constructor() {
@@ -165,21 +166,10 @@ ${updateInfo.is_mandatory ? '\n⚠️ Questo aggiornamento è obbligatorio.' : '
 
       console.log('📥 Downloading update...')
 
-      // Ottieni base URL dall'apiClient o fallback
-      let apiBaseUrl = process.env.API_BASE_URL
-
-      // Se non definito, prova a ricavarlo dall'apiClient
-      if (!apiBaseUrl && API.defaults && API.defaults.baseURL) {
-        apiBaseUrl = API.defaults.baseURL.replace('/api', '')
-      }
-
-      // Fallback finale
-      if (!apiBaseUrl) {
-        apiBaseUrl = window.location.origin
-      }
-
-      const downloadUrl = `${apiBaseUrl}/api${updateInfo.download_url}`
-      console.log('Download URL:', downloadUrl)
+      // Usa ConfigService per l'URL base (consistente con apiClient)
+      const apiBaseUrl = ConfigService.getApiBaseUrl()
+      const downloadUrl = `${apiBaseUrl}${updateInfo.download_url}`
+      console.log('📥 Download URL:', downloadUrl)
 
       const response = await fetch(downloadUrl, {
         headers: {
