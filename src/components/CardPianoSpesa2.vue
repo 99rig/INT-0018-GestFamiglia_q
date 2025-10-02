@@ -176,7 +176,7 @@ const props = defineProps({
 })
 
 // Emits
-const emit = defineEmits(['click', 'edit', 'clone', 'delete'])
+const emit = defineEmits(['click', 'edit', 'clone', 'delete', 'toggle-pin'])
 
 // State
 const expanded = ref(false)
