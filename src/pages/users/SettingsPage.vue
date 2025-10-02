@@ -450,6 +450,40 @@
         </div>
         -->
 
+        <!-- Display Settings Section -->
+        <div class="mcf-settings-section">
+          <q-expansion-item
+            icon="screen_rotation"
+            label="Visualizzazione"
+            header-class="mcf-expansion-header"
+            expand-icon-class="mcf-expansion-icon"
+          >
+            <div class="mcf-expansion-content">
+              <div class="mcf-display-section">
+                <p class="mcf-section-description">
+                  Personalizza l'orientamento dello schermo per una migliore esperienza su tablet.
+                </p>
+
+                <div class="mcf-display-option">
+                  <div class="mcf-option-info">
+                    <q-icon name="screen_rotation" class="mcf-option-icon" />
+                    <div class="mcf-option-text">
+                      <span class="mcf-option-label">Modalità Landscape</span>
+                      <span class="mcf-option-desc">Blocca l'orientamento in orizzontale per tablet</span>
+                    </div>
+                  </div>
+                  <q-toggle
+                    v-model="forceLandscapeMode"
+                    @update:model-value="toggleLandscapeMode"
+                    color="primary"
+                    class="mcf-display-toggle"
+                  />
+                </div>
+              </div>
+            </div>
+          </q-expansion-item>
+        </div>
+
         <!-- App Updates Section -->
         <div class="mcf-settings-section" v-if="isAndroidDevice">
           <q-expansion-item
@@ -952,6 +986,9 @@ const { fullVersion: appVersion } = useAppVersion()  // Usa composable per versi
 const serverStatus = ref({ text: 'Controllo...', color: 'grey' })
 const refreshing = ref(false)
 
+// Display settings refs
+const forceLandscapeMode = ref(false)
+
 // Font settings refs
 const selectedLogoFont = ref('Fredoka One')
 const selectedAppFont = ref('Nunito')
@@ -1441,6 +1478,29 @@ const loadSavedFonts = () => {
   console.log('✅ UI preferences loaded from localStorage')
 }
 
+// Display Settings Functions
+const toggleLandscapeMode = async (enabled) => {
+  try {
+    // Salva la preferenza in localStorage
+    localStorage.setItem('mcf-force-landscape', enabled ? 'true' : 'false')
+
+    // Applica l'orientamento usando CSS
+    if (enabled) {
+      document.documentElement.style.setProperty('--mcf-orientation', 'landscape')
+      // Mostra messaggio di conferma
+      snackbar.success('Modalità Landscape attivata. Ruota il dispositivo per vedere l'effetto.')
+    } else {
+      document.documentElement.style.setProperty('--mcf-orientation', 'unset')
+      snackbar.success('Orientamento automatico ripristinato')
+    }
+
+    console.log('✅ Landscape mode:', enabled ? 'enabled' : 'disabled')
+  } catch (error) {
+    console.error('❌ Error toggling landscape mode:', error)
+    snackbar.error('Errore durante l\'aggiornamento dell\'orientamento')
+  }
+}
+
 const loadUIPreferences = async () => {
   try {
     const authStore = useAuthStore()
@@ -1462,6 +1522,13 @@ const loadUIPreferences = async () => {
     if (preferences.appFont) {
       selectedAppFont.value = preferences.appFont
       document.documentElement.style.setProperty('--mcf-app-font', preferences.appFont)
+    }
+
+    // Carica preferenza orientamento da localStorage
+    const savedLandscape = localStorage.getItem('mcf-force-landscape')
+    if (savedLandscape === 'true') {
+      forceLandscapeMode.value = true
+      document.documentElement.style.setProperty('--mcf-orientation', 'landscape')
     }
 
     console.log('✅ UI preferences loaded from profile:', preferences)
@@ -2289,6 +2356,58 @@ onUnmounted(() => {
   border-radius: 8px;
   border: 1px solid var(--mcf-border-light);
   box-shadow: var(--mcf-shadow-sm);
+}
+
+/* === DISPLAY SETTINGS SECTION === */
+.mcf-display-section {
+  text-align: left;
+}
+
+.mcf-display-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: var(--mcf-bg-primary);
+  border-radius: 12px;
+  margin-top: 16px;
+
+  @media (min-width: 768px) {
+    padding: 20px;
+  }
+}
+
+.mcf-option-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.mcf-option-icon {
+  font-size: 24px;
+  color: var(--mcf-primary);
+}
+
+.mcf-option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mcf-option-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--mcf-text-primary);
+}
+
+.mcf-option-desc {
+  font-size: 13px;
+  color: var(--mcf-text-secondary);
+}
+
+.mcf-display-toggle {
+  flex-shrink: 0;
 }
 
 /* === UPDATES SECTION === */
