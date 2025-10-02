@@ -2029,11 +2029,8 @@ onUnmounted(() => {
 .mcf-settings-sections {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-
-  @media (min-width: 768px) {
-    gap: 20px;
-  }
+  gap: 0;
+  width: 100%;
 }
 
 .mcf-settings-section {
@@ -3159,14 +3156,15 @@ onUnmounted(() => {
 /* === EXPANSION STYLES === */
 :deep(.mcf-expansion-header) {
   background: var(--mcf-card-bg) !important;
-  border-radius: 16px !important;
+  border-radius: 0 !important;
   padding: 16px 20px !important;
   font-size: 16px !important;
   font-weight: 600 !important;
   color: var(--mcf-text-primary) !important;
   transition: all 0.2s ease !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
-  margin-bottom: 4px !important;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08) !important;
+  margin-bottom: 0 !important;
+  width: 100% !important;
 }
 
 :deep(.mcf-expansion-header:hover) {
