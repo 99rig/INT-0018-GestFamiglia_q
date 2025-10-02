@@ -281,11 +281,14 @@ const loginWithPin = async () => {
 
   loading.value = true
   try {
+    console.log('🔐 Starting PIN login...')
     const success = await authStore.loginWithPin(pin.value)
 
     if (success) {
-      // Aspetta un attimo per assicurarsi che tutto sia salvato (importante per APK)
-      await new Promise(resolve => setTimeout(resolve, 100))
+      console.log('✅ PIN login success')
+      // Aspetta che lo storage sia completamente sincronizzato (importante per APK)
+      await new Promise(resolve => setTimeout(resolve, 500))
+      console.log('🚀 Navigating to dashboard...')
       await router.push('/dashboard')
     } else {
       snackbar.error('PIN non corretto')
@@ -317,6 +320,8 @@ const handleLogin = async () => {
 
   loading.value = true
   try {
+    console.log('🔐 Starting login...')
+
     const success = await authStore.login(email.value, password.value)
 
     if (!success) {
@@ -324,18 +329,43 @@ const handleLogin = async () => {
       return
     }
 
-    // Aspetta un attimo per assicurarsi che tutto sia salvato (importante per APK)
-    await new Promise(resolve => setTimeout(resolve, 100))
+    console.log('✅ Login success, checking auth state...', {
+      isAuthenticated: authStore.isAuthenticated,
+      hasToken: !!authStore.accessToken,
+      hasUser: !!authStore.user
+    })
+
+    // Verifica immediata dopo login
+    if (!authStore.isAuthenticated || !authStore.accessToken) {
+      snackbar.error('Auth state non valido dopo login')
+      return
+    }
+
+    // Aspetta che lo storage sia completamente sincronizzato (importante per APK)
+    // Su APK, Capacitor Preferences è async e potrebbe richiedere più tempo
+    await new Promise(resolve => setTimeout(resolve, 500))
+
+    console.log('⏳ After delay, auth state:', {
+      isAuthenticated: authStore.isAuthenticated,
+      hasToken: !!authStore.accessToken
+    })
+
+    // Verifica ancora una volta prima del redirect
+    if (!authStore.isAuthenticated || !authStore.accessToken) {
+      snackbar.error('Token perso dopo delay')
+      return
+    }
 
     // Se "Ricordami" è selezionato e non ha già un PIN, chiedi se vuole impostarlo
     if (rememberMe.value && !authStore.hasPinSetup()) {
       showSetupPinModal.value = true
     } else {
-      await router.push('/dashboard')
+      console.log('🚀 Navigating to dashboard...')
+      await router.push({ path: '/dashboard', replace: true })
     }
   } catch (error) {
-    console.error('Errore login:', error)
-    snackbar.error('Credenziali non valide')
+    console.error('❌ Errore login:', error)
+    snackbar.error('Errore: ' + (error.message || 'Riprova'))
   } finally {
     loading.value = false
   }

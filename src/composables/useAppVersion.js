@@ -1,7 +1,7 @@
 import { computed } from 'vue'
 
 // Versione unica dell'app - aggiornata automaticamente dallo script update_and_build.py
-const APP_VERSION = '1.0.5'
+const APP_VERSION = '1.0.7'
 
 /**
  * Composable per gestire la versione dell'app in modo centralizzato
