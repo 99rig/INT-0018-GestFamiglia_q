@@ -2032,18 +2032,18 @@ onUnmounted(() => {
 
 .mcf-settings-section {
   background: var(--mcf-bg-surface);
-  border-radius: 8px;
-  box-shadow: var(--mcf-shadow-md);
-  padding: 12px;
-  margin: 0 2px;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
 
   @media (min-width: 768px) {
-    padding: 16px;
-    margin: 0 4px;
+    padding: 0;
+    margin: 0;
   }
 
   @media (min-width: 1200px) {
-    padding: 20px;
+    padding: 0;
     margin: 0;
   }
 }
