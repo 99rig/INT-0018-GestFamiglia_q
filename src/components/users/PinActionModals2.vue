@@ -7,7 +7,7 @@
     transition-show="slide-down"
     transition-hide="slide-up"
   >
-    <q-card class="modal-wrapper">
+    <q-card class="modal-wrapper" flat>
       <div class="ticket-container">
       <div class="ticket-card">
         <!-- Header Section -->
@@ -127,13 +127,13 @@ const onCancel = () => {
   max-width: 100vw;
   margin: 0;
   border-radius: 0 0 24px 24px;
-  padding: 20px;
+  padding: 0;
 }
 
 .ticket-container {
   width: 100%;
-  max-width: 500px;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 0;
   padding: 0;
   position: relative;
 }
@@ -143,7 +143,7 @@ const onCancel = () => {
   border-radius: 20px;
   padding: 25px 20px;
   position: relative;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: none;
   overflow: visible;
 
   /* Perforations */
@@ -300,9 +300,9 @@ const onCancel = () => {
     transform: translateY(-50%);
     width: 26px;
     height: 26px;
-    background: #B4B8BB;
+    background: #f0f4f8;
     border-radius: 50%;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: none;
     z-index: 20;
   }
 
@@ -314,9 +314,9 @@ const onCancel = () => {
     transform: translateY(-50%);
     width: 26px;
     height: 26px;
-    background: #B3B6B9;
+    background: #f0f4f8;
     border-radius: 50%;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: none;
     z-index: 20;
   }
 }

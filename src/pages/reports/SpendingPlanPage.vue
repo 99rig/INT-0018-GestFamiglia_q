@@ -402,18 +402,18 @@ const editPlan = (plan) => {
 
 const togglePinPlan = async (plan) => {
   try {
-    // Toggle ottimistico
-    plan.is_pinned = !plan.is_pinned
+    // Toggle ottimistico (usa is_pinned_by_user invece di is_pinned)
+    plan.is_pinned_by_user = !plan.is_pinned_by_user
 
     const response = await reportsAPI.togglePinSpendingPlan(plan.id)
 
-    snackbar.success(response.detail || `Piano ${response.is_pinned ? 'pinnato' : 'spinnato'} con successo`)
+    snackbar.success(response.detail || `Piano ${response.is_pinned_by_user ? 'pinnato' : 'spinnato'} con successo`)
 
     // Ricarica per aggiornare l'ordinamento
     await loadSpendingPlans()
   } catch (error) {
     // Rollback in caso di errore
-    plan.is_pinned = !plan.is_pinned
+    plan.is_pinned_by_user = !plan.is_pinned_by_user
     console.error('Errore nel toggle pin del piano:', error)
     snackbar.error('Errore nell\'aggiornamento del piano')
   }

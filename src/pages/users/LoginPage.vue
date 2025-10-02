@@ -367,13 +367,13 @@ const closePinSetupModal = () => {
 .ticket-page {
   background: linear-gradient(135deg, #f0f4f8 0%, #e8eef3 100%);
   min-height: 100vh;
-  padding: 40px 20px;
+  padding: 40px 0;
 }
 
 .ticket-container {
   width: 100%;
-  max-width: 500px;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 0;
 }
 
 .ticket-card {
@@ -381,7 +381,7 @@ const closePinSetupModal = () => {
   border-radius: 20px;
   padding: 25px 20px;
   position: relative;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: none;
   overflow: visible;
 
   /* Perforations using radial gradients */
@@ -640,9 +640,9 @@ const closePinSetupModal = () => {
     transform: translateY(-50%);
     width: 26px;
     height: 26px;
-    background: #B4B8BB;
+    background: #f0f4f8;
     border-radius: 50%;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: none;
     z-index: 20;
   }
 
@@ -654,9 +654,9 @@ const closePinSetupModal = () => {
     transform: translateY(-50%);
     width: 26px;
     height: 26px;
-    background: #B3B6B9;
+    background: #f0f4f8;
     border-radius: 50%;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: none;
     z-index: 20;
   }
 }

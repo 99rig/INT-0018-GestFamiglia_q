@@ -32,12 +32,12 @@
           <q-btn
             flat
             round
-            :icon="plan.is_pinned ? 'push_pin' : 'push_pin'"
+            :icon="plan.is_pinned_by_user ? 'push_pin' : 'push_pin'"
             size="sm"
-            :class="['pin-btn', { 'pinned': plan.is_pinned }]"
+            :class="['pin-btn', { 'pinned': plan.is_pinned_by_user }]"
             @click="$emit('toggle-pin', plan)"
           >
-            <q-tooltip>{{ plan.is_pinned ? 'Spinna' : 'Pinna' }}</q-tooltip>
+            <q-tooltip>{{ plan.is_pinned_by_user ? 'Spinna' : 'Pinna' }}</q-tooltip>
           </q-btn>
           <q-btn
             flat

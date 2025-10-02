@@ -9,7 +9,7 @@
     transition-show="slide-down"
     transition-hide="slide-up"
   >
-    <q-card style="margin: 0; border-radius: 0 0 16px 16px; display: flex; flex-direction: column;" class="mcf-want-pin-modal">
+    <q-card style="margin: 0; border-radius: 0 0 16px 16px; display: flex; flex-direction: column;" class="mcf-want-pin-modal" flat>
       <!-- Header -->
       <q-card-section class="mcf-want-pin-header">
         <div class="mcf-want-pin-icon">
@@ -53,7 +53,7 @@
     transition-show="slide-down"
     transition-hide="slide-up"
   >
-    <q-card style="margin: 0; border-radius: 0 0 16px 16px; display: flex; flex-direction: column;" class="mcf-delete-pin-modal">
+    <q-card style="margin: 0; border-radius: 0 0 16px 16px; display: flex; flex-direction: column;" class="mcf-delete-pin-modal" flat>
       <!-- Header -->
       <q-card-section class="mcf-delete-header">
         <div class="mcf-delete-icon">
@@ -118,7 +118,7 @@ defineEmits([
   border-radius: 16px;
   overflow: hidden;
   background: white;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  box-shadow: none;
 }
 
 .mcf-want-pin-header {
@@ -197,7 +197,7 @@ defineEmits([
   border-radius: 16px;
   overflow: hidden;
   background: white;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  box-shadow: none;
 }
 
 .mcf-delete-header {
