@@ -407,7 +407,10 @@ const togglePinPlan = async (plan) => {
 
     const response = await reportsAPI.togglePinSpendingPlan(plan.id)
 
-    snackbar.success(response.detail || `Piano ${response.is_pinned_by_user ? 'pinnato' : 'spinnato'} con successo`)
+    // Mostra notifica solo su desktop
+    if (!$q.platform.is.mobile && !$q.platform.is.capacitor) {
+      snackbar.success(response.detail || `Piano ${response.is_pinned_by_user ? 'pinnato' : 'spinnato'} con successo`)
+    }
 
     // Ricarica per aggiornare l'ordinamento
     await loadSpendingPlans()
