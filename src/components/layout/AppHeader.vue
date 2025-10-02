@@ -66,6 +66,7 @@ async function logout() {
 
 .mcf-toolbar {
   padding: 0 16px;
+  padding-top: env(safe-area-inset-top);
   min-height: 64px;
   display: flex;
   align-items: center;
